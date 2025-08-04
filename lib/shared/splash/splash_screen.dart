@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:m_world/config/routes.dart';
 import 'splash_cubit.dart';
 import 'splash_state.dart';
 
@@ -14,7 +15,7 @@ class SplashScreen extends StatelessWidget {
         body: BlocListener<SplashCubit, SplashState>(
           listener: (context, state) {
             if (state is SplashCompleted) {
-              Navigator.pushReplacementNamed(context, '/LoginScreen');
+              Navigator.pushReplacementNamed(context, Routes.login);
             }
           },
           child: Center(
@@ -30,7 +31,7 @@ class SplashScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 20),
-                CircularProgressIndicator(),
+                // CircularProgressIndicator(),
               ],
             ),
           ),

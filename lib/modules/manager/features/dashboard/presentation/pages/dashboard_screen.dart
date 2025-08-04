@@ -17,8 +17,9 @@ class DashboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Car Service Dashboard'),
+        title: const Text('M World Dashboart'),
         actions: [
+          //notification screen
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () {
@@ -29,6 +30,7 @@ class DashboardScreen extends StatelessWidget {
               );
             },
           ),
+          //settings screen
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
@@ -39,6 +41,7 @@ class DashboardScreen extends StatelessWidget {
               );
             },
           ),
+          //logout
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => cubit.logout(),
@@ -56,9 +59,35 @@ class DashboardScreen extends StatelessWidget {
               context,
             ).showSnackBar(SnackBar(content: Text(state.message)));
           } else if (state is DashboardLoggedOut) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const Placeholder()),
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Confirm Logout'),
+                content: const Text('Are you sure you want to logout?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(), // Cancel
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      Navigator.of(context).pop(); // Close dialog
+                      // Firebase logout
+                      await Future.delayed(
+                        const Duration(milliseconds: 100),
+                      ); // Optional: ensure dialog closes
+                      // await FirebaseAuth.instance.signOut();
+                      // Then navigate to login screen
+                      if (context.mounted) {
+                        Navigator.of(
+                          context,
+                        ).pushReplacementNamed('/LoginScreen');
+                      }
+                    },
+                    child: const Text('Logout'),
+                  ),
+                ],
+              ),
             );
           }
         },
@@ -163,6 +192,8 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                Divider(),
                 const SizedBox(height: 16),
                 const Text(
                   'Costs & Payments Chart',

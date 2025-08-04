@@ -17,7 +17,6 @@ ThemeData carServiceTheme() {
   ); // Lighter gray for secondary text
 
   // Typography settings
-  const fontFamily = 'Roboto'; // Clean, modern font
   final textTheme = TextTheme(
     displayLarge: TextStyle(
       fontSize: 32,
@@ -71,7 +70,6 @@ ThemeData carServiceTheme() {
     scaffoldBackgroundColor: backgroundColor,
 
     // Typography
-    fontFamily: fontFamily,
     textTheme: textTheme,
 
     // AppBar theme
