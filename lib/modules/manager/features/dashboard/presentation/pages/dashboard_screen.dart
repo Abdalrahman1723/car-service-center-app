@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:m_world/shared/models/client.dart';
-
+import 'package:timelines_plus/timelines_plus.dart';
 import '../../../../../../shared/models/invoice.dart';
 import '../cubit/dashboard_cubit.dart';
+import '../widgets/time_line.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -127,6 +128,7 @@ class DashboardScreen extends StatelessWidget {
                   crossAxisSpacing: 8,
                   mainAxisSpacing: 8,
                   children: [
+                    //add new invoice
                     _buildCard(
                       context,
                       'Add New Invoice',
@@ -140,12 +142,14 @@ class DashboardScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    //all invoices
                     _buildCard(
                       context,
                       'All Invoices',
                       Icons.list,
                       () => cubit.loadAllInvoices(),
                     ),
+                    //add new client
                     _buildCard(
                       context,
                       'Add New Client',
@@ -158,6 +162,7 @@ class DashboardScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    //all clients
                     _buildCard(
                       context,
                       'All Clients',
@@ -239,6 +244,8 @@ class DashboardScreen extends StatelessWidget {
                   'Activity Timeline',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
+                const SizedBox(height: 20),
+                TimeLine(),
               ],
             ),
           );
@@ -269,3 +276,4 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 }
+
