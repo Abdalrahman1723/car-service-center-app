@@ -4,6 +4,7 @@ import 'package:m_world/modules/manager/features/inventory/data/repositories/inv
 import 'package:m_world/modules/manager/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:m_world/modules/manager/features/inventory/domain/usecases/add_item_to_inventory_usecase.dart';
 import 'package:m_world/modules/manager/features/inventory/domain/usecases/get_inventory_usecase.dart';
+import 'package:m_world/modules/manager/features/inventory/domain/usecases/remove_item_from_inventory_usecase.dart';
 import 'package:m_world/modules/manager/features/inventory/domain/usecases/update_item_in_inventory_usecase.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/cubit/inventory_cubit.dart';
 
@@ -17,6 +18,9 @@ class InventoryModule {
       getInventoryUseCase: GetInventoryUseCase(repository),
       addItemToInventoryUseCase: AddItemToInventoryUseCase(repository),
       updateItemInInventoryUseCase: UpdateItemInInventoryUseCase(repository),
+      removeItemFromInventoryUseCase: RemoveItemFromInventoryUseCase(
+        repository,
+      ),
     );
   }
 
