@@ -51,18 +51,30 @@ class ItemListTile extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 4),
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoChip(
-                  context,
-                  'Qty: ${item.quantity}',
-                  _getQuantityColor(context),
+                Row(
+                  children: [
+                    _buildInfoChip(
+                      context,
+                      'Qty: ${item.quantity}',
+                      _getQuantityColor(context),
+                    ),
+                    const SizedBox(width: 8),
+                    _buildInfoChip(
+                      context,
+                      '\$${item.price.toStringAsFixed(2)}',
+                      Theme.of(context).primaryColor,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
+                SizedBox(height: 8),
+                //date updated
                 _buildInfoChip(
                   context,
-                  '\$${item.price.toStringAsFixed(2)}',
-                  Theme.of(context).primaryColor,
+                  '${item.timeAdded}',
+                  Theme.of(context).hintColor,
                 ),
               ],
             ),

@@ -4,11 +4,13 @@ class Item {
   final int quantity;
   final String? code;
   final double price;
+  final DateTime? timeAdded;
   final String? description;
 
   Item({
     required this.id,
     required this.name,
+    required this.timeAdded,
     required this.quantity,
     this.code,
     required this.price,
@@ -20,6 +22,8 @@ class Item {
     'quantity': quantity,
     'price': price,
     'code': code,
+
+    'timeAdded': timeAdded?.toIso8601String(),
     'description': description,
   };
 
@@ -32,5 +36,10 @@ class Item {
         ? (map['price'] as int).toDouble()
         : (map['price'] ?? 0.0),
     description: map['description'],
+    timeAdded: map['timeAdded'] != null
+        ? (map['timeAdded'] is DateTime
+              ? map['timeAdded']
+              : DateTime.tryParse(map['timeAdded'].toString()))
+        : null,
   );
 }

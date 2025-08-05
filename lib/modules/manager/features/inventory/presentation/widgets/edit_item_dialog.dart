@@ -202,6 +202,7 @@ class _EditItemDialogState extends State<EditItemDialog> {
       description: _descriptionController.text.trim().isEmpty
           ? null
           : _descriptionController.text.trim(),
+      timeAdded: DateTime.now(),
     );
 
     Navigator.of(context).pop(updatedItem);

@@ -119,7 +119,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
                 decoration: const InputDecoration(
                   labelText: 'Item code (Optional)',
                   hintText: 'Enter item code',
-                  prefixIcon: Icon(Icons.numbers_rounded),
+                  prefixIcon: Icon(Icons.qr_code),
                 ),
               ),
               const SizedBox(height: 16),
@@ -150,6 +150,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
     if (_formKey.currentState!.validate()) {
       final item = Item(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
+        timeAdded: DateTime.now(),
         name: _nameController.text.trim(),
         code: _codeController.text.trim(),
         quantity: int.parse(_quantityController.text),

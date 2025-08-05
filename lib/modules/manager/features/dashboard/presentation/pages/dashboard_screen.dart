@@ -122,6 +122,7 @@ class DashboardScreen extends StatelessWidget {
                           cubit.loadAllInvoices();
                         },
                       ),
+                      //all clients
                       buildDrawerItem(
                         context,
                         icon: Icons.people,
@@ -132,6 +133,19 @@ class DashboardScreen extends StatelessWidget {
                           cubit.loadAllClients();
                         },
                       ),
+                      //the inventory
+                      buildDrawerItem(
+                        context,
+                        icon: Icons.inventory,
+                        title: 'The Inventory',
+                        subtitle: 'Stock management',
+                        onTap: () {
+                          Navigator.pop(context);
+                          // Navigate to inventory page
+                          Navigator.pushNamed(context, Routes.inventoryPanel);
+                        },
+                      ),
+                      //all supplyers
                       buildDrawerItem(
                         context,
                         icon: Icons.local_shipping,
@@ -180,17 +194,7 @@ class DashboardScreen extends StatelessWidget {
                           );
                         },
                       ),
-                      buildDrawerItem(
-                        context,
-                        icon: Icons.inventory,
-                        title: 'The Inventory',
-                        subtitle: 'Stock management',
-                        onTap: () {
-                          Navigator.pop(context);
-                          // Navigate to inventory page
-                          Navigator.pushNamed(context, Routes.inventoryPanel);
-                        },
-                      ),
+
                       buildDrawerItem(
                         context,
                         icon: Icons.work,
