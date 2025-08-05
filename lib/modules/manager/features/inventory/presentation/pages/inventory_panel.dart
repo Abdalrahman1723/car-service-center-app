@@ -6,6 +6,7 @@ import 'package:m_world/modules/manager/features/inventory/data/repositories/inv
 import 'package:m_world/modules/manager/features/inventory/domain/entities/inventory_entity.dart';
 import 'package:m_world/modules/manager/features/inventory/domain/usecases/add_item_to_inventory_usecase.dart';
 import 'package:m_world/modules/manager/features/inventory/domain/usecases/get_inventory_usecase.dart';
+import 'package:m_world/modules/manager/features/inventory/domain/usecases/remove_item_from_inventory_usecase.dart';
 import 'package:m_world/modules/manager/features/inventory/domain/usecases/update_item_in_inventory_usecase.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/cubit/inventory_cubit.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/cubit/inventory_state.dart';
@@ -38,6 +39,9 @@ class _InventoryPanelState extends State<InventoryPanel> {
       getInventoryUseCase: GetInventoryUseCase(repository),
       addItemToInventoryUseCase: AddItemToInventoryUseCase(repository),
       updateItemInInventoryUseCase: UpdateItemInInventoryUseCase(repository),
+      removeItemFromInventoryUseCase: RemoveItemFromInventoryUseCase(
+        repository,
+      ),
     );
 
     _loadInventory();
@@ -66,10 +70,24 @@ class _InventoryPanelState extends State<InventoryPanel> {
                 backgroundColor: Colors.red,
               ),
             );
-          } else if (state is ItemAdded || state is ItemUpdated) {
+          } else if (state is ItemAdded) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Item added successfully!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          } else if (state is ItemUpdated) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Item updated successfully!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          } else if (state is ItemRemoved) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Item deleted successfully!'),
                 backgroundColor: Colors.green,
               ),
             );
@@ -335,8 +353,8 @@ class _InventoryPanelState extends State<InventoryPanel> {
     );
 
     if (result == true && mounted) {
-      // Delete the item (for now, just reload)
-      _inventoryCubit.loadInventory();
+      // Delete the item using the cubit
+      await _inventoryCubit.removeItemFromInventory(item.id);
     }
   }
 }
