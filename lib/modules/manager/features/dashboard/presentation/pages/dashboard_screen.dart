@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:m_world/config/routes.dart';
 import 'package:m_world/shared/models/client.dart';
 import '../../../../../../shared/models/invoice.dart';
 import '../cubit/dashboard_cubit.dart';
@@ -187,12 +188,7 @@ class DashboardScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.pop(context);
                           // Navigate to inventory page
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const Placeholder(),
-                            ),
-                          );
+                          Navigator.pushNamed(context, Routes.inventoryPanel);
                         },
                       ),
                       buildDrawerItem(
@@ -283,7 +279,6 @@ class DashboardScreen extends StatelessWidget {
                       await Future.delayed(
                         const Duration(milliseconds: 100),
                       ); // Optional: ensure dialog closes
-                      // await FirebaseAuth.instance.signOut();
                       // Then navigate to login screen
                       if (context.mounted) {
                         Navigator.of(
@@ -344,7 +339,6 @@ class DashboardScreen extends StatelessWidget {
                           id: DateTime.now().toString(),
                           clientId: '',
                           amount: 100.0,
-                          date: DateTime.now(),
                         ),
                       ),
                     ),
@@ -364,8 +358,9 @@ class DashboardScreen extends StatelessWidget {
                         Client(
                           id: DateTime.now().toString(),
                           name: 'New Client',
-                          email: 'client@example.com', carType: 'X6', balance: 0,
-                          
+                          email: 'client@example.com',
+                          carType: 'X6',
+                          balance: 0,
                         ),
                       ),
                     ),
