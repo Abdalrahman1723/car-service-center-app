@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:m_world/modules/manager/features/inventory/data/models/inventory_model.dart';
 import 'package:m_world/shared/models/item.dart';
@@ -121,6 +123,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
 
       return await updateInventory(updatedInventory);
     } catch (e) {
+      log("error removing item");
       throw Exception('Failed to remove item from inventory: $e');
     }
   }
