@@ -373,7 +373,9 @@ class DashboardScreen extends StatelessWidget {
                       context,
                       'All Clients',
                       Icons.people,
-                      () => cubit.loadAllClients(),
+                      () => Navigator.of(
+                        context,
+                      ).pushNamed(Routes.clientManagement),
                     ),
                   ],
                 ),

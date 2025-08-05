@@ -1,7 +1,7 @@
 import 'package:m_world/shared/models/item.dart';
 
 class Invoice {
-  final String id;
+  final String id; 
   final String clientId;
   final String maintenanceBy;
   final double amount;

@@ -6,11 +6,11 @@ class Client {
   final String? phoneNumber;
   final String carType;
   final String? model;
-  final double balance;
+  final double balance; //his payments
   final String? email;
   final String? licensePlate;
   final String? notes;
-  final List<Invoice> history;
+  final List<Invoice>? history;
   // Updated constructor to include all fields
   Client({
     this.id = '',

@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(
           create: (context) => DashboardCubit(FirebaseDashboardRepository()),
+          
         ),
       ],
       child: MaterialApp(
