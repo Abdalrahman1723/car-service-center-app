@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:m_world/shared/models/client.dart';
-import 'package:timelines_plus/timelines_plus.dart';
 import '../../../../../../shared/models/invoice.dart';
 import '../cubit/dashboard_cubit.dart';
+import '../widgets/build_card.dart';
+import '../widgets/drawer_item.dart';
 import '../widgets/time_line.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -18,7 +19,15 @@ class DashboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('M World Dashboart'),
+        automaticallyImplyLeading: false,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
+        ),
         actions: [
           //notification screen
           IconButton(
@@ -48,6 +57,207 @@ class DashboardScreen extends StatelessWidget {
             onPressed: () => cubit.logout(),
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF1976D2), Color(0xFF1565C0)],
+            ),
+          ),
+          child: Column(
+            children: [
+              // Drawer Header
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(top: 50, bottom: 20),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    const CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Color(0xFF1976D2),
+                      child: Icon(Icons.person, size: 40, color: Colors.white),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Manager Dashboard',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1976D2),
+                      ),
+                    ),
+                    const Text(
+                      'Welcome back!',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Navigation Items
+              Expanded(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    children: [
+                      buildDrawerItem(
+                        context,
+                        icon: Icons.receipt_long,
+                        title: 'All Invoices',
+                        subtitle: 'View and manage invoices',
+                        onTap: () {
+                          Navigator.pop(context);
+                          cubit.loadAllInvoices();
+                        },
+                      ),
+                      buildDrawerItem(
+                        context,
+                        icon: Icons.people,
+                        title: 'All Clients',
+                        subtitle: 'Manage client information',
+                        onTap: () {
+                          Navigator.pop(context);
+                          cubit.loadAllClients();
+                        },
+                      ),
+                      buildDrawerItem(
+                        context,
+                        icon: Icons.local_shipping,
+                        title: 'All Suppliers',
+                        subtitle: 'Manage supplier relationships',
+                        onTap: () {
+                          Navigator.pop(context);
+                          // Navigate to suppliers page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const Placeholder(),
+                            ),
+                          );
+                        },
+                      ),
+                      buildDrawerItem(
+                        context,
+                        icon: Icons.shopping_cart,
+                        title: 'The Purchases',
+                        subtitle: 'Track purchase orders',
+                        onTap: () {
+                          Navigator.pop(context);
+                          // Navigate to purchases page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const Placeholder(),
+                            ),
+                          );
+                        },
+                      ),
+                      buildDrawerItem(
+                        context,
+                        icon: Icons.account_balance,
+                        title: 'The Vault',
+                        subtitle: 'Financial management',
+                        onTap: () {
+                          Navigator.pop(context);
+                          // Navigate to vault page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const Placeholder(),
+                            ),
+                          );
+                        },
+                      ),
+                      buildDrawerItem(
+                        context,
+                        icon: Icons.inventory,
+                        title: 'The Inventory',
+                        subtitle: 'Stock management',
+                        onTap: () {
+                          Navigator.pop(context);
+                          // Navigate to inventory page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const Placeholder(),
+                            ),
+                          );
+                        },
+                      ),
+                      buildDrawerItem(
+                        context,
+                        icon: Icons.work,
+                        title: 'The Employees',
+                        subtitle: 'Manage team members',
+                        onTap: () {
+                          Navigator.pop(context);
+                          // Navigate to employees page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const Placeholder(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Logout Section
+              Container(
+                margin: const EdgeInsets.all(10),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                    cubit.logout();
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 15,
+                      horizontal: 20,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.logout, color: Colors.red, size: 20),
+                        const SizedBox(width: 15),
+                        const Text(
+                          'Logout',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
       body: BlocConsumer<DashboardCubit, DashboardState>(
         listener: (context, state) {
@@ -129,28 +339,28 @@ class DashboardScreen extends StatelessWidget {
                   mainAxisSpacing: 8,
                   children: [
                     //add new invoice
-                    _buildCard(
+                    buildCard(
                       context,
                       'Add New Invoice',
                       Icons.add_circle,
                       () => cubit.addInvoice(
                         Invoice(
                           id: DateTime.now().toString(),
-                          clientId: 'client_1',
+                          clientId: '',
                           amount: 100.0,
                           date: DateTime.now(),
                         ),
                       ),
                     ),
                     //all invoices
-                    _buildCard(
+                    buildCard(
                       context,
                       'All Invoices',
                       Icons.list,
                       () => cubit.loadAllInvoices(),
                     ),
                     //add new client
-                    _buildCard(
+                    buildCard(
                       context,
                       'Add New Client',
                       Icons.person_add,
@@ -163,7 +373,7 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                     //all clients
-                    _buildCard(
+                    buildCard(
                       context,
                       'All Clients',
                       Icons.people,
@@ -172,6 +382,7 @@ class DashboardScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
+                //----------sales chart
                 const Text(
                   'Sales Chart',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -200,6 +411,7 @@ class DashboardScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Divider(),
                 const SizedBox(height: 16),
+                //----------cost chart
                 const Text(
                   'Costs & Payments Chart',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -240,6 +452,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
+                //----------timeline
                 const Text(
                   'Activity Timeline',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -253,27 +466,4 @@ class DashboardScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildCard(
-    BuildContext context,
-    String title,
-    IconData icon,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: onTap,
-      child: Card(
-        elevation: 4,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40),
-            const SizedBox(height: 8),
-            Text(title, style: const TextStyle(fontSize: 16)),
-          ],
-        ),
-      ),
-    );
-  }
 }
-
