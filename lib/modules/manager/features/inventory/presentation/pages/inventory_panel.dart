@@ -13,6 +13,7 @@ import 'package:m_world/modules/manager/features/inventory/domain/usecases/updat
 import 'package:m_world/modules/manager/features/inventory/presentation/cubit/inventory_cubit.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/cubit/inventory_state.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/widgets/add_item_dialog.dart';
+import 'package:m_world/modules/manager/features/inventory/presentation/widgets/edit_item_dialog.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/widgets/item_list_tile.dart';
 import 'package:m_world/shared/models/item.dart';
 
@@ -306,29 +307,14 @@ class _InventoryPanelState extends State<InventoryPanel> {
   }
 
   void _showEditItemDialog(BuildContext context, Item item) async {
-    // For now, we'll just show a simple edit dialog
-    // In a real app, you'd want a more sophisticated edit form
-    final result = await showDialog<bool>(
+    final updatedItem = await showDialog<Item>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Edit ${item.name}'),
-        content: const Text('Edit functionality will be implemented here.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+      builder: (context) => EditItemDialog(item: item),
     );
 
-    if (result == true && mounted) {
-      // Update the item (for now, just reload)
-      _inventoryCubit.loadInventory();
+    if (updatedItem != null && mounted) {
+      // Update the item using the cubit
+      await _inventoryCubit.updateItemInInventory(updatedItem);
     }
   }
 
