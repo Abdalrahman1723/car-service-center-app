@@ -51,11 +51,6 @@ class DashboardScreen extends StatelessWidget {
               );
             },
           ),
-          //logout
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => cubit.logout(),
-          ),
         ],
       ),
       drawer: Drawer(
@@ -115,6 +110,7 @@ class DashboardScreen extends StatelessWidget {
                   child: ListView(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     children: [
+                      //all invoices
                       buildDrawerItem(
                         context,
                         icon: Icons.receipt_long,
@@ -368,7 +364,8 @@ class DashboardScreen extends StatelessWidget {
                         Client(
                           id: DateTime.now().toString(),
                           name: 'New Client',
-                          email: 'client@example.com',
+                          email: 'client@example.com', carType: 'X6', balance: 0,
+                          
                         ),
                       ),
                     ),
