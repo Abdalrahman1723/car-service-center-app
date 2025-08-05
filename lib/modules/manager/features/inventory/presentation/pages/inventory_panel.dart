@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -139,7 +141,8 @@ class _InventoryPanelState extends State<InventoryPanel> {
     } else if (state is InventoryLoaded) {
       return _buildItemList(context, state.inventory);
     } else {
-      return const Center(child: Text('Something went wrong'));
+      log("loading item error");
+      return const Center(child: CircularProgressIndicator());
     }
   }
 

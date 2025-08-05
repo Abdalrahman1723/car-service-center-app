@@ -14,6 +14,7 @@ class AddItemDialog extends StatefulWidget {
 class _AddItemDialogState extends State<AddItemDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _codeController = TextEditingController();
   final _quantityController = TextEditingController();
   final _priceController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -23,6 +24,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
     _nameController.dispose();
     _quantityController.dispose();
     _priceController.dispose();
+    _codeController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
@@ -37,6 +39,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              //the item name
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -52,8 +55,10 @@ class _AddItemDialogState extends State<AddItemDialog> {
                 },
               ),
               const SizedBox(height: 16),
+              // quantity and price
               Row(
                 children: [
+                  //--quantity
                   Expanded(
                     child: TextFormField(
                       controller: _quantityController,
@@ -77,6 +82,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
                     ),
                   ),
                   const SizedBox(width: 16),
+                  //--price
                   Expanded(
                     child: TextFormField(
                       controller: _priceController,
@@ -109,6 +115,15 @@ class _AddItemDialogState extends State<AddItemDialog> {
               ),
               const SizedBox(height: 16),
               TextFormField(
+                controller: _codeController,
+                decoration: const InputDecoration(
+                  labelText: 'Item code (Optional)',
+                  hintText: 'Enter item code',
+                  prefixIcon: Icon(Icons.numbers_rounded),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(
                   labelText: 'Description (Optional)',
@@ -136,6 +151,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
       final item = Item(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: _nameController.text.trim(),
+        code: _codeController.text.trim(),
         quantity: int.parse(_quantityController.text),
         price: double.parse(_priceController.text),
         description: _descriptionController.text.trim().isEmpty

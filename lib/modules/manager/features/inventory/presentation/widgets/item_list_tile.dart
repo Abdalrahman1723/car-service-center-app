@@ -42,6 +42,7 @@ class ItemListTile extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
+            ?item.code != "" ? Text("code: ${item.code!}") : null,
             const SizedBox(height: 4),
             Row(
               children: [
