@@ -117,13 +117,6 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                   TextFormField(
                     controller: _discountController,
                     // deduct disscount from the total amount
-                    // onEditingComplete: () {
-                    //   setState(() {
-                    //     totalAmount -=
-                    //         double.tryParse(_discountController.text) ?? 0.0;
-                    //     _amountController.text = totalAmount.toString();
-                    //   });
-                    // },
                     onChanged: (disscount) {
                       setState(() {
                         final discountValue = double.tryParse(disscount) ?? 0.0;
@@ -139,8 +132,11 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                         }
                       });
                     },
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Discount (amount)',
+                      fillColor: _discountController.text.isEmpty
+                          ? Colors.blueGrey.withOpacity(0.23)
+                          : Colors.green.withOpacity(0.25),
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -258,6 +254,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                 //deduct the item price from the total amount
                 totalAmount -= item.price;
                 _amountController.text = totalAmount.toString();
+                _discountController.clear();
               }),
             ),
           );
@@ -322,6 +319,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                       );
                       nameController.text = item.name;
                       priceController.text = item.price.toString();
+                      _discountController.clear();
                     }
                   },
                 )
