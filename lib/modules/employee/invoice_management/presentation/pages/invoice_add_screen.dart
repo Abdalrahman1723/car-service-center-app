@@ -69,15 +69,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                   // Client dropdown
                   _buildClientDropdown(state),
                   const SizedBox(height: 16),
-                  // Amount field
-                  TextFormField(
-                    controller: _amountController,
-                    readOnly: true,
-                    decoration: const InputDecoration(labelText: 'Amount'),
-                    validator: (value) =>
-                        value!.isEmpty ? 'Amount is required' : null,
-                  ),
-                  const SizedBox(height: 16),
+
                   // Maintenance by field
                   TextFormField(
                     controller: _maintenanceByController,
@@ -125,10 +117,26 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                   TextFormField(
                     controller: _discountController,
                     // deduct disscount from the total amount
-                    onChanged: (value) {
+                    // onEditingComplete: () {
+                    //   setState(() {
+                    //     totalAmount -=
+                    //         double.tryParse(_discountController.text) ?? 0.0;
+                    //     _amountController.text = totalAmount.toString();
+                    //   });
+                    // },
+                    onChanged: (disscount) {
                       setState(() {
-                        totalAmount -= double.tryParse(value) ?? 0.0;
-                        _amountController.text = totalAmount.toString();
+                        final discountValue = double.tryParse(disscount) ?? 0.0;
+                        final discountedAmount = totalAmount - discountValue;
+                        // Only update the text if the value is different to avoid cursor jump while typing
+                        if (_amountController.text !=
+                            discountedAmount.toString()) {
+                          _amountController.text = discountedAmount.toString();
+                          _amountController
+                              .selection = TextSelection.fromPosition(
+                            TextPosition(offset: _amountController.text.length),
+                          );
+                        }
                       });
                     },
                     decoration: const InputDecoration(
@@ -136,8 +144,23 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                     ),
                     keyboardType: TextInputType.number,
                   ),
+                  const SizedBox(height: 16),
+                  //------------------- Amount field-------------------
+                  TextFormField(
+                    enabled: false,
+                    controller: _amountController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Amount',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    validator: (value) =>
+                        value!.isEmpty ? 'Amount is required' : null,
+                  ),
                   const SizedBox(height: 24),
-                  // Submit button
+                  // -----------------------Submit button--------------------
                   ElevatedButton(
                     onPressed: state is InvoiceManagementLoading
                         ? null
