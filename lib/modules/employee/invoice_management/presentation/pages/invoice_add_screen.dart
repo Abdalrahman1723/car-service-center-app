@@ -124,6 +124,13 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                   // Discount field
                   TextFormField(
                     controller: _discountController,
+                    // deduct disscount from the total amount
+                    onChanged: (value) {
+                      setState(() {
+                        totalAmount -= double.tryParse(value) ?? 0.0;
+                        _amountController.text = totalAmount.toString();
+                      });
+                    },
                     decoration: const InputDecoration(
                       labelText: 'Discount (amount)',
                     ),
