@@ -40,6 +40,7 @@ class ClientUpdateDialog {
               ),
               SizedBox(height: 8),
               TextField(
+                maxLength: 15,
                 controller: phoneController,
                 decoration: const InputDecoration(labelText: 'Phone Number'),
                 keyboardType: TextInputType.phone,

@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart'; // Added for FilteringTextInputFormatter
 
 import '../cubit/client_management_cubit.dart';
 
@@ -17,21 +17,26 @@ class ClientManagementScreen extends StatelessWidget {
     final modelController = TextEditingController();
     final balanceController = TextEditingController(text: '0.0');
     final emailController = TextEditingController();
-    final licensePlateController = TextEditingController();
+    final licensePlateNumberController =
+        TextEditingController(); // Only numbers
+    final licensePlateLetterController =
+        TextEditingController(); // Only letters
     final notesController = TextEditingController();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Client'),
-      ),
+      appBar: AppBar(title: const Text('Add New Client')),
       body: BlocConsumer<ClientManagementCubit, ClientManagementState>(
         listener: (context, state) {
           // Handle success and error states with snackbar notifications
           if (state is ClientManagementSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
             Navigator.pop(context);
           } else if (state is ClientManagementError) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         builder: (context, state) {
@@ -47,7 +52,8 @@ class ClientManagementScreen extends StatelessWidget {
                   modelController: modelController,
                   balanceController: balanceController,
                   emailController: emailController,
-                  licensePlateController: licensePlateController,
+                  licensePlateNumberController: licensePlateNumberController,
+                  licensePlateLetterController: licensePlateLetterController,
                   notesController: notesController,
                 ),
                 const SizedBox(height: 24),
@@ -61,7 +67,8 @@ class ClientManagementScreen extends StatelessWidget {
                   modelController: modelController,
                   balanceController: balanceController,
                   emailController: emailController,
-                  licensePlateController: licensePlateController,
+                  licensePlateNumberController: licensePlateNumberController,
+                  licensePlateLetterController: licensePlateLetterController,
                   notesController: notesController,
                 ),
               ],
@@ -80,7 +87,8 @@ class ClientManagementScreen extends StatelessWidget {
     required TextEditingController modelController,
     required TextEditingController balanceController,
     required TextEditingController emailController,
-    required TextEditingController licensePlateController,
+    required TextEditingController licensePlateNumberController, // Only numbers
+    required TextEditingController licensePlateLetterController, // Only letters
     required TextEditingController notesController,
   }) {
     return Column(
@@ -96,6 +104,7 @@ class ClientManagementScreen extends StatelessWidget {
         const SizedBox(height: 16),
         // Optional field - Phone Number
         TextField(
+          maxLength: 15,
           controller: phoneController,
           decoration: const InputDecoration(
             labelText: 'Phone Number',
@@ -142,13 +151,44 @@ class ClientManagementScreen extends StatelessWidget {
           keyboardType: TextInputType.emailAddress,
         ),
         const SizedBox(height: 16),
-        // Optional field - License Plate
-        TextField(
-          controller: licensePlateController,
-          decoration: const InputDecoration(
-            labelText: 'License Plate',
-            hintText: 'Enter vehicle license plate',
-          ),
+        // License Plate - Two adjacent fields
+        Row(
+          children: [
+            // Numbers (left)
+            Expanded(
+              child: TextField(
+                maxLength: 7,
+                controller: licensePlateNumberController,
+                decoration: const InputDecoration(
+                  labelText: 'Plate Numbers',
+                  hintText: '1 2 3 4',
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^[0-9 ]*'),
+                  ), // Only numbers and spaces
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Letters (right)
+            Expanded(
+              child: TextField(
+                maxLength: 5,
+                controller: licensePlateLetterController,
+                decoration: const InputDecoration(
+                  labelText: 'Plate Letters',
+                  hintText: 'A B C',
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^[a-zA-Z\u0600-\u06FF ]*'),
+                  ), // Only letters and spaces
+                ],
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         // Optional field - Notes
@@ -174,7 +214,8 @@ class ClientManagementScreen extends StatelessWidget {
     required TextEditingController modelController,
     required TextEditingController balanceController,
     required TextEditingController emailController,
-    required TextEditingController licensePlateController,
+    required TextEditingController licensePlateNumberController, // Only numbers
+    required TextEditingController licensePlateLetterController, // Only letters
     required TextEditingController notesController,
   }) {
     return SizedBox(
@@ -183,16 +224,17 @@ class ClientManagementScreen extends StatelessWidget {
         onPressed: state is ClientManagementLoading
             ? null
             : () => _handleFormSubmission(
-                  context: context,
-                  nameController: nameController,
-                  phoneController: phoneController,
-                  carTypeController: carTypeController,
-                  modelController: modelController,
-                  balanceController: balanceController,
-                  emailController: emailController,
-                  licensePlateController: licensePlateController,
-                  notesController: notesController,
-                ),
+                context: context,
+                nameController: nameController,
+                phoneController: phoneController,
+                carTypeController: carTypeController,
+                modelController: modelController,
+                balanceController: balanceController,
+                emailController: emailController,
+                licensePlateNumberController: licensePlateNumberController,
+                licensePlateLetterController: licensePlateLetterController,
+                notesController: notesController,
+              ),
         child: state is ClientManagementLoading
             ? const SizedBox(
                 height: 20,
@@ -213,7 +255,8 @@ class ClientManagementScreen extends StatelessWidget {
     required TextEditingController modelController,
     required TextEditingController balanceController,
     required TextEditingController emailController,
-    required TextEditingController licensePlateController,
+    required TextEditingController licensePlateNumberController, // Only numbers
+    required TextEditingController licensePlateLetterController, // Only letters
     required TextEditingController notesController,
   }) {
     // Validate required fields
@@ -229,16 +272,24 @@ class ClientManagementScreen extends StatelessWidget {
     // Parse balance with fallback to 0.0
     final balance = double.tryParse(balanceController.text) ?? 0.0;
 
+    // Combine license plate fields
+    String licensePlate = '';
+    if (licensePlateNumberController.text.trim().isNotEmpty ||
+        licensePlateLetterController.text.trim().isNotEmpty) {
+      licensePlate =
+          '${licensePlateNumberController.text.trim()} / ${licensePlateLetterController.text.trim()}';
+    }
+
     // Add new client
     context.read<ClientManagementCubit>().addClient(
-          name: nameController.text,
-          phoneNumber: phoneController.text.isEmpty ? null : phoneController.text,
-          carType: carTypeController.text,
-          model: modelController.text.isEmpty ? null : modelController.text,
-          balance: balance,
-          email: emailController.text.isEmpty ? null : emailController.text,
-          licensePlate: licensePlateController.text.isEmpty ? null : licensePlateController.text,
-          notes: notesController.text.isEmpty ? null : notesController.text,
-        );
+      name: nameController.text,
+      phoneNumber: phoneController.text.isEmpty ? null : phoneController.text,
+      carType: carTypeController.text,
+      model: modelController.text.isEmpty ? null : modelController.text,
+      balance: balance,
+      email: emailController.text.isEmpty ? null : emailController.text,
+      licensePlate: licensePlate.isEmpty ? null : licensePlate,
+      notes: notesController.text.isEmpty ? null : notesController.text,
+    );
   }
 }
