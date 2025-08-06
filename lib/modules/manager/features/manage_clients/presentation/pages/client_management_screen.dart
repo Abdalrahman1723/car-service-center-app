@@ -1,67 +1,37 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../../shared/models/client.dart';
 import '../cubit/client_management_cubit.dart';
 
-/// Page for adding or updating a client
-///
-/// This screen provides a form interface for creating new clients or editing existing ones.
-/// When [client] is null, the screen operates in "add" mode.
-/// When [client] is provided, the screen operates in "edit" mode.
+// Page for adding a new client
 class ClientManagementScreen extends StatelessWidget {
-  /// The client to edit. Null for adding a new client, non-null for editing existing client
-  final Client? client;
-
-  const ClientManagementScreen({super.key, this.client});
+  const ClientManagementScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Initialize text controllers with existing client data if editing
-    // This pre-fills the form fields when editing an existing client
-    final nameController = TextEditingController(text: client?.name ?? '');
-    final phoneController = TextEditingController(
-      text: client?.phoneNumber ?? '',
-    );
-    final carTypeController = TextEditingController(
-      text: client?.carType ?? '',
-    );
-    final modelController = TextEditingController(text: client?.model ?? '');
-    final balanceController = TextEditingController(
-      text: client?.balance.toString() ?? '0.0',
-    );
-    final emailController = TextEditingController(text: client?.email ?? '');
-    final licensePlateController = TextEditingController(
-      text: client?.licensePlate ?? '',
-    );
-    final notesController = TextEditingController(text: client?.notes ?? '');
+    // Initialize text controllers for form input
+    final nameController = TextEditingController();
+    final phoneController = TextEditingController();
+    final carTypeController = TextEditingController();
+    final modelController = TextEditingController();
+    final balanceController = TextEditingController(text: '0.0');
+    final emailController = TextEditingController();
+    final licensePlateController = TextEditingController();
+    final notesController = TextEditingController();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(client == null ? 'Add New Client' : 'Edit Client'),
-        actions: [
-          // Show delete button only when editing an existing client
-          if (client != null)
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                context.read<ClientManagementCubit>().deleteClient(client!.id);
-              },
-            ),
-        ],
+        title: const Text('Add New Client'),
       ),
       body: BlocConsumer<ClientManagementCubit, ClientManagementState>(
         listener: (context, state) {
           // Handle success and error states with snackbar notifications
           if (state is ClientManagementSuccess) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
             Navigator.pop(context);
           } else if (state is ClientManagementError) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         builder: (context, state) {
@@ -80,9 +50,7 @@ class ClientManagementScreen extends StatelessWidget {
                   licensePlateController: licensePlateController,
                   notesController: notesController,
                 ),
-
                 const SizedBox(height: 24),
-
                 // Submit Button
                 _buildSubmitButton(
                   context: context,
@@ -104,7 +72,7 @@ class ClientManagementScreen extends StatelessWidget {
     );
   }
 
-  /// Builds the form fields for client information
+  // Builds the form fields for client information
   Widget _buildFormFields({
     required TextEditingController nameController,
     required TextEditingController phoneController,
@@ -125,9 +93,7 @@ class ClientManagementScreen extends StatelessWidget {
             hintText: 'Enter client full name',
           ),
         ),
-
         const SizedBox(height: 16),
-
         // Optional field - Phone Number
         TextField(
           controller: phoneController,
@@ -137,9 +103,7 @@ class ClientManagementScreen extends StatelessWidget {
           ),
           keyboardType: TextInputType.phone,
         ),
-
         const SizedBox(height: 16),
-
         // Required field - Car Type
         TextField(
           controller: carTypeController,
@@ -148,9 +112,7 @@ class ClientManagementScreen extends StatelessWidget {
             hintText: 'e.g., Sedan, SUV, Truck',
           ),
         ),
-
         const SizedBox(height: 16),
-
         // Optional field - Car Model
         TextField(
           controller: modelController,
@@ -159,9 +121,7 @@ class ClientManagementScreen extends StatelessWidget {
             hintText: 'e.g., Toyota Camry 2020',
           ),
         ),
-
         const SizedBox(height: 16),
-
         // Required field - Balance
         TextField(
           controller: balanceController,
@@ -171,9 +131,7 @@ class ClientManagementScreen extends StatelessWidget {
           ),
           keyboardType: TextInputType.number,
         ),
-
         const SizedBox(height: 16),
-
         // Optional field - Email
         TextField(
           controller: emailController,
@@ -183,9 +141,7 @@ class ClientManagementScreen extends StatelessWidget {
           ),
           keyboardType: TextInputType.emailAddress,
         ),
-
         const SizedBox(height: 16),
-
         // Optional field - License Plate
         TextField(
           controller: licensePlateController,
@@ -194,9 +150,7 @@ class ClientManagementScreen extends StatelessWidget {
             hintText: 'Enter vehicle license plate',
           ),
         ),
-
         const SizedBox(height: 16),
-
         // Optional field - Notes
         TextField(
           controller: notesController,
@@ -210,7 +164,7 @@ class ClientManagementScreen extends StatelessWidget {
     );
   }
 
-  /// Builds the submit button with validation and form submission logic
+  // Builds the submit button with validation and form submission logic
   Widget _buildSubmitButton({
     required BuildContext context,
     required ClientManagementState state,
@@ -229,28 +183,28 @@ class ClientManagementScreen extends StatelessWidget {
         onPressed: state is ClientManagementLoading
             ? null
             : () => _handleFormSubmission(
-                context: context,
-                nameController: nameController,
-                phoneController: phoneController,
-                carTypeController: carTypeController,
-                modelController: modelController,
-                balanceController: balanceController,
-                emailController: emailController,
-                licensePlateController: licensePlateController,
-                notesController: notesController,
-              ),
+                  context: context,
+                  nameController: nameController,
+                  phoneController: phoneController,
+                  carTypeController: carTypeController,
+                  modelController: modelController,
+                  balanceController: balanceController,
+                  emailController: emailController,
+                  licensePlateController: licensePlateController,
+                  notesController: notesController,
+                ),
         child: state is ClientManagementLoading
             ? const SizedBox(
                 height: 20,
                 width: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : Text(client == null ? 'Add Client' : 'Update Client'),
+            : const Text('Add Client'),
       ),
     );
   }
 
-  /// Handles form submission with validation
+  // Handles form submission with validation
   void _handleFormSubmission({
     required BuildContext context,
     required TextEditingController nameController,
@@ -275,40 +229,16 @@ class ClientManagementScreen extends StatelessWidget {
     // Parse balance with fallback to 0.0
     final balance = double.tryParse(balanceController.text) ?? 0.0;
 
-    if (client == null) {
-      // Add new client
-      context.read<ClientManagementCubit>().addClient(
-        name: nameController.text,
-        phoneNumber: phoneController.text.isEmpty ? null : phoneController.text,
-        carType: carTypeController.text,
-        model: modelController.text.isEmpty ? null : modelController.text,
-        balance: balance,
-        email: emailController.text.isEmpty ? null : emailController.text,
-        licensePlate: licensePlateController.text.isEmpty
-            ? null
-            : licensePlateController.text,
-        notes: notesController.text.isEmpty ? null : notesController.text,
-      );
-    } else {
-      // Update existing client
-      context.read<ClientManagementCubit>().updateClient(
-        Client(
-          id: client!.id,
+    // Add new client
+    context.read<ClientManagementCubit>().addClient(
           name: nameController.text,
-          phoneNumber: phoneController.text.isEmpty
-              ? null
-              : phoneController.text,
+          phoneNumber: phoneController.text.isEmpty ? null : phoneController.text,
           carType: carTypeController.text,
           model: modelController.text.isEmpty ? null : modelController.text,
           balance: balance,
           email: emailController.text.isEmpty ? null : emailController.text,
-          licensePlate: licensePlateController.text.isEmpty
-              ? null
-              : licensePlateController.text,
+          licensePlate: licensePlateController.text.isEmpty ? null : licensePlateController.text,
           notes: notesController.text.isEmpty ? null : notesController.text,
-          history: client!.history, // Preserve existing history
-        ),
-      );
-    }
+        );
   }
 }

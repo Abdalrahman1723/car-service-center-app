@@ -2,9 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/modules/auth/login/presentation/pages/login_screen.dart';
 import 'package:m_world/modules/manager/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/pages/inventory_panel.dart';
+import 'package:m_world/modules/manager/features/manage_clients/presentation/pages/client_list_screen.dart';
 import 'package:m_world/shared/splash/splash_screen.dart';
-
-import '../modules/manager/features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import '../modules/manager/features/manage_clients/data/datasources/client_datasource.dart';
 import '../modules/manager/features/manage_clients/data/repositories/client_repository_impl.dart';
 import '../modules/manager/features/manage_clients/domain/usecases/add_client.dart';
@@ -19,6 +18,7 @@ class Routes {
   static const String adminDashboard = '/DashboardScreen';
   static const String inventoryPanel = '/InventoryPanel';
   static const String clientManagement = '/ClientManagementScreen';
+  static const String clientList = '/ClientListScreen';
 }
 
 final routes = {
@@ -28,7 +28,6 @@ final routes = {
   Routes.inventoryPanel: (context) => const InventoryPanel(),
   Routes.clientManagement: (context) => BlocProvider(
     create: (context) => ClientManagementCubit(
-      FirebaseDashboardRepository(),
       addClientUseCase: AddClient(
         ClientRepositoryImpl(FirebaseClientDataSource()),
       ),
@@ -40,5 +39,19 @@ final routes = {
       ),
     ),
     child: const ClientManagementScreen(),
+  ),
+  Routes.clientList: (context) => BlocProvider(
+    create: (context) => ClientManagementCubit(
+      addClientUseCase: AddClient(
+        ClientRepositoryImpl(FirebaseClientDataSource()),
+      ),
+      updateClientUseCase: UpdateClient(
+        ClientRepositoryImpl(FirebaseClientDataSource()),
+      ),
+      deleteClientUseCase: DeleteClient(
+        ClientRepositoryImpl(FirebaseClientDataSource()),
+      ),
+    ),
+    child: const ClientListScreen(),
   ),
 };

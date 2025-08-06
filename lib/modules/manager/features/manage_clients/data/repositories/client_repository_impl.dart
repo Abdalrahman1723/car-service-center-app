@@ -1,7 +1,8 @@
+import 'package:m_world/modules/manager/features/manage_clients/data/datasources/client_datasource.dart';
+import 'package:m_world/modules/manager/features/manage_clients/domain/repositories/client_repository.dart';
+
 import '../../../../../../shared/models/client.dart' as entity;
 import '../../../../../../shared/models/client.dart' as model;
-import '../../domain/repositories/client_repository.dart';
-import '../datasources/client_datasource.dart';
 
 // Repository implementation for client management
 class ClientRepositoryImpl implements ClientRepository {
@@ -51,5 +52,26 @@ class ClientRepositoryImpl implements ClientRepository {
   Future<void> deleteClient(String clientId) async {
     // Call data source to delete client
     await dataSource.deleteClient(clientId);
+  }
+
+  // Fetch all clients from data source
+  Future<List<entity.Client>> getAllClients() async {
+    final clientModels = await dataSource.getAllClients();
+    return clientModels
+        .map(
+          (model) => entity.Client(
+            id: model.id,
+            name: model.name,
+            phoneNumber: model.phoneNumber,
+            carType: model.carType,
+            model: model.model,
+            balance: model.balance,
+            email: model.email,
+            licensePlate: model.licensePlate,
+            notes: model.notes,
+            history: model.history,
+          ),
+        )
+        .toList();
   }
 }

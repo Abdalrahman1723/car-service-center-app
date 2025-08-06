@@ -1,20 +1,21 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:m_world/modules/manager/features/dashboard/data/repositories/dashboard_repository_impl.dart';
+import 'package:m_world/modules/manager/features/manage_clients/domain/usecases/add_client.dart';
+import 'package:m_world/modules/manager/features/manage_clients/domain/usecases/update_client.dart';
+import 'package:m_world/modules/manager/features/manage_clients/domain/usecases/delete_client.dart';
 
 import '../../../../../../shared/models/client.dart';
-import '../../domain/usecases/add_client.dart';
-import '../../domain/usecases/delete_client.dart';
-import '../../domain/usecases/update_client.dart';
+import '../../data/datasources/client_datasource.dart';
+import '../../data/repositories/client_repository_impl.dart';
 
 part 'client_management_state.dart';
 
-// Cubit for managing client operations (add, update, delete)
+// Cubit for managing client operations (add, update, delete, load)
 class ClientManagementCubit extends Cubit<ClientManagementState> {
   final AddClient addClientUseCase;
   final UpdateClient updateClientUseCase;
   final DeleteClient deleteClientUseCase;
 
-  ClientManagementCubit(FirebaseDashboardRepository firebaseDashboardRepository, {
+  ClientManagementCubit({
     required this.addClientUseCase,
     required this.updateClientUseCase,
     required this.deleteClientUseCase,
@@ -68,6 +69,17 @@ class ClientManagementCubit extends Cubit<ClientManagementState> {
     try {
       await deleteClientUseCase(clientId);
       emit(ClientManagementSuccess('Client deleted successfully'));
+    } catch (e) {
+      emit(ClientManagementError(e.toString()));
+    }
+  }
+
+  // Load all clients
+  Future<void> loadClients() async {
+    emit(ClientManagementLoading());
+    try {
+      final clients = await ClientRepositoryImpl(FirebaseClientDataSource()).getAllClients();
+      emit(ClientManagementClientsLoaded(clients));
     } catch (e) {
       emit(ClientManagementError(e.toString()));
     }

@@ -1,3 +1,4 @@
+
 part of 'client_management_cubit.dart';
 
 // Abstract state for client management
@@ -15,4 +16,9 @@ class ClientManagementSuccess extends ClientManagementState {
 class ClientManagementError extends ClientManagementState {
   final String message;
   ClientManagementError(this.message);
+}
+
+class ClientManagementClientsLoaded extends ClientManagementState {
+  final List<Client> clients;
+  ClientManagementClientsLoaded(this.clients);
 }

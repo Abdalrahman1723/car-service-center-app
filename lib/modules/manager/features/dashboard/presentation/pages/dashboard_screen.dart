@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:m_world/config/routes.dart';
-import 'package:m_world/shared/models/client.dart';
 import '../../../../../../shared/models/invoice.dart';
 import '../cubit/dashboard_cubit.dart';
 import '../widgets/build_card.dart';
@@ -358,24 +357,16 @@ class DashboardScreen extends StatelessWidget {
                       context,
                       'Add New Client',
                       Icons.person_add,
-                      () => cubit.addClient(
-                        Client(
-                          id: DateTime.now().toString(),
-                          name: 'New Client',
-                          email: 'client@example.com',
-                          carType: 'X6',
-                          balance: 0,
-                        ),
-                      ),
+                      () => Navigator.of(
+                        context,
+                      ).pushNamed(Routes.clientManagement),
                     ),
                     //all clients
                     buildCard(
                       context,
                       'All Clients',
                       Icons.people,
-                      () => Navigator.of(
-                        context,
-                      ).pushNamed(Routes.clientManagement),
+                      () => Navigator.of(context).pushNamed(Routes.clientList),
                     ),
                   ],
                 ),
