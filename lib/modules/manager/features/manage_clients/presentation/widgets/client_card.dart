@@ -27,7 +27,7 @@ class ClientCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Client name and car type
-            Text(
+            SelectableText(
               client.name,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -35,7 +35,7 @@ class ClientCard extends StatelessWidget {
             Text('Car: ${client.carType} ${client.model ?? ''}'),
             if (client.phoneNumber != null) ...[
               const SizedBox(height: 4),
-              Text('Phone: ${client.phoneNumber}'),
+              SelectableText('Phone: ${client.phoneNumber}'),
             ],
             if (client.email != null) ...[
               const SizedBox(height: 4),
@@ -43,10 +43,10 @@ class ClientCard extends StatelessWidget {
             ],
             if (client.licensePlate != null) ...[
               const SizedBox(height: 4),
-              Text('License Plate: ${client.licensePlate}'),
+              SelectableText('License Plate: ${client.licensePlate}'),
             ],
             const SizedBox(height: 8),
-            Text('Balance: \$${client.balance.toStringAsFixed(2)}'),
+            SelectableText('Balance: \$${client.balance.toStringAsFixed(2)}'),
             if (client.notes != null) ...[
               const SizedBox(height: 4),
               Text('Notes: ${client.notes}'),

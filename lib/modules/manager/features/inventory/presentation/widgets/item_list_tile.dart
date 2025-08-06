@@ -43,11 +43,31 @@ class ItemListTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             if (item.code != null && item.code!.isNotEmpty)
-              Text(
-                'Code: ${item.code}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.w500,
+              RichText(
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.bodySmall,
+                  children: [
+                    const TextSpan(
+                      text: 'Code: ',
+                      style: TextStyle(fontWeight: FontWeight.normal),
+                    ),
+                    // the code
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.baseline,
+                      baseline: TextBaseline.alphabetic,
+                      child: SelectableText(
+                        item.code ?? '',
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.w500,
+                          fontSize: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.fontSize,
+                        ),
+                        enableInteractiveSelection: true,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             const SizedBox(height: 4),
