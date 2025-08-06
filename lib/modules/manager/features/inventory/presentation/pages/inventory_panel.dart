@@ -26,11 +26,14 @@ class InventoryPanel extends StatefulWidget {
 
 class _InventoryPanelState extends State<InventoryPanel> {
   late InventoryCubit _inventoryCubit;
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
     _initializeCubit();
+    _searchController.addListener(_onSearchChanged);
   }
 
   void _initializeCubit() {
@@ -54,8 +57,27 @@ class _InventoryPanelState extends State<InventoryPanel> {
     await _inventoryCubit.loadInventory();
   }
 
+  void _onSearchChanged() {
+    setState(() {
+      _isSearching = _searchController.text.isNotEmpty;
+    });
+  }
+
+  List<Item> _filterItems(List<Item> items, String query) {
+    if (query.isEmpty) return items;
+
+    final lowercaseQuery = query.toLowerCase();
+    return items.where((item) {
+      final name = item.name.toLowerCase();
+      final code = (item.code ?? '').toLowerCase();
+
+      return name.contains(lowercaseQuery) || code.contains(lowercaseQuery);
+    }).toList();
+  }
+
   @override
   void dispose() {
+    _searchController.dispose();
     _inventoryCubit.close();
     super.dispose();
   }
@@ -148,6 +170,11 @@ class _InventoryPanelState extends State<InventoryPanel> {
   }
 
   Widget _buildItemList(BuildContext context, InventoryEntity inventory) {
+    // Filter items based on search query
+    final itemsToDisplay = _isSearching
+        ? _filterItems(inventory.items, _searchController.text)
+        : inventory.items;
+
     return Column(
       children: [
         Container(
@@ -176,14 +203,19 @@ class _InventoryPanelState extends State<InventoryPanel> {
             ],
           ),
         ),
+        // Search Bar
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: _buildSearchBar(context),
+        ),
         Expanded(
-          child: inventory.items.isEmpty
-              ? _buildEmptyItemsState(context)
+          child: itemsToDisplay.isEmpty
+              ? _buildEmptySearchState(context)
               : ListView.builder(
                   padding: const EdgeInsets.all(8),
-                  itemCount: inventory.items.length,
+                  itemCount: itemsToDisplay.length,
                   itemBuilder: (context, index) {
-                    final item = inventory.items[index];
+                    final item = itemsToDisplay[index];
                     return ItemListTile(
                       item: item,
                       onEdit: () => _showEditItemDialog(context, item),
@@ -253,26 +285,70 @@ class _InventoryPanelState extends State<InventoryPanel> {
     );
   }
 
-  Widget _buildEmptyItemsState(BuildContext context) {
+  Widget _buildSearchBar(BuildContext context) {
+    return TextField(
+      controller: _searchController,
+      decoration: InputDecoration(
+        hintText: 'Search items by name or code...',
+        prefixIcon: const Icon(Icons.search),
+        suffixIcon: _searchController.text.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () {
+                  _searchController.clear();
+                },
+              )
+            : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor.withOpacity(0.3),
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor.withOpacity(0.3),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor,
+            width: 2,
+          ),
+        ),
+        filled: true,
+        fillColor: Theme.of(context).cardColor,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      style: Theme.of(context).textTheme.bodyMedium,
+    );
+  }
+
+  Widget _buildEmptySearchState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.inventory_2_outlined,
+            Icons.search_off,
             size: 64,
             color: Theme.of(context).disabledColor,
           ),
           const SizedBox(height: 16),
           Text(
-            'No Items in Inventory',
+            'No Items Found',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Theme.of(context).disabledColor,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Add your first item to get started',
+            'Try adjusting your search terms',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).disabledColor,
             ),
