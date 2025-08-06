@@ -1,17 +1,17 @@
 import 'package:m_world/shared/models/item.dart';
 
 class Invoice {
-  final String id; 
-  final String clientId;
-  final String maintenanceBy;
+  final String id;
+  final String clientId; //phone number
+  final String maintenanceBy; //worker name
   final double amount;
   final DateTime creatDate;
   final DateTime issueDate;
   final List<Item> items;
   final String? notes;
   final bool isPaid;
-  final String? paymentMethod;
-  final double? discount;
+  final String? paymentMethod; //in a drop down menu
+  final double? discount; //as a percentage or amount of money
 
   Invoice({
     required this.id,

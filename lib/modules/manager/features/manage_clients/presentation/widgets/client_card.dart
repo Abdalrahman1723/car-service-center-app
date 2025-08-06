@@ -18,7 +18,7 @@ class ClientCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.white38,
+      color: Colors.white60,
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: Padding(

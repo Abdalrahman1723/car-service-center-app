@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:m_world/config/routes.dart';
-import '../../../../../../shared/models/invoice.dart';
 import '../cubit/dashboard_cubit.dart';
 import '../widgets/build_card.dart';
 import '../widgets/drawer_item.dart';
@@ -337,20 +336,14 @@ class DashboardScreen extends StatelessWidget {
                       context,
                       'Add New Invoice',
                       Icons.add_circle,
-                      () => cubit.addInvoice(
-                        Invoice(
-                          id: DateTime.now().toString(),
-                          clientId: '',
-                          amount: 100.0,
-                        ),
-                      ),
+                      () => Navigator.of(context).pushNamed(Routes.invoiceAdd),
                     ),
                     //all invoices
                     buildCard(
                       context,
                       'All Invoices',
                       Icons.list,
-                      () => cubit.loadAllInvoices(),
+                      () => Navigator.of(context).pushNamed(Routes.invoiceList),
                     ),
                     //add new client
                     buildCard(

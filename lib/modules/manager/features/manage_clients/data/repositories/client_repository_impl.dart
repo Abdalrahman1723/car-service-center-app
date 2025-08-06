@@ -55,6 +55,7 @@ class ClientRepositoryImpl implements ClientRepository {
   }
 
   // Fetch all clients from data source
+  @override
   Future<List<entity.Client>> getAllClients() async {
     final clientModels = await dataSource.getAllClients();
     return clientModels

@@ -5,4 +5,5 @@ abstract class ClientRepository {
   Future<void> addClient(Client client);
   Future<void> updateClient(Client client);
   Future<void> deleteClient(String clientId);
+  Future<List<Client>> getAllClients();
 }
