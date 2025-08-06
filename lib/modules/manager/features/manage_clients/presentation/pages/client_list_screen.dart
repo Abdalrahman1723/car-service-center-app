@@ -1,19 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/modules/manager/features/manage_clients/presentation/widgets/client_card.dart';
+import 'package:m_world/shared/models/client.dart';
 
 import '../cubit/client_management_cubit.dart';
 import '../widgets/update_dialog.dart';
 
 // Screen to display all clients in a card-based layout with update and delete options
-class ClientListScreen extends StatelessWidget {
+class ClientListScreen extends StatefulWidget {
   const ClientListScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Trigger loadClients on screen initialization
-    context.read<ClientManagementCubit>().loadClients();
+  State<ClientListScreen> createState() => _ClientListScreenState();
+}
 
+class _ClientListScreenState extends State<ClientListScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+    context.read<ClientManagementCubit>().loadClients();
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      _isSearching = _searchController.text.isNotEmpty;
+    });
+  }
+
+  List<Client> _filterClients(List<Client> clients, String query) {
+    if (query.isEmpty) return clients;
+
+    final lowercaseQuery = query.toLowerCase();
+    return clients.where((client) {
+      final name = client.name.toLowerCase();
+      final phoneNumber = (client.phoneNumber ?? '').toLowerCase();
+      final licensePlate = (client.licensePlate ?? '').toLowerCase();
+
+      return name.contains(lowercaseQuery) ||
+          phoneNumber.contains(lowercaseQuery) ||
+          licensePlate.contains(lowercaseQuery);
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('All Clients')),
       body: BlocConsumer<ClientManagementCubit, ClientManagementState>(
@@ -41,53 +81,149 @@ class ClientListScreen extends StatelessWidget {
             if (state.clients.isEmpty) {
               return const Center(child: Text('No clients found'));
             }
-            return ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: state.clients.length,
-              itemBuilder: (context, index) {
-                final client = state.clients[index];
-                // Use ClientCard widget with correct context for actions
-                return ClientCard(
-                  client: client,
-                  onUpdate: () => ClientUpdateDialog.show(context, client),
-                  onDelete: () {
-                    // Use context from ListView.builder for dialog
-                    showDialog(
-                      context: context,
-                      builder: (dialogContext) => AlertDialog(
-                        title: const Text('Delete Client'),
-                        content: Text(
-                          'Are you sure you want to delete ${client.name}?',
+
+            // Filter clients based on search query
+            final clientsToDisplay = _isSearching
+                ? _filterClients(state.clients, _searchController.text)
+                : state.clients;
+
+            return Column(
+              children: [
+                // Search Bar
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  child: _buildSearchBar(context),
+                ),
+                // Client List
+                Expanded(
+                  child: clientsToDisplay.isEmpty
+                      ? _buildEmptySearchState(context)
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          itemCount: clientsToDisplay.length,
+                          itemBuilder: (context, index) {
+                            final client = clientsToDisplay[index];
+                            // Use ClientCard widget with correct context for actions
+                            return ClientCard(
+                              client: client,
+                              onUpdate: () =>
+                                  ClientUpdateDialog.show(context, client),
+                              onDelete: () {
+                                // Use context from ListView.builder for dialog
+                                showDialog(
+                                  context: context,
+                                  builder: (dialogContext) => AlertDialog(
+                                    title: const Text('Delete Client'),
+                                    content: Text(
+                                      'Are you sure you want to delete ${client.name}?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(dialogContext),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          // Use context from ListView.builder for cubit access
+                                          context
+                                              .read<ClientManagementCubit>()
+                                              .deleteClient(client.id);
+                                          Navigator.pop(dialogContext);
+                                        },
+                                        child: const Text(
+                                          'Delete',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
                         ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(dialogContext),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              // Use context from ListView.builder for cubit access
-                              context
-                                  .read<ClientManagementCubit>()
-                                  .deleteClient(client.id);
-                              Navigator.pop(dialogContext);
-                            },
-                            child: const Text(
-                              'Delete',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
+                ),
+              ],
             );
           }
           // Display initial state with loading prompt
           return const Center(child: Text('Loading clients...'));
         },
+      ),
+    );
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
+    return TextField(
+      controller: _searchController,
+      decoration: InputDecoration(
+        hintText: 'Search clients by name, phone, or plate number...',
+        prefixIcon: const Icon(Icons.search),
+        suffixIcon: _searchController.text.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () {
+                  _searchController.clear();
+                },
+              )
+            : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor.withOpacity(0.3),
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor.withOpacity(0.3),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor,
+            width: 2,
+          ),
+        ),
+        filled: true,
+        fillColor: Theme.of(context).cardColor,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      style: Theme.of(context).textTheme.bodyMedium,
+    );
+  }
+
+  Widget _buildEmptySearchState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 64,
+            color: Theme.of(context).disabledColor,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No Clients Found',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Theme.of(context).disabledColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Try adjusting your search terms',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).disabledColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }
