@@ -117,7 +117,7 @@ class DashboardScreen extends StatelessWidget {
                         subtitle: 'View and manage invoices',
                         onTap: () {
                           Navigator.pop(context);
-                          cubit.loadAllInvoices();
+                          Navigator.of(context).pushNamed(Routes.invoiceList);
                         },
                       ),
                       //all clients
@@ -128,7 +128,7 @@ class DashboardScreen extends StatelessWidget {
                         subtitle: 'Manage client information',
                         onTap: () {
                           Navigator.pop(context);
-                          cubit.loadAllClients();
+                          Navigator.of(context).pushNamed(Routes.clientList);
                         },
                       ),
                       //the inventory
