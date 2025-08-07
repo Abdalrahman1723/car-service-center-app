@@ -22,7 +22,6 @@ class Item {
     'quantity': quantity,
     'price': price,
     'code': code,
-
     'timeAdded': timeAdded?.toIso8601String(),
     'description': description,
   };
@@ -43,3 +42,4 @@ class Item {
         : null,
   );
 }
+

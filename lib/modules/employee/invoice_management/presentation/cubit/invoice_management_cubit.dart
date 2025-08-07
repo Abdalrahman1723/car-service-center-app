@@ -34,7 +34,7 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
     bool isPaid = false,
     String? paymentMethod,
     double? discount,
-    DateTime? issueDate
+    DateTime? issueDate,
   }) async {
     emit(InvoiceManagementLoading());
     try {
@@ -44,12 +44,42 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
         amount: amount,
         maintenanceBy: maintenanceBy,
         items: items,
+        creatDate: DateTime.now(),
+        issueDate: issueDate,
         notes: notes,
         isPaid: isPaid,
         paymentMethod: paymentMethod,
         discount: discount,
       );
       await addInvoiceUseCase(invoice);
+      // For each unique item name in the invoice items, count how many times it appears,
+      // then update the inventory by decreasing the quantity accordingly.
+      final Map<String, int> itemCounts = {};
+      for (final item in items) {
+        itemCounts[item.name] = (itemCounts[item.name] ?? 0) + item.quantity;
+      }
+      for (final entry in itemCounts.entries) {
+        final inventory = await inventoryRepository.getInventory();
+        final inventoryItem = inventory.items.firstWhere(
+          (invItem) => invItem.name == entry.key,
+          orElse: () =>
+              throw Exception('Item ${entry.key} not found in inventory'),
+        );
+        //in case the quantity is not sufficient
+        if (inventoryItem.quantity < entry.value) {
+          throw Exception('Item ${entry.key} has insufficient quantity');
+        }
+        final updatedItem = Item(
+          id: inventoryItem.id,
+          name: inventoryItem.name,
+          timeAdded: inventoryItem.timeAdded,
+          quantity: inventoryItem.quantity - entry.value,
+          code: inventoryItem.code,
+          price: inventoryItem.price,
+          description: inventoryItem.description,
+        );
+        await inventoryRepository.updateItemInInventory(updatedItem);
+      }
       emit(InvoiceManagementSuccess('Invoice added successfully'));
     } catch (e) {
       emit(InvoiceManagementError(e.toString()));

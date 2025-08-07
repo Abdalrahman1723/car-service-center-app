@@ -34,6 +34,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   double totalAmount = 0;
   DateTime? _issueDate;
   late String selectedClientName;
+  Color quantityContainerColor = Colors.blueAccent;
   @override
   void initState() {
     super.initState();
@@ -386,111 +387,246 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
 
   // Items selection (from inventory and external items)
   Widget _buildItemsSelection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const Center(
-          child: Text('Items', style: TextStyle(fontWeight: FontWeight.bold)),
-        ),
-        ..._items.asMap().entries.map((entry) {
-          final index = entry.key;
-          final item = entry.value;
-          return Row(
-            children: [
-              // Item name and price
-              Expanded(
-                child: ListTile(
-                  title: Text(item.name),
-                  subtitle: Text('Price: \$${item.price.toStringAsFixed(2)}'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => setState(() {
-                      _items.removeAt(index);
-                      totalAmount -= item.price * item.quantity;
-                      _amountController.text = totalAmount.toString();
-                      _discountController.clear();
-                    }),
+    return Container(
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12.0),
+        border: Border.all(color: Colors.grey[300]!, width: 1.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Items',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18.0,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 12.0),
+          ..._items.asMap().entries.map((entry) {
+            final index = entry.key;
+            final item = entry.value;
+            // Determine quantity status and color
+            final inventoryItem = _inventory?.items.firstWhere(
+              (i) => i.name == item.name,
+            );
+            final totalQuantity = inventoryItem?.quantity ?? 0;
+            final Color statusColor = totalQuantity == 0
+                ? Colors.red
+                : totalQuantity <= 5
+                ? Colors.orange
+                : Colors.green;
+
+            return Dismissible(
+              key: Key(item.id), // Unique key for each item
+              direction: DismissDirection.endToStart,
+              confirmDismiss: (direction) async {
+                return await showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Confirm Delete'),
+                      content: Text(
+                        'Are you sure you want to remove ${item.name}?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text('Delete'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              onDismissed: (direction) {
+                setState(() {
+                  _items.removeAt(index);
+                  totalAmount -= item.price * item.quantity;
+                  _amountController.text = totalAmount.toString();
+                  _discountController.clear();
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${item.name} removed'),
+                    action: SnackBarAction(
+                      label: 'Undo',
+                      onPressed: () {
+                        setState(() {
+                          _items.insert(index, item);
+                          totalAmount += item.price * item.quantity;
+                          _amountController.text = totalAmount.toString();
+                        });
+                      },
+                    ),
                   ),
+                );
+              },
+              background: Container(
+                color: Colors.red,
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 20.0),
+                child: const Icon(
+                  Icons.delete,
+                  color: Colors.white,
+                  size: 30.0,
                 ),
               ),
-              // Show quantity in a styled box
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.only(right: 20.0),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0,
-                    vertical: 6.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: Colors.blueAccent, width: 1.2),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.confirmation_number,
-                        size: 18,
-                        color: Colors.blueAccent,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12.0),
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 3,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Item name and price
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16.0,
+                            ),
+                          ),
+                          const SizedBox(height: 4.0),
+                          Text(
+                            'Price: \$${item.price.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14.0,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Qty: ${item.quantity}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.blueAccent,
+                    ),
+                    // Quantity display
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 8.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8.0),
+                          border: Border.all(color: statusColor, width: 1.2),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.inventory_2,
+                              size: 18,
+                              color: statusColor,
+                            ),
+                            const SizedBox(width: 8.0),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Qty: ${item.quantity}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: statusColor,
+                                    fontSize: 14.0,
+                                  ),
+                                ),
+                                Text(
+                                  'In Stock: $totalQuantity',
+                                  style: TextStyle(
+                                    fontSize: 12.0,
+                                    color: statusColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 20),
-                      // Decrease and increase quantity buttons
-                      Column(
-                        children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.remove_circle_outline,
-                              color: Colors.redAccent,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                if (item.quantity > 1) {
-                                  item.quantity--;
-                                  totalAmount -= item.price;
-                                  _amountController.text = totalAmount
-                                      .toString();
-                                  _discountController.clear();
-                                }
-                              });
-                            },
+                    ),
+                    // Quantity controls
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.remove_circle_outline,
+                            color: Colors.redAccent,
+                            size: 24.0,
                           ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.add_circle_outline,
-                              color: Colors.green,
-                            ),
-                            onPressed: () {
+                          onPressed: () {
+                            if (item.quantity > 1) {
+                              setState(() {
+                                item.quantity--;
+                                totalAmount -= item.price;
+                                _amountController.text = totalAmount.toString();
+                                _discountController.clear();
+                              });
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.add_circle_outline,
+                            color: Colors.green,
+                            size: 24.0,
+                          ),
+                          onPressed: () {
+                            if (item.quantity < totalQuantity) {
                               setState(() {
                                 item.quantity++;
                                 totalAmount += item.price;
                                 _amountController.text = totalAmount.toString();
                                 _discountController.clear();
                               });
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ],
-          );
-        }),
-        TextButton(
-          onPressed: () => _showItemDialog(context),
-          child: const Text('Add Item'),
-        ),
-      ],
+            );
+          }),
+          Center(
+            child: TextButton(
+              onPressed: () => _showItemDialog(context),
+              child: const Text(
+                'Add Item',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blueAccent,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
