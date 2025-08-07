@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../shared/models/invoice.dart';
+import '../../../../../shared/models/client.dart';
 import '../cubit/invoice_management_cubit.dart';
 import '../widgets/invoice_card.dart';
 import '../widgets/invoice_client_dialog.dart';
@@ -20,8 +23,7 @@ class InvoiceListScreenState extends State<InvoiceListScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<InvoiceManagementCubit>().loadInvoices();
-    context.read<InvoiceManagementCubit>().loadClients();
+    context.read<InvoiceManagementCubit>().loadInvoicesAndClients();
   }
 
   @override
@@ -73,8 +75,8 @@ class InvoiceListScreenState extends State<InvoiceListScreen> {
               Expanded(
                 child: state is InvoiceManagementLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : state is InvoiceManagementInvoicesLoaded
-                    ? _buildInvoiceList(state.invoices)
+                    : state is InvoiceManagementDataLoaded
+                    ? _buildInvoiceList(state.invoices, state.clients)
                     : const Center(child: Text('No invoices found')),
               ),
             ],
@@ -85,10 +87,12 @@ class InvoiceListScreenState extends State<InvoiceListScreen> {
   }
 
   // Build filtered invoice list
-  Widget _buildInvoiceList(List<Invoice> invoices) {
+  Widget _buildInvoiceList(List<Invoice> invoices, List<Client> clients) {
+    log("the clients $clients");
+
     var filteredInvoices = invoices.where((invoice) {
       final matchesSearch =
-          invoice.clientId.toLowerCase().contains(
+          (invoice.clientId.toLowerCase()).contains(
             _searchController.text.toLowerCase(),
           ) ||
           invoice.maintenanceBy.toLowerCase().contains(
@@ -107,9 +111,16 @@ class InvoiceListScreenState extends State<InvoiceListScreen> {
       itemCount: filteredInvoices.length,
       itemBuilder: (context, index) {
         final invoice = filteredInvoices[index];
+        // Find client by phoneNumber (clientId)
+        final client = clients.firstWhere(
+          (c) => c.phoneNumber == invoice.clientId,
+          orElse: () =>
+              Client(id: '', name: 'Unknown', carType: '', balance: 0.0),
+        );
         return InvoiceCard(
           invoice: invoice,
-          onTap: () => InvoiceClientDialog.show(context, invoice.clientId),
+          clientName: client.name,
+          onTap: () => InvoiceClientDialog.show(context, client),
         );
       },
     );

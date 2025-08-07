@@ -17,7 +17,7 @@ class FirebaseInvoiceDataSource implements InvoiceDataSource {
     // Store invoice data in Firestore 'invoices' collection
     await _firestore
         .collection('invoices')
-        .doc(invoice.id)
+        .doc(invoice.clientId)
         .set(invoice.toMap());
   }
 

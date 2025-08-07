@@ -77,6 +77,18 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
     }
   }
 
+  // Load both invoices and clients
+  Future<void> loadInvoicesAndClients() async {
+    emit(InvoiceManagementLoading());
+    try {
+      final invoices = await getAllInvoicesUseCase();
+      final clients = await getAllClientsUseCase();
+      emit(InvoiceManagementDataLoaded(invoices, clients));
+    } catch (e) {
+      emit(InvoiceManagementError(e.toString()));
+    }
+  }
+
   // Load inventory data
   Future<void> loadInventory() async {
     emit(InvoiceManagementLoading());

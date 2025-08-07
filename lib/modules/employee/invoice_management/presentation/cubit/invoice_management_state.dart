@@ -30,3 +30,9 @@ class InvoiceManagementInventoryLoaded extends InvoiceManagementState {
   final InventoryEntity inventory;
   InvoiceManagementInventoryLoaded(this.inventory);
 }
+
+class InvoiceManagementDataLoaded extends InvoiceManagementState {
+  final List<Invoice> invoices;
+  final List<Client> clients;
+  InvoiceManagementDataLoaded(this.invoices, this.clients);
+}

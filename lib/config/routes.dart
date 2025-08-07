@@ -51,6 +51,7 @@ final routes = {
     ),
     child: const ClientManagementScreen(),
   ),
+  //-------------------
   Routes.clientList: (context) => BlocProvider(
     create: (context) => ClientManagementCubit(
       addClientUseCase: AddClient(
@@ -65,7 +66,7 @@ final routes = {
     ),
     child: const ClientListScreen(),
   ),
-
+  //-------------------
   Routes.invoiceAdd: (context) => BlocProvider(
     create: (context) => InvoiceManagementCubit(
       addInvoiceUseCase: AddInvoice(
@@ -87,6 +88,7 @@ final routes = {
     ),
     child: const InvoiceAddScreen(),
   ),
+  //-------------------
   Routes.invoiceList: (context) => BlocProvider(
     create: (context) => InvoiceManagementCubit(
       addInvoiceUseCase: AddInvoice(
