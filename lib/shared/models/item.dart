@@ -1,7 +1,7 @@
 class Item {
   final String id;
   final String name;
-  final int quantity;
+  int quantity;
   final String? code;
   final double price;
   final DateTime? timeAdded;
