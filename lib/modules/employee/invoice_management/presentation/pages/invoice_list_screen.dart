@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../shared/models/invoice.dart';
@@ -88,7 +86,6 @@ class InvoiceListScreenState extends State<InvoiceListScreen> {
 
   // Build filtered invoice list
   Widget _buildInvoiceList(List<Invoice> invoices, List<Client> clients) {
-    log("the clients $clients");
 
     var filteredInvoices = invoices.where((invoice) {
       final matchesSearch =

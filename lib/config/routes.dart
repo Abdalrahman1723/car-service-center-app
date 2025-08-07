@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/modules/auth/login/presentation/pages/login_screen.dart';
 import 'package:m_world/modules/employee/invoice_management/presentation/pages/invoice_add_screen.dart';
@@ -11,6 +12,7 @@ import '../modules/employee/invoice_management/data/repositories/invoice_reposit
 import '../modules/employee/invoice_management/domain/usecases/add_invoice.dart';
 import '../modules/employee/invoice_management/domain/usecases/get_all_invoices.dart';
 import '../modules/employee/invoice_management/presentation/cubit/invoice_management_cubit.dart';
+import '../modules/employee/invoice_management/presentation/pages/invoice_draft_list_screen.dart';
 import '../modules/manager/features/manage_clients/data/datasources/client_datasource.dart';
 import '../modules/manager/features/manage_clients/data/repositories/client_repository_impl.dart';
 import '../modules/manager/features/manage_clients/domain/usecases/add_client.dart';
@@ -30,6 +32,7 @@ class Routes {
   static const String clientList = '/ClientListScreen';
   static const String invoiceAdd = '/InvoiceAddScreen';
   static const String invoiceList = '/InvoiceListScreen';
+  static const String invoiceDraftList = '/InvoiceDraftListScreen';
 }
 
 final routes = {
@@ -86,7 +89,10 @@ final routes = {
       ),
       inventoryRepository: InventoryModule.provideInventoryRepository(),
     ),
-    child: const InvoiceAddScreen(),
+    child: InvoiceAddScreen(
+      draftData:
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?,
+    ),
   ),
   //-------------------
   Routes.invoiceList: (context) => BlocProvider(
@@ -110,4 +116,5 @@ final routes = {
     ),
     child: const InvoiceListScreen(),
   ),
+  Routes.invoiceDraftList: (context) => const InvoiceDraftListScreen(),
 };

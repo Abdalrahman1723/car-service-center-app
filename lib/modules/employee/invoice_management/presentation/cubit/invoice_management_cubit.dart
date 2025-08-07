@@ -34,6 +34,7 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
     bool isPaid = false,
     String? paymentMethod,
     double? discount,
+    DateTime? issueDate
   }) async {
     emit(InvoiceManagementLoading());
     try {
