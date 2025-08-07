@@ -1,19 +1,10 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../../modules/employee/invoice_management/data/datasources/invoice_datasource.dart';
-import '../../../../../modules/employee/invoice_management/data/repositories/invoice_repository_impl.dart';
-import '../../../../../modules/employee/invoice_management/domain/usecases/add_invoice.dart';
-import '../../../../../modules/employee/invoice_management/domain/usecases/get_all_invoices.dart';
-import '../../../../../modules/employee/invoice_management/presentation/cubit/invoice_management_cubit.dart';
-import '../../../../../modules/employee/invoice_management/presentation/pages/invoice_add_screen.dart';
-import '../../../../../modules/manager/features/manage_clients/data/datasources/client_datasource.dart';
-import '../../../../../modules/manager/features/manage_clients/data/repositories/client_repository_impl.dart';
-import '../../../../../modules/manager/features/manage_clients/domain/usecases/get_all_clients.dart';
-import '../../../../../modules/manager/features/inventory/inventory_module.dart';
+import '../../../../../config/routes.dart';
+
 
 // Screen to display all drafted invoices
 class InvoiceDraftListScreen extends StatefulWidget {
@@ -92,33 +83,9 @@ class InvoiceDraftListScreenState extends State<InvoiceDraftListScreen> {
                     ),
                     onTap: () {
                       log("the draft : $draft");
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => BlocProvider(
-                            create: (context) => InvoiceManagementCubit(
-                              addInvoiceUseCase: AddInvoice(
-                                InvoiceRepositoryImpl(
-                                  FirebaseInvoiceDataSource(),
-                                  FirebaseClientDataSource(),
-                                ),
-                              ),
-                              getAllInvoicesUseCase: GetAllInvoices(
-                                InvoiceRepositoryImpl(
-                                  FirebaseInvoiceDataSource(),
-                                  FirebaseClientDataSource(),
-                                ),
-                              ),
-                              getAllClientsUseCase: GetAllClients(
-                                ClientRepositoryImpl(
-                                  FirebaseClientDataSource(),
-                                ),
-                              ),
-                              inventoryRepository:
-                                  InventoryModule.provideInventoryRepository(),
-                            ),
-                            child: InvoiceAddScreen(draftData: draft),
-                          ),
-                        ),
+                      Navigator.of(context).pushReplacementNamed(
+                        Routes.invoiceAdd,
+                        arguments: draft,
                       );
                     },
                   ),
