@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/modules/auth/login/presentation/pages/login_screen.dart';
 import 'package:m_world/modules/employee/invoice_management/presentation/pages/invoice_add_screen.dart';
 import 'package:m_world/modules/employee/invoice_management/presentation/pages/invoice_list_screen.dart';
+import 'package:m_world/modules/employee/supplier_management/presentation/pages/suppliers_screen.dart';
 import 'package:m_world/modules/manager/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/pages/inventory_panel.dart';
 import 'package:m_world/modules/manager/features/manage_clients/presentation/pages/client_list_screen.dart';
@@ -13,6 +15,14 @@ import '../modules/employee/invoice_management/domain/usecases/add_invoice.dart'
 import '../modules/employee/invoice_management/domain/usecases/get_all_invoices.dart';
 import '../modules/employee/invoice_management/presentation/cubit/invoice_management_cubit.dart';
 import '../modules/employee/invoice_management/presentation/pages/invoice_draft_list_screen.dart';
+import '../modules/employee/supplier_management/data/datasources/supplier_datasource.dart';
+import '../modules/employee/supplier_management/data/repositories/supplier_repository_impl.dart';
+import '../modules/employee/supplier_management/domain/usecases/add_supplier.dart';
+import '../modules/employee/supplier_management/domain/usecases/delete_supplier.dart';
+import '../modules/employee/supplier_management/domain/usecases/get_suppliers.dart';
+import '../modules/employee/supplier_management/domain/usecases/update_supplier.dart';
+import '../modules/employee/supplier_management/presentation/cubit/suppliers_cubit.dart';
+import '../modules/employee/supplier_management/presentation/pages/add_supplier_screen.dart';
 import '../modules/manager/features/manage_clients/data/datasources/client_datasource.dart';
 import '../modules/manager/features/manage_clients/data/repositories/client_repository_impl.dart';
 import '../modules/manager/features/manage_clients/domain/usecases/add_client.dart';
@@ -33,6 +43,8 @@ class Routes {
   static const String invoiceAdd = '/InvoiceAddScreen';
   static const String invoiceList = '/InvoiceListScreen';
   static const String invoiceDraftList = '/InvoiceDraftListScreen';
+  static const String suppliers = '/SuppliersPage';
+  static const String addSupplier = '/AddSupplierPage';
 }
 
 final routes = {
@@ -117,4 +129,40 @@ final routes = {
     child: const InvoiceListScreen(),
   ),
   Routes.invoiceDraftList: (context) => const InvoiceDraftListScreen(),
+
+  //-------------------
+  Routes.suppliers: (context) => BlocProvider(
+    create: (context) => SuppliersCubit(
+      getSuppliersUseCase: GetSuppliers(
+        SupplierRepositoryImpl(SupplierDataSource(FirebaseFirestore.instance)),
+      ),
+      addSupplierUseCase: AddSupplier(
+        SupplierRepositoryImpl(SupplierDataSource(FirebaseFirestore.instance)),
+      ),
+      updateSupplierUseCase: UpdateSupplier(
+        SupplierRepositoryImpl(SupplierDataSource(FirebaseFirestore.instance)),
+      ),
+      deleteSupplierUseCase: DeleteSupplier(
+        SupplierRepositoryImpl(SupplierDataSource(FirebaseFirestore.instance)),
+      ),
+    )..loadSuppliers(),
+    child: const SuppliersScreen(),
+  ),
+  Routes.addSupplier: (context) => BlocProvider(
+    create: (context) => SuppliersCubit(
+      getSuppliersUseCase: GetSuppliers(
+        SupplierRepositoryImpl(SupplierDataSource(FirebaseFirestore.instance)),
+      ),
+      addSupplierUseCase: AddSupplier(
+        SupplierRepositoryImpl(SupplierDataSource(FirebaseFirestore.instance)),
+      ),
+      updateSupplierUseCase: UpdateSupplier(
+        SupplierRepositoryImpl(SupplierDataSource(FirebaseFirestore.instance)),
+      ),
+      deleteSupplierUseCase: DeleteSupplier(
+        SupplierRepositoryImpl(SupplierDataSource(FirebaseFirestore.instance)),
+      ),
+    ),
+    child: const AddSupplierScreen(),
+  ),
 };
