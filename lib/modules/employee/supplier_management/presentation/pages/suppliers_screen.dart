@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../../../../config/routes.dart';
 import '../cubit/suppliers_cubit.dart';
 import '../widgets/supplier_card.dart';
-import 'add_supplier_screen.dart';
 
 // Screen to display all suppliers
 class SuppliersScreen extends StatefulWidget {
@@ -15,17 +13,28 @@ class SuppliersScreen extends StatefulWidget {
 }
 
 class _SuppliersScreenState extends State<SuppliersScreen> {
-
   @override
   void initState() {
     context.read<SuppliersCubit>().loadSuppliers();
     super.initState();
     // Automatically load suppliers when the screen initializes
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Suppliers')),
+      appBar: AppBar(
+        title: const Text('Suppliers'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Reload Suppliers',
+            onPressed: () {
+              context.read<SuppliersCubit>().loadSuppliers();
+            },
+          ),
+        ],
+      ),
       body: BlocConsumer<SuppliersCubit, SuppliersState>(
         listener: (context, state) {
           if (state is SuppliersError) {
@@ -58,15 +67,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 final supplier = state.suppliers[index];
                 return SupplierCard(
                   supplier: supplier,
-                  onEdit: () => showDialog(
-                    context: context,
-                    builder: (_) => Dialog(
-                      child: AddSupplierScreen(
-                        supplier: supplier,
-                        isEdit: true,
-                      ),
-                    ),
-                  ),
+                  onEdit: () {
+                    Navigator.pushNamed(
+                      context,
+                      Routes.addSupplier,
+                      arguments: {'supplier': supplier, 'isEdit': true},
+                    );
+                  },
                   onDelete: () => showDialog(
                     context: context,
                     builder: (dialogContext) => AlertDialog(

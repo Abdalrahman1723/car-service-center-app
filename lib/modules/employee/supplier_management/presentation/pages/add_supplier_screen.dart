@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:m_world/config/routes.dart';
-
 import '../../domain/entities/supplier.dart';
 import '../cubit/suppliers_cubit.dart';
 import '../widgets/supplier_form_field.dart';
@@ -38,13 +36,15 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: widget.isEdit
+          ? AppBar(title: Text("Update Supplier Data"))
+          : AppBar(title: Text("Add New Supplier")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: BlocConsumer<SuppliersCubit, SuppliersState>(
           listener: (context, state) {
             if (state is SuppliersSuccess) {
-              Navigator.of(context).pushReplacementNamed(Routes.suppliers);
+              Navigator.of(context).pop();
             } else if (state is SuppliersError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -68,6 +68,7 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
                           value!.isEmpty ? 'Name is required' : null,
                     ),
                     const SizedBox(height: 16),
+                    //phone number
                     SupplierFormField(
                       controller: _phoneController,
                       label: 'Phone Number *',
@@ -81,6 +82,7 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
                       keyboardType: TextInputType.phone,
                     ),
                     const SizedBox(height: 16),
+                    //the balance
                     SupplierFormField(
                       controller: _balanceController,
                       label: 'Balance',
@@ -94,6 +96,7 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
+                    //add notes
                     SupplierFormField(
                       controller: _notesController,
                       label: 'Notes',

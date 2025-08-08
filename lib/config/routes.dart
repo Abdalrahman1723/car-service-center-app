@@ -17,6 +17,7 @@ import '../modules/employee/invoice_management/presentation/cubit/invoice_manage
 import '../modules/employee/invoice_management/presentation/pages/invoice_draft_list_screen.dart';
 import '../modules/employee/supplier_management/data/datasources/supplier_datasource.dart';
 import '../modules/employee/supplier_management/data/repositories/supplier_repository_impl.dart';
+import '../modules/employee/supplier_management/domain/entities/supplier.dart';
 import '../modules/employee/supplier_management/domain/usecases/add_supplier.dart';
 import '../modules/employee/supplier_management/domain/usecases/delete_supplier.dart';
 import '../modules/employee/supplier_management/domain/usecases/get_suppliers.dart';
@@ -148,21 +149,39 @@ final routes = {
     )..loadSuppliers(),
     child: const SuppliersScreen(),
   ),
-  Routes.addSupplier: (context) => BlocProvider(
-    create: (context) => SuppliersCubit(
-      getSuppliersUseCase: GetSuppliers(
-        SupplierRepositoryImpl(SupplierDataSource(FirebaseFirestore.instance)),
+
+  //------------------- takes args
+  Routes.addSupplier: (context) {
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+        {};
+    return BlocProvider(
+      create: (context) => SuppliersCubit(
+        getSuppliersUseCase: GetSuppliers(
+          SupplierRepositoryImpl(
+            SupplierDataSource(FirebaseFirestore.instance),
+          ),
+        ),
+        addSupplierUseCase: AddSupplier(
+          SupplierRepositoryImpl(
+            SupplierDataSource(FirebaseFirestore.instance),
+          ),
+        ),
+        updateSupplierUseCase: UpdateSupplier(
+          SupplierRepositoryImpl(
+            SupplierDataSource(FirebaseFirestore.instance),
+          ),
+        ),
+        deleteSupplierUseCase: DeleteSupplier(
+          SupplierRepositoryImpl(
+            SupplierDataSource(FirebaseFirestore.instance),
+          ),
+        ),
       ),
-      addSupplierUseCase: AddSupplier(
-        SupplierRepositoryImpl(SupplierDataSource(FirebaseFirestore.instance)),
+      child: AddSupplierScreen(
+        supplier: args['supplier'] as SupplierEntity?,
+        isEdit: args['isEdit'] as bool? ?? false,
       ),
-      updateSupplierUseCase: UpdateSupplier(
-        SupplierRepositoryImpl(SupplierDataSource(FirebaseFirestore.instance)),
-      ),
-      deleteSupplierUseCase: DeleteSupplier(
-        SupplierRepositoryImpl(SupplierDataSource(FirebaseFirestore.instance)),
-      ),
-    ),
-    child: const AddSupplierScreen(),
-  ),
+    );
+  },
 };

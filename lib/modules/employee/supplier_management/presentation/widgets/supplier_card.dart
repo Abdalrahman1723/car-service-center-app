@@ -29,7 +29,7 @@ class SupplierCard extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Phone: ${supplier.phoneNumber}'),
+            SelectableText('Phone: ${supplier.phoneNumber}'),
             Text('Balance: \$${supplier.balance.toStringAsFixed(2)}'),
           ],
         ),
