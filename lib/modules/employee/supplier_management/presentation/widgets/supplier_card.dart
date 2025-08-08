@@ -18,16 +18,19 @@ class SupplierCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.greenAccent.withOpacity(0.3),
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
-        title: Text(supplier.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          supplier.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Phone: ${supplier.phoneNumber}'),
             Text('Balance: \$${supplier.balance.toStringAsFixed(2)}'),
-            Text('Items: ${supplier.items.length}'),
           ],
         ),
         trailing: Row(

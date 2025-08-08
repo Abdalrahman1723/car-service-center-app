@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../../../shared/models/item.dart';
 import '../../domain/entities/supplier.dart';
 
 // Supplier model for Firestore serialization
@@ -7,7 +6,6 @@ class SupplierModel {
   final String id;
   final String name;
   final String phoneNumber;
-  final List<Item> items;
   final double balance;
   final String? notes;
   final DateTime createdAt;
@@ -16,7 +14,6 @@ class SupplierModel {
     required this.id,
     required this.name,
     required this.phoneNumber,
-    required this.items,
     this.balance = 0.0,
     this.notes,
     required this.createdAt,
@@ -27,7 +24,6 @@ class SupplierModel {
         id: id,
         name: name,
         phoneNumber: phoneNumber,
-        items: items,
         balance: balance,
         notes: notes,
         createdAt: createdAt,
@@ -38,7 +34,6 @@ class SupplierModel {
         id: entity.id,
         name: entity.name,
         phoneNumber: entity.phoneNumber,
-        items: entity.items,
         balance: entity.balance,
         notes: entity.notes,
         createdAt: entity.createdAt,
@@ -49,7 +44,6 @@ class SupplierModel {
         'id': id,
         'name': name,
         'phoneNumber': phoneNumber,
-        'items': items,
         'balance': balance,
         'notes': notes,
         'createdAt': Timestamp.fromDate(createdAt),
@@ -61,7 +55,6 @@ class SupplierModel {
         id: id,
         name: map['name'] as String,
         phoneNumber: map['phoneNumber'] as String,
-        items: List<Item>.from(map['items'] ?? []),
         balance: (map['balance'] is int)
             ? (map['balance'] as int).toDouble()
             : (map['balance'] as double?) ?? 0.0,

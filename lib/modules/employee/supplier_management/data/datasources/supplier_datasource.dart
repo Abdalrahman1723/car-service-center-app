@@ -16,7 +16,6 @@ class SupplierDataSource {
         id: docRef.id,
         name: supplier.name,
         phoneNumber: supplier.phoneNumber,
-        items: supplier.items,
         balance: supplier.balance,
         notes: supplier.notes,
         createdAt: supplier.createdAt,

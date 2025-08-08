@@ -152,12 +152,7 @@ class DashboardScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.pop(context);
                           // Navigate to suppliers page
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const Placeholder(),
-                            ),
-                          );
+                          Navigator.of(context).pushNamed(Routes.suppliers);
                         },
                       ),
                       buildDrawerItem(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:m_world/shared/models/item.dart';
+import 'package:m_world/config/routes.dart';
 
 import '../../domain/entities/supplier.dart';
 import '../cubit/suppliers_cubit.dart';
@@ -23,7 +23,6 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
   final _phoneController = TextEditingController();
   final _balanceController = TextEditingController();
   final _notesController = TextEditingController();
-  final List<Item> _items = [];
 
   @override
   void initState() {
@@ -33,185 +32,127 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
       _phoneController.text = widget.supplier!.phoneNumber;
       _balanceController.text = widget.supplier!.balance.toString();
       _notesController.text = widget.supplier!.notes ?? '';
-      _items.addAll(widget.supplier!.items);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: BlocConsumer<SuppliersCubit, SuppliersState>(
-        listener: (context, state) {
-          if (state is SuppliersSuccess) {
-            Navigator.pop(context);
-          } else if (state is SuppliersError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
+    return Scaffold(
+      appBar: AppBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: BlocConsumer<SuppliersCubit, SuppliersState>(
+          listener: (context, state) {
+            if (state is SuppliersSuccess) {
+              Navigator.of(context).pushReplacementNamed(Routes.suppliers);
+            } else if (state is SuppliersError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            return SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SupplierFormField(
+                      controller: _nameController,
+                      label: 'Name *',
+                      validator: (value) =>
+                          value!.isEmpty ? 'Name is required' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    SupplierFormField(
+                      controller: _phoneController,
+                      label: 'Phone Number *',
+                      validator: (value) {
+                        if (value!.isEmpty) return 'Phone number is required';
+                        if (!RegExp(r'^\+?[1-9]\d{1,14}$').hasMatch(value)) {
+                          return 'Invalid phone number';
+                        }
+                        return null;
+                      },
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 16),
+                    SupplierFormField(
+                      controller: _balanceController,
+                      label: 'Balance',
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value!.isNotEmpty &&
+                            double.tryParse(value) == null) {
+                          return 'Invalid balance';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    SupplierFormField(
+                      controller: _notesController,
+                      label: 'Notes',
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 24),
+                    //------submit button
+                    ElevatedButton(
+                      onPressed:
+                          state is SuppliersAdding || state is SuppliersUpdating
+                          ? null
+                          : () {
+                              if (_formKey.currentState!.validate()) {
+                                final supplier = SupplierEntity(
+                                  id: widget.supplier?.id ?? '',
+                                  name: _nameController.text,
+                                  phoneNumber: _phoneController.text,
+                                  balance:
+                                      double.tryParse(
+                                        _balanceController.text,
+                                      ) ??
+                                      0.0,
+                                  notes: _notesController.text.isEmpty
+                                      ? null
+                                      : _notesController.text,
+                                  createdAt:
+                                      widget.supplier?.createdAt ??
+                                      DateTime.now(),
+                                );
+                                if (widget.isEdit) {
+                                  context.read<SuppliersCubit>().updateSupplier(
+                                    supplier,
+                                  );
+                                } else {
+                                  context.read<SuppliersCubit>().addSupplier(
+                                    supplier,
+                                  );
+                                }
+                              }
+                            },
+                      child:
+                          state is SuppliersAdding || state is SuppliersUpdating
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(
+                              widget.isEdit
+                                  ? 'Update Supplier'
+                                  : 'Add Supplier',
+                            ),
+                    ),
+                  ],
+                ),
               ),
             );
-          }
-        },
-        builder: (context, state) {
-          return SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SupplierFormField(
-                    controller: _nameController,
-                    label: 'Name *',
-                    validator: (value) =>
-                        value!.isEmpty ? 'Name is required' : null,
-                  ),
-                  const SizedBox(height: 16),
-                  SupplierFormField(
-                    controller: _phoneController,
-                    label: 'Phone Number *',
-                    validator: (value) {
-                      if (value!.isEmpty) return 'Phone number is required';
-                      if (!RegExp(r'^\+?[1-9]\d{1,14}$').hasMatch(value)) {
-                        return 'Invalid phone number';
-                      }
-                      return null;
-                    },
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 16),
-                  // Items input
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Items *',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      ..._items.map(
-                        (item) => ListTile(
-                          title: Text(item.name),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () =>
-                                setState(() => _items.remove(item)),
-                          ),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () async {
-                          final item = await showDialog<Item>(
-                            context: context,
-                            builder: (context) {
-                              final controller = TextEditingController();
-                              return AlertDialog(
-                                title: const Text('Add Item'),
-                                content: TextField(
-                                  controller: controller,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Item Name',
-                                  ),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, controller.text),
-                                    child: const Text('Add'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                          if (item != null) {
-                            setState(() => _items.add(item));
-                          }
-                        },
-                        child: const Text('Add Item'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  SupplierFormField(
-                    controller: _balanceController,
-                    label: 'Balance',
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value!.isNotEmpty && double.tryParse(value) == null) {
-                        return 'Invalid balance';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  SupplierFormField(
-                    controller: _notesController,
-                    label: 'Notes',
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed:
-                        state is SuppliersAdding || state is SuppliersUpdating
-                        ? null
-                        : () {
-                            if (_formKey.currentState!.validate()) {
-                              if (_items.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'At least one item is required',
-                                    ),
-                                  ),
-                                );
-                                return;
-                              }
-                              final supplier = SupplierEntity(
-                                id: widget.supplier?.id ?? '',
-                                name: _nameController.text,
-                                phoneNumber: _phoneController.text,
-                                items: _items,
-                                balance:
-                                    double.tryParse(_balanceController.text) ??
-                                    0.0,
-                                notes: _notesController.text.isEmpty
-                                    ? null
-                                    : _notesController.text,
-                                createdAt:
-                                    widget.supplier?.createdAt ??
-                                    DateTime.now(),
-                              );
-                              if (widget.isEdit) {
-                                context.read<SuppliersCubit>().updateSupplier(
-                                  supplier,
-                                );
-                              } else {
-                                context.read<SuppliersCubit>().addSupplier(
-                                  supplier,
-                                );
-                              }
-                            }
-                          },
-                    child:
-                        state is SuppliersAdding || state is SuppliersUpdating
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(
-                            widget.isEdit ? 'Update Supplier' : 'Add Supplier',
-                          ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }

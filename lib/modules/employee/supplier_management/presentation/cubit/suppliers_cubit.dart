@@ -61,8 +61,8 @@ class SuppliersCubit extends Cubit<SuppliersState> {
     emit(SuppliersDeleting());
     try {
       await deleteSupplierUseCase(supplierId);
-      await loadSuppliers();
       emit(SuppliersSuccess('Supplier deleted successfully'));
+      await loadSuppliers();
     } catch (e) {
       emit(SuppliersError(e.toString()));
     }

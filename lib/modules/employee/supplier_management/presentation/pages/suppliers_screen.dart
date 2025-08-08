@@ -7,9 +7,21 @@ import '../widgets/supplier_card.dart';
 import 'add_supplier_screen.dart';
 
 // Screen to display all suppliers
-class SuppliersScreen extends StatelessWidget {
+class SuppliersScreen extends StatefulWidget {
   const SuppliersScreen({super.key});
 
+  @override
+  State<SuppliersScreen> createState() => _SuppliersScreenState();
+}
+
+class _SuppliersScreenState extends State<SuppliersScreen> {
+
+  @override
+  void initState() {
+    context.read<SuppliersCubit>().loadSuppliers();
+    super.initState();
+    // Automatically load suppliers when the screen initializes
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,22 +69,23 @@ class SuppliersScreen extends StatelessWidget {
                   ),
                   onDelete: () => showDialog(
                     context: context,
-                    builder: (context) => AlertDialog(
+                    builder: (dialogContext) => AlertDialog(
                       title: const Text('Delete Supplier'),
                       content: Text(
                         'Are you sure you want to delete ${supplier.name}?',
                       ),
                       actions: [
                         TextButton(
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () => Navigator.pop(dialogContext),
                           child: const Text('Cancel'),
                         ),
+                        //delete button
                         TextButton(
                           onPressed: () {
+                            Navigator.pop(dialogContext);
                             context.read<SuppliersCubit>().deleteSupplier(
                               supplier.id,
                             );
-                            Navigator.pop(context);
                           },
                           child: const Text(
                             'Delete',
