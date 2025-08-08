@@ -1,9 +1,11 @@
 // Supplier entity for domain layer
+import 'package:m_world/shared/models/item.dart';
+
 class SupplierEntity {
   final String id;
   final String name;
   final String phoneNumber;
-  final List<String> items;
+  final List<Item> items;
   final double balance;
   final String? notes;
   final DateTime createdAt;
