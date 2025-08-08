@@ -2,7 +2,7 @@ class Item {
   final String id;
   final String name;
   int quantity;
-  final String? code;
+  late final String? code;
   final double price;
   final DateTime? timeAdded;
   final String? description;
@@ -41,5 +41,21 @@ class Item {
               : DateTime.tryParse(map['timeAdded'].toString()))
         : null,
   );
+
+  Item copyWith({
+    String? id,
+    String? name,
+    double? price,
+    int? quantity,
+    DateTime? timeAdded,
+    String? code,
+  }) => Item(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        price: price ?? this.price,
+        quantity: quantity ?? this.quantity,
+        timeAdded: timeAdded ?? this.timeAdded,
+        code: code ?? this.code,
+      );
 }
 

@@ -155,6 +155,7 @@ class DashboardScreen extends StatelessWidget {
                           Navigator.of(context).pushNamed(Routes.suppliers);
                         },
                       ),
+                      //shipments
                       buildDrawerItem(
                         context,
                         icon: Icons.shopping_cart,
@@ -163,12 +164,7 @@ class DashboardScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.pop(context);
                           // Navigate to purchases page
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const Placeholder(),
-                            ),
-                          );
+                          Navigator.of(context).pushNamed(Routes.shipments);
                         },
                       ),
                       buildDrawerItem(

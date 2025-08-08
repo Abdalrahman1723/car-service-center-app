@@ -4,6 +4,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/modules/auth/login/presentation/pages/login_screen.dart';
 import 'package:m_world/modules/employee/invoice_management/presentation/pages/invoice_add_screen.dart';
 import 'package:m_world/modules/employee/invoice_management/presentation/pages/invoice_list_screen.dart';
+import 'package:m_world/modules/employee/shipment_management/data/datasources/shipment_datasource.dart';
+import 'package:m_world/modules/employee/shipment_management/data/repositories/shipment_repository_impl.dart';
+import 'package:m_world/modules/employee/shipment_management/domain/usecases/add_shipment.dart';
+import 'package:m_world/modules/employee/shipment_management/domain/usecases/delete_shipment.dart';
+import 'package:m_world/modules/employee/shipment_management/domain/usecases/get_shipment.dart';
+import 'package:m_world/modules/employee/shipment_management/domain/usecases/update_shipment.dart';
+import 'package:m_world/modules/employee/shipment_management/presentation/cubit/shipments_cubit.dart';
+import 'package:m_world/modules/employee/shipment_management/presentation/pages/add_shipment_screen.dart';
+import 'package:m_world/modules/employee/shipment_management/presentation/pages/shipments_screen.dart';
 import 'package:m_world/modules/employee/supplier_management/presentation/pages/suppliers_screen.dart';
 import 'package:m_world/modules/manager/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/pages/inventory_panel.dart';
@@ -46,6 +55,8 @@ class Routes {
   static const String invoiceDraftList = '/InvoiceDraftListScreen';
   static const String suppliers = '/SuppliersPage';
   static const String addSupplier = '/AddSupplierPage';
+  static const String shipments = '/ShipmentsPage';
+  static const String addShipment = '/AddShipmentPage';
 }
 
 final routes = {
@@ -184,4 +195,40 @@ final routes = {
       ),
     );
   },
+  //-------------------
+  Routes.shipments: (context) => BlocProvider(
+    create: (context) => ShipmentsCubit(
+      getShipmentsUseCase: GetShipments(
+        ShipmentRepositoryImpl(ShipmentDataSource(FirebaseFirestore.instance)),
+      ),
+      addShipmentUseCase: AddShipment(
+        ShipmentRepositoryImpl(ShipmentDataSource(FirebaseFirestore.instance)),
+      ),
+      updateShipmentUseCase: UpdateShipment(
+        ShipmentRepositoryImpl(ShipmentDataSource(FirebaseFirestore.instance)),
+      ),
+      deleteShipmentUseCase: DeleteShipment(
+        ShipmentRepositoryImpl(ShipmentDataSource(FirebaseFirestore.instance)),
+      ),
+    )..loadShipments(),
+    child: const ShipmentsScreen(),
+  ),
+  //-------------add shipment screen
+  Routes.addShipment: (context) => BlocProvider(
+    create: (context) => ShipmentsCubit(
+      getShipmentsUseCase: GetShipments(
+        ShipmentRepositoryImpl(ShipmentDataSource(FirebaseFirestore.instance)),
+      ),
+      addShipmentUseCase: AddShipment(
+        ShipmentRepositoryImpl(ShipmentDataSource(FirebaseFirestore.instance)),
+      ),
+      updateShipmentUseCase: UpdateShipment(
+        ShipmentRepositoryImpl(ShipmentDataSource(FirebaseFirestore.instance)),
+      ),
+      deleteShipmentUseCase: DeleteShipment(
+        ShipmentRepositoryImpl(ShipmentDataSource(FirebaseFirestore.instance)),
+      ),
+    ),
+    child: const AddShipmentScreen(),
+  ),
 };
