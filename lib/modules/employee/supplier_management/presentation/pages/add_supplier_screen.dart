@@ -73,7 +73,7 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
                       label: 'Phone Number *',
                       validator: (value) {
                         if (value!.isEmpty) return 'Phone number is required';
-                        if (!RegExp(r'^\+?[1-9]\d{1,14}$').hasMatch(value)) {
+                        if (!RegExp(r'^\+?\d{9,}$').hasMatch(value)) {
                           return 'Invalid phone number';
                         }
                         return null;
