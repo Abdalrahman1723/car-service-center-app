@@ -632,9 +632,13 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
-                        if (value!.isEmpty) return 'Paid amount is required';
-                        if (double.tryParse(value) == null) {
+                        if (value == null || value.isEmpty) return 'Paid amount is required';
+                        final paid = double.tryParse(value);
+                        if (paid == null) {
                           return 'Invalid amount';
+                        }
+                        if (paid > _totalAmount) {
+                          return 'Paid amount cannot exceed total amount (\$${_totalAmount.toStringAsFixed(2)})';
                         }
                         return null;
                       },
