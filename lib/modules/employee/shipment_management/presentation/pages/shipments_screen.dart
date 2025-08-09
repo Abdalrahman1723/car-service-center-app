@@ -53,7 +53,19 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Shipments')),
+      appBar: AppBar(
+        title: const Text('Shipments'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Reload Shipments',
+            onPressed: () {
+              _loadSuppliers();
+              context.read<ShipmentsCubit>().loadShipments();
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
@@ -148,13 +160,10 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                       return ShipmentCard(
                         shipment: shipment,
                         supplier: supplier,
-                        onEdit: () =>
-                            Navigator.of(context).pushNamed(Routes.addShipment,
-                            arguments: {
-                              'shipment': shipment,
-                              'isEdit': true,
-                            }
-                            ),
+                        onEdit: () => Navigator.of(context).pushNamed(
+                          Routes.addShipment,
+                          arguments: {'shipment': shipment, 'isEdit': true},
+                        ),
                         onDelete: () => showDialog(
                           context: context,
                           builder: (context) => AlertDialog(

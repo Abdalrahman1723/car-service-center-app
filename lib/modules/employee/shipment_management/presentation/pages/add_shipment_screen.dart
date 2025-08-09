@@ -87,114 +87,116 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
           title: const Text('Add Item'),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<bool>(
-                  value: isInventoryItem,
-                  items: const [
-                    DropdownMenuItem(
-                      value: true,
-                      child: Text('From Inventory'),
-                    ),
-                    DropdownMenuItem(value: false, child: Text('New Item')),
-                  ],
-                  onChanged: (value) => setDialogState(() {
-                    isInventoryItem = value!;
-                    selectedItemId = null;
-                    nameController.clear();
-                    priceController.clear();
-                    codeController.clear();
-                  }),
-                  decoration: const InputDecoration(
-                    labelText: 'Item Source',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                if (isInventoryItem)
-                  DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(
-                      labelText: 'Select Item',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: _inventoryItems
-                        .map(
-                          (item) => DropdownMenuItem(
-                            value: item.id,
-                            child: Text(
-                              '${item.name} (\$${item.price.toStringAsFixed(2)})',
-                            ),
-                          ),
-                        )
-                        .toList(),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<bool>(
+                    value: isInventoryItem,
+                    items: const [
+                      DropdownMenuItem(
+                        value: true,
+                        child: Text('From Inventory'),
+                      ),
+                      DropdownMenuItem(value: false, child: Text('New Item')),
+                    ],
                     onChanged: (value) => setDialogState(() {
-                      selectedItemId = value;
-                      final item = _inventoryItems.firstWhere(
-                        (i) => i.id == value,
-                      );
-                      nameController.text = item.name;
-                      priceController.text = item.price.toString();
-                      codeController.text = item.code ?? '';
+                      isInventoryItem = value!;
+                      selectedItemId = null;
+                      nameController.clear();
+                      priceController.clear();
+                      codeController.clear();
                     }),
-                    validator: (value) => value == null && isInventoryItem
-                        ? 'Select an item'
-                        : null,
-                  )
-                else ...[
-                  TextFormField(
-                    controller: nameController,
                     decoration: const InputDecoration(
-                      labelText: 'Item Name *',
+                      labelText: 'Item Source',
                       border: OutlineInputBorder(),
                     ),
-                    validator: (value) =>
-                        value!.isEmpty ? 'Item name is required' : null,
                   ),
                   const SizedBox(height: 12),
+                  if (isInventoryItem)
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        labelText: 'Select Item',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _inventoryItems
+                          .map(
+                            (item) => DropdownMenuItem(
+                              value: item.id,
+                              child: Text(
+                                '${item.name} (\$${item.price.toStringAsFixed(2)})',
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) => setDialogState(() {
+                        selectedItemId = value;
+                        final item = _inventoryItems.firstWhere(
+                          (i) => i.id == value,
+                        );
+                        nameController.text = item.name;
+                        priceController.text = item.price.toString();
+                        codeController.text = item.code ?? '';
+                      }),
+                      validator: (value) => value == null && isInventoryItem
+                          ? 'Select an item'
+                          : null,
+                    )
+                  else ...[
+                    TextFormField(
+                      controller: nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Item Name *',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) =>
+                          value!.isEmpty ? 'Item name is required' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: priceController,
+                      decoration: const InputDecoration(
+                        labelText: 'Price *',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value!.isEmpty) return 'Price is required';
+                        if (double.tryParse(value) == null ||
+                            double.parse(value) <= 0) {
+                          return 'Invalid price';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 12),
                   TextFormField(
-                    controller: priceController,
+                    controller: quantityController,
                     decoration: const InputDecoration(
-                      labelText: 'Price *',
+                      labelText: 'Quantity *',
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
                     validator: (value) {
-                      if (value!.isEmpty) return 'Price is required';
-                      if (double.tryParse(value) == null ||
-                          double.parse(value) <= 0) {
-                        return 'Invalid price';
-                      }
+                      if (value!.isEmpty) return 'Quantity is required';
+                      final qty = int.tryParse(value);
+                      if (qty == null || qty <= 0) return 'Invalid quantity';
                       return null;
                     },
                   ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: codeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Code (optional)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ],
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: quantityController,
-                  decoration: const InputDecoration(
-                    labelText: 'Quantity *',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value!.isEmpty) return 'Quantity is required';
-                    final qty = int.tryParse(value);
-                    if (qty == null || qty <= 0) return 'Invalid quantity';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: codeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Code (optional)',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           actions: [
@@ -632,7 +634,8 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
-                        if (value == null || value.isEmpty) return 'Paid amount is required';
+                        if (value == null || value.isEmpty)
+                          return 'Paid amount is required';
                         final paid = double.tryParse(value);
                         if (paid == null) {
                           return 'Invalid amount';

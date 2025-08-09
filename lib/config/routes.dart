@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -221,7 +219,6 @@ final routes = {
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
         {};
-    log('${args['shipment'] as ShipmentEntity?}');
     return BlocProvider(
       create: (context) => ShipmentsCubit(
         getShipmentsUseCase: GetShipments(
