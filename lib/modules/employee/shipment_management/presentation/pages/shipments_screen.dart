@@ -6,7 +6,6 @@ import '../../../../../config/routes.dart';
 import '../../../supplier_management/data/datasources/supplier_datasource.dart';
 import '../../../supplier_management/domain/entities/supplier.dart';
 import '../widgets/shipment_card.dart';
-import 'add_shipment_screen.dart';
 
 // Screen to display all shipments
 class ShipmentsScreen extends StatefulWidget {
@@ -109,7 +108,8 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                 } else if (state is ShipmentsLoaded) {
                   final shipments = _searchQuery.isNotEmpty
                       ? state.shipments.where((shipment) {
-                          final supplier = state.suppliers[shipment.supplierId] ??
+                          final supplier =
+                              state.suppliers[shipment.supplierId] ??
                               SupplierEntity(
                                 id: shipment.supplierId,
                                 name: 'Unknown Supplier',
@@ -118,8 +118,12 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                                 notes: null,
                                 createdAt: DateTime.now(),
                               );
-                          final nameMatch = supplier.name.toLowerCase().contains(_searchQuery);
-                          final phoneMatch = supplier.phoneNumber.toLowerCase().contains(_searchQuery);
+                          final nameMatch = supplier.name
+                              .toLowerCase()
+                              .contains(_searchQuery);
+                          final phoneMatch = supplier.phoneNumber
+                              .toLowerCase()
+                              .contains(_searchQuery);
                           return nameMatch || phoneMatch;
                         }).toList()
                       : state.shipments;
@@ -131,7 +135,8 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                     itemCount: shipments.length,
                     itemBuilder: (context, index) {
                       final shipment = shipments[index];
-                      final supplier = state.suppliers[shipment.supplierId] ??
+                      final supplier =
+                          state.suppliers[shipment.supplierId] ??
                           SupplierEntity(
                             id: shipment.supplierId,
                             name: 'Unknown Supplier',
@@ -143,15 +148,13 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                       return ShipmentCard(
                         shipment: shipment,
                         supplier: supplier,
-                        onEdit: () => showDialog(
-                          context: context,
-                          builder: (_) => Dialog(
-                            child: AddShipmentScreen(
-                              shipment: shipment,
-                              isEdit: true,
+                        onEdit: () =>
+                            Navigator.of(context).pushNamed(Routes.addShipment,
+                            arguments: {
+                              'shipment': shipment,
+                              'isEdit': true,
+                            }
                             ),
-                          ),
-                        ),
                         onDelete: () => showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
@@ -167,8 +170,8 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                               TextButton(
                                 onPressed: () {
                                   context.read<ShipmentsCubit>().deleteShipment(
-                                        shipment,
-                                      );
+                                    shipment,
+                                  );
                                   Navigator.pop(context);
                                 },
                                 child: const Text(

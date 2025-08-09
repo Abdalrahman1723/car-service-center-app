@@ -109,7 +109,7 @@ class ShipmentDataSource {
       final shipmentRef = _firestore
           .collection('shipments')
           .doc(oldShipment.id);
-      final inventoryRef = _firestore.collection('inventory').doc(_inventoryId);
+      final inventoryRef = _firestore.collection('inventories').doc(_inventoryId);
       final supplierRef = _firestore
           .collection('suppliers')
           .doc(newShipment.supplierId);

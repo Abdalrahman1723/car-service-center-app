@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,6 +8,7 @@ import 'package:m_world/modules/employee/invoice_management/presentation/pages/i
 import 'package:m_world/modules/employee/invoice_management/presentation/pages/invoice_list_screen.dart';
 import 'package:m_world/modules/employee/shipment_management/data/datasources/shipment_datasource.dart';
 import 'package:m_world/modules/employee/shipment_management/data/repositories/shipment_repository_impl.dart';
+import 'package:m_world/modules/employee/shipment_management/domain/entities/shipment.dart';
 import 'package:m_world/modules/employee/shipment_management/domain/usecases/add_shipment.dart';
 import 'package:m_world/modules/employee/shipment_management/domain/usecases/delete_shipment.dart';
 import 'package:m_world/modules/employee/shipment_management/domain/usecases/get_shipment.dart';
@@ -214,21 +217,38 @@ final routes = {
     child: const ShipmentsScreen(),
   ),
   //-------------add shipment screen
-  Routes.addShipment: (context) => BlocProvider(
-    create: (context) => ShipmentsCubit(
-      getShipmentsUseCase: GetShipments(
-        ShipmentRepositoryImpl(ShipmentDataSource(FirebaseFirestore.instance)),
+  Routes.addShipment: (context) {
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+        {};
+    log('${args['shipment'] as ShipmentEntity?}');
+    return BlocProvider(
+      create: (context) => ShipmentsCubit(
+        getShipmentsUseCase: GetShipments(
+          ShipmentRepositoryImpl(
+            ShipmentDataSource(FirebaseFirestore.instance),
+          ),
+        ),
+        addShipmentUseCase: AddShipment(
+          ShipmentRepositoryImpl(
+            ShipmentDataSource(FirebaseFirestore.instance),
+          ),
+        ),
+        updateShipmentUseCase: UpdateShipment(
+          ShipmentRepositoryImpl(
+            ShipmentDataSource(FirebaseFirestore.instance),
+          ),
+        ),
+        deleteShipmentUseCase: DeleteShipment(
+          ShipmentRepositoryImpl(
+            ShipmentDataSource(FirebaseFirestore.instance),
+          ),
+        ),
       ),
-      addShipmentUseCase: AddShipment(
-        ShipmentRepositoryImpl(ShipmentDataSource(FirebaseFirestore.instance)),
+      child: AddShipmentScreen(
+        shipment: args['shipment'] as ShipmentEntity?,
+        isEdit: args['isEdit'] as bool? ?? false,
       ),
-      updateShipmentUseCase: UpdateShipment(
-        ShipmentRepositoryImpl(ShipmentDataSource(FirebaseFirestore.instance)),
-      ),
-      deleteShipmentUseCase: DeleteShipment(
-        ShipmentRepositoryImpl(ShipmentDataSource(FirebaseFirestore.instance)),
-      ),
-    ),
-    child: const AddShipmentScreen(),
-  ),
+    );
+  },
 };

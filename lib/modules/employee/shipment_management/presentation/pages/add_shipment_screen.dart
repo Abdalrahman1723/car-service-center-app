@@ -32,6 +32,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
 
   @override
   void initState() {
+    // log('args status ${widget.shipment} --- ${widget.isEdit}');
     super.initState();
     _loadSuppliersAndInventory();
     if (widget.isEdit && widget.shipment != null) {
@@ -42,7 +43,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
       _notesController.text = widget.shipment!.notes ?? '';
       _totalAmount = widget.shipment!.items.fold(
         0,
-        (sum, item) => sum + item.price * item.quantity,
+        (summ, item) => summ + item.price * item.quantity,
       );
     }
   }
@@ -236,7 +237,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                     _items.add(newItem);
                     _totalAmount = _items.fold(
                       0,
-                      (sum, item) => sum + item.price * item.quantity,
+                      (summ, item) => summ + item.price * item.quantity,
                     );
                   });
                   Navigator.pop(dialogContext);
@@ -376,8 +377,8 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                   _items.removeAt(index);
                                   _totalAmount = _items.fold(
                                     0,
-                                    (sum, item) =>
-                                        sum + item.price * item.quantity,
+                                    (summ, item) =>
+                                        summ + item.price * item.quantity,
                                   );
                                 });
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -390,8 +391,8 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                           _items.insert(index, item);
                                           _totalAmount = _items.fold(
                                             0,
-                                            (sum, item) =>
-                                                sum +
+                                            (summ, item) =>
+                                                summ +
                                                 item.price * item.quantity,
                                           );
                                         });
@@ -525,8 +526,8 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                                 );
                                                 _totalAmount = _items.fold(
                                                   0,
-                                                  (sum, item) =>
-                                                      sum +
+                                                  (summ, item) =>
+                                                      summ +
                                                       item.price *
                                                           item.quantity,
                                                 );
@@ -552,8 +553,8 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                               );
                                               _totalAmount = _items.fold(
                                                 0,
-                                                (sum, item) =>
-                                                    sum +
+                                                (summ, item) =>
+                                                    summ +
                                                     item.price * item.quantity,
                                               );
                                             });
@@ -632,8 +633,9 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value!.isEmpty) return 'Paid amount is required';
-                        if (double.tryParse(value) == null)
+                        if (double.tryParse(value) == null) {
                           return 'Invalid amount';
+                        }
                         return null;
                       },
                     ),
