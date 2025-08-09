@@ -58,9 +58,9 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
       setState(() {
         _suppliers = suppliers.map((model) => model.toEntity()).toList();
         _inventoryItems = inventory.items;
-        _suppliers.forEach(
-          (supplier) => context.read<ShipmentsCubit>().cacheSupplier(supplier),
-        );
+        for (var supplier in _suppliers) {
+          context.read<ShipmentsCubit>().cacheSupplier(supplier);
+        }
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

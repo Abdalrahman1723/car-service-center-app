@@ -1,9 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/modules/employee/shipment_management/presentation/cubit/shipments_cubit.dart';
-
-
 import '../../../../../config/routes.dart';
+import '../../../supplier_management/data/datasources/supplier_datasource.dart';
+import '../../../supplier_management/domain/entities/supplier.dart';
 import '../widgets/shipment_card.dart';
 import 'add_shipment_screen.dart';
 
@@ -22,17 +23,26 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text.toLowerCase();
-        context.read<ShipmentsCubit>().searchShipments(
-          _searchQuery,
-          (context.read<ShipmentsCubit>().state is ShipmentsLoaded)
-              ? (context.read<ShipmentsCubit>().state as ShipmentsLoaded).suppliers
-              : {},
-        );
-      });
-    });
+    _loadSuppliers(); // Load all suppliers
+    context.read<ShipmentsCubit>().loadShipments(); // Load shipments
+  }
+
+  // Load all suppliers and cache them
+  Future<void> _loadSuppliers() async {
+    final supplierDataSource = SupplierDataSource(FirebaseFirestore.instance);
+    try {
+      final suppliers = await supplierDataSource.getSuppliers();
+      for (var supplier in suppliers) {
+        context.read<ShipmentsCubit>().cacheSupplier(supplier.toEntity());
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load suppliers: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -51,6 +61,11 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
               decoration: InputDecoration(
                 hintText: 'Search by supplier name or phone number',
                 prefixIcon: const Icon(Icons.search),
@@ -61,7 +76,6 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                           _searchController.clear();
                           setState(() {
                             _searchQuery = '';
-                            context.read<ShipmentsCubit>().loadShipments();
                           });
                         },
                       )
@@ -93,17 +107,19 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                 if (state is ShipmentsLoading || state is SearchingShipments) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is ShipmentsLoaded) {
-                  final shipments =
-                      state.searchQuery != null && state.searchQuery!.isNotEmpty
+                  final shipments = _searchQuery.isNotEmpty
                       ? state.shipments.where((shipment) {
-                          final supplier = state.suppliers[shipment.supplierId];
-                          if (supplier == null) return false;
-                          final nameMatch = supplier.name
-                              .toLowerCase()
-                              .contains(state.searchQuery!);
-                          final phoneMatch = supplier.phoneNumber
-                              .toLowerCase()
-                              .contains(state.searchQuery!);
+                          final supplier = state.suppliers[shipment.supplierId] ??
+                              SupplierEntity(
+                                id: shipment.supplierId,
+                                name: 'Unknown Supplier',
+                                phoneNumber: '',
+                                balance: 0.0,
+                                notes: null,
+                                createdAt: DateTime.now(),
+                              );
+                          final nameMatch = supplier.name.toLowerCase().contains(_searchQuery);
+                          final phoneMatch = supplier.phoneNumber.toLowerCase().contains(_searchQuery);
                           return nameMatch || phoneMatch;
                         }).toList()
                       : state.shipments;
@@ -115,9 +131,18 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                     itemCount: shipments.length,
                     itemBuilder: (context, index) {
                       final shipment = shipments[index];
+                      final supplier = state.suppliers[shipment.supplierId] ??
+                          SupplierEntity(
+                            id: shipment.supplierId,
+                            name: 'Unknown Supplier',
+                            phoneNumber: '',
+                            balance: 0.0,
+                            notes: null,
+                            createdAt: DateTime.now(),
+                          );
                       return ShipmentCard(
                         shipment: shipment,
-                        supplier: state.suppliers[shipment.supplierId],
+                        supplier: supplier,
                         onEdit: () => showDialog(
                           context: context,
                           builder: (_) => Dialog(
@@ -142,8 +167,8 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                               TextButton(
                                 onPressed: () {
                                   context.read<ShipmentsCubit>().deleteShipment(
-                                    shipment,
-                                  );
+                                        shipment,
+                                      );
                                   Navigator.pop(context);
                                 },
                                 child: const Text(
