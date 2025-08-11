@@ -219,6 +219,7 @@ final routes = {
       deleteShipmentUseCase: DeleteShipment(
         ShipmentRepositoryImpl(ShipmentDataSource(FirebaseFirestore.instance)),
       ),
+      addTransaction: AddVaultTransaction(VaultRepositoryImpl()), //!,
     )..loadShipments(),
     child: const ShipmentsScreen(),
   ),
@@ -249,6 +250,7 @@ final routes = {
             ShipmentDataSource(FirebaseFirestore.instance),
           ),
         ),
+        addTransaction: AddVaultTransaction(VaultRepositoryImpl()), //!
       ),
       child: AddShipmentScreen(
         shipment: args['shipment'] as ShipmentEntity?,

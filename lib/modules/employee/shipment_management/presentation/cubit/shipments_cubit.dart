@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../manager/features/vault/domain/entities/vault_transaction.dart';
+import '../../../../manager/features/vault/domain/usecases/add_vault_transaction.dart';
 import '../../../supplier_management/domain/entities/supplier.dart';
 import '../../domain/entities/shipment.dart';
 import '../../domain/usecases/add_shipment.dart';
@@ -15,12 +17,14 @@ class ShipmentsCubit extends Cubit<ShipmentsState> {
   final AddShipment addShipmentUseCase;
   final UpdateShipment updateShipmentUseCase;
   final DeleteShipment deleteShipmentUseCase;
+  final AddVaultTransaction addTransaction;
 
   ShipmentsCubit({
     required this.getShipmentsUseCase,
     required this.addShipmentUseCase,
     required this.updateShipmentUseCase,
     required this.deleteShipmentUseCase,
+    required this.addTransaction,
   }) : super(ShipmentsInitial());
 
   // Cache suppliers for search
@@ -43,6 +47,15 @@ class ShipmentsCubit extends Cubit<ShipmentsState> {
     try {
       await addShipmentUseCase(shipment);
       await loadShipments();
+      await addTransaction.execute(
+        VaultTransaction(
+          type: "expense",
+          category: "Shipment",
+          amount: shipment.paidAmount,
+          date: shipment.date,
+          runningBalance: 0,
+        ),
+      );
       emit(ShipmentsSuccess('Shipment added successfully'));
     } catch (e) {
       emit(ShipmentsError(e.toString()));
