@@ -16,7 +16,8 @@ class VaultTransactionsScreen extends StatefulWidget {
   const VaultTransactionsScreen({super.key});
 
   @override
-  State<VaultTransactionsScreen> createState() => _VaultTransactionsScreenState();
+  State<VaultTransactionsScreen> createState() =>
+      _VaultTransactionsScreenState();
 }
 
 class _VaultTransactionsScreenState extends State<VaultTransactionsScreen> {

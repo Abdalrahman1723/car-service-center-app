@@ -1,9 +1,5 @@
-import 'dart:io';
-import 'dart:ui' as ui;
-import 'package:excel/excel.dart'; // Add excel package
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-// import 'package:pdf/pdf.dart'; // Add pdf package
+import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart'; // Add printing for PDF preview/share
 import '../../domain/entities/vault_transaction.dart';
@@ -20,10 +16,6 @@ class ExportButton extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         ElevatedButton(
-          onPressed: () => _exportToExcel(),
-          child: const Text('Export Excel'),
-        ),
-        ElevatedButton(
           onPressed: () => _exportToPdf(context),
           child: const Text('Export PDF'),
         ),
@@ -31,79 +23,150 @@ class ExportButton extends StatelessWidget {
     );
   }
 
-  Future<void> _exportToExcel() async {
-    final exportUseCase = ExportVaultTransactions();
-    final data = await exportUseCase.execute(transactions);
-    var excel = Excel.createExcel();
-    Sheet sheet = excel['Sheet1'];
-    // Add headers
-    sheet.appendRow(['ID', 'Type', 'Category', 'Amount', 'Date', 'Notes', 'Source ID', 'Running Balance']);
-    for (var tx in transactions) {
-      sheet.appendRow([
-        tx.id,
-        tx.type,
-        tx.category,
-        tx.amount,
-        tx.date.toString(),
-        tx.notes,
-        tx.sourceId,
-        tx.runningBalance,
-      ]);
-    }
-    sheet.appendRow(['Total Income', data['totalIncome']]);
-    sheet.appendRow(['Total Expenses', data['totalExpenses']]);
-    sheet.appendRow(['Net Balance', data['netBalance']]);
-
-    final dir = await getTemporaryDirectory();
-    final path = '${dir.path}/vault_export.xlsx';
-    await File(path).writeAsBytes(excel.encode()!);
-    // Share or open file
-  }
+  // ExportButton widget code...
 
   Future<void> _exportToPdf(BuildContext context) async {
+    // Use case to get the summary data.
     final exportUseCase = ExportVaultTransactions();
     final data = await exportUseCase.execute(transactions);
-    final pdf = pw.Document();
 
-    // Simple chart: PieChart for income vs expenses
-    // To include chart in PDF, render FlChart to image
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder, Rect.fromPoints(Offset.zero, const Offset(300, 300)));
-    final paint = Paint();
-    // Draw simple pie: green for income, red for expense
-    canvas.drawArc(Rect.fromCircle(center: const Offset(150, 150), radius: 100), 0, 2 * 3.1416 * (data['totalIncome'] / (data['totalIncome'] + data['totalExpenses'])), true, paint..color = Colors.green);
-    canvas.drawArc(Rect.fromCircle(center: const Offset(150, 150), radius: 100), 2 * 3.1416 * (data['totalIncome'] / (data['totalIncome'] + data['totalExpenses'])), 2 * 3.1416, true, paint..color = Colors.red);
-    final picture = recorder.endRecording();
-    final img = await picture.toImage(300, 300);
-    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
-    final pngBytes = byteData!.buffer.asUint8List();
+    // Handle case with no transactions.
+    if (transactions.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('لا توجد حركات للتصدير.')));
+      return;
+    }
+
+    // Load fonts that support Arabic (e.g., Cairo).
+    final font = await PdfGoogleFonts.cairoRegular();
+    final boldFont = await PdfGoogleFonts.cairoBold();
+
+    final pdf = pw.Document();
 
     pdf.addPage(
       pw.Page(
-        build: (ctx) => pw.Column(
-          children: [
-            pw.Image(pw.MemoryImage(pngBytes)),
-            pw.Table.fromTextArray(data: [
-              ['ID', 'Type', 'Category', 'Amount', 'Date', 'Notes', 'Source ID', 'Running Balance'],
-              ...transactions.map((tx) => [
-                    tx.id,
+        pageFormat: PdfPageFormat.a4,
+        textDirection: pw.TextDirection.rtl, // Set text direction to RTL
+        build: (pw.Context ctx) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+            children: [
+              // Styled title for the document.
+              pw.Text(
+                'تقرير حركات الخزينة', // Translated title
+                style: pw.TextStyle(
+                  font: boldFont,
+                  fontSize: 24,
+                  color: PdfColors.blue700,
+                ),
+                textAlign: pw.TextAlign.center,
+              ),
+              pw.SizedBox(height: 20),
+
+              // Summary section with a clean layout.
+              pw.Container(
+                padding: const pw.EdgeInsets.all(12),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.blue50,
+                  borderRadius: pw.BorderRadius.circular(8),
+                ),
+                child: pw.Column(
+                  children: [
+                    _buildSummaryRow(
+                      'إجمالي الإيرادات', // Translated
+                      data['totalIncome'] as double,
+                      PdfColors.green700,
+                      font,
+                    ),
+                    _buildSummaryRow(
+                      'إجمالي المصروفات', // Translated
+                      data['totalExpenses'] as double,
+                      PdfColors.red700,
+                      font,
+                    ),
+                    pw.Divider(),
+                    _buildSummaryRow(
+                      'صافي الرصيد', // Translated
+                      data['netBalance'] as double,
+                      PdfColors.black,
+                      font,
+                    ),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 20),
+
+              // Table of detailed transactions.
+              pw.Table.fromTextArray(
+                headers: [
+                  'النوع',
+                  'الفئة',
+                  'المبلغ',
+                  'التاريخ',
+                  'ملاحظات',
+                ], // Translated headers
+                data: transactions.map((tx) {
+                  return [
                     tx.type,
                     tx.category,
-                    tx.amount.toString(),
-                    tx.date.toString(),
-                    tx.notes ?? '',
-                    tx.sourceId ?? '',
-                    tx.runningBalance.toString(),
-                  ]),
-              ['Total Income', data['totalIncome'].toString()],
-              ['Total Expenses', data['totalExpenses'].toString()],
-              ['Net Balance', data['netBalance'].toString()],
-            ]),
-          ],
-        ),
+                    '${tx.amount.toStringAsFixed(2)} \$',
+                    tx.date.toLocal().toIso8601String().split('T').first,
+                    tx.notes ?? 'N/A',
+                  ];
+                }).toList(),
+                headerStyle: pw.TextStyle(
+                  font: boldFont,
+                  color: PdfColors.white,
+                ),
+                headerDecoration: const pw.BoxDecoration(
+                  color: PdfColors.blueGrey800,
+                ),
+                cellStyle: pw.TextStyle(font: font, fontSize: 10),
+                cellAlignments: {
+                  0: pw.Alignment.centerRight,
+                  1: pw.Alignment.centerRight,
+                  2: pw.Alignment.centerRight,
+                  3: pw.Alignment.centerRight,
+                  4: pw.Alignment.centerRight,
+                },
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(1.5),
+                  1: const pw.FlexColumnWidth(2),
+                  2: const pw.FlexColumnWidth(1.5),
+                  3: const pw.FlexColumnWidth(2),
+                  4: const pw.FlexColumnWidth(3),
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
 
+    // Generate and display the PDF.
     await Printing.layoutPdf(onLayout: (_) => pdf.save());
+  }
+
+  // A helper function for the summary rows.
+  pw.Widget _buildSummaryRow(
+    String label,
+    double amount,
+    PdfColor color,
+    pw.Font font,
+  ) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 4),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(label, style: pw.TextStyle(font: font, fontSize: 12)),
+          pw.Text(
+            '${amount.toStringAsFixed(2)} \$',
+            style: pw.TextStyle(font: font, fontSize: 12, color: color),
+          ),
+        ],
+      ),
+    );
   }
 }
