@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../domain/entities/vault_transaction.dart';
 
-
 class VaultFirestoreDatasource {
   final FirebaseFirestore firestore;
   final String collectionPath = 'vault';
@@ -49,7 +48,8 @@ class VaultFirestoreDatasource {
         prevBalance = _fromDocument(latestSnapshot.docs.first).runningBalance;
       }
 
-      double newBalance = prevBalance +
+      double newBalance =
+          prevBalance +
           (transaction.type == 'income'
               ? transaction.amount
               : -transaction.amount);
@@ -57,10 +57,7 @@ class VaultFirestoreDatasource {
       final docRef = firestore.collection(collectionPath).doc();
       tx.set(
         docRef,
-        _toMap(transaction.copyWith(
-          id: docRef.id,
-          runningBalance: newBalance,
-        )),
+        _toMap(transaction.copyWith(id: docRef.id, runningBalance: newBalance)),
       );
     });
   }
@@ -75,20 +72,27 @@ class VaultFirestoreDatasource {
       }
       final original = _fromDocument(originalSnapshot);
 
-      double originalBalanceChange = (original.type == 'income' ? original.amount : -original.amount);
-      double updatedBalanceChange = (transaction.type == 'income' ? transaction.amount : -transaction.amount);
+      double originalBalanceChange = (original.type == 'income'
+          ? original.amount
+          : -original.amount);
+      double updatedBalanceChange = (transaction.type == 'income'
+          ? transaction.amount
+          : -transaction.amount);
       double delta = updatedBalanceChange - originalBalanceChange;
 
       tx.update(
         docRef,
-        _toMap(transaction.copyWith(
-          runningBalance: original.runningBalance + delta,
-        )),
+        _toMap(
+          transaction.copyWith(runningBalance: original.runningBalance + delta),
+        ),
       );
 
       final subsequentQuery = firestore
           .collection(collectionPath)
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(transaction.date))
+          .where(
+            'date',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(transaction.date),
+          )
           .orderBy('date');
       final subsequentSnapshot = await subsequentQuery.get();
       for (var doc in subsequentSnapshot.docs) {
@@ -111,8 +115,10 @@ class VaultFirestoreDatasource {
         throw Exception('Transaction not found');
       }
       final original = _fromDocument(originalSnapshot);
-      
-      double delta = original.type == 'income' ? -original.amount : original.amount;
+
+      double delta = original.type == 'income'
+          ? -original.amount
+          : original.amount;
 
       final subsequentQuery = firestore
           .collection(collectionPath)
@@ -135,12 +141,15 @@ class VaultFirestoreDatasource {
     final all = await getTransactions();
     final lowerCaseQuery = query.toLowerCase();
 
-    return all.where((tx) =>
-      tx.category.toLowerCase().contains(lowerCaseQuery) ||
-      tx.type.toLowerCase().contains(lowerCaseQuery) ||
-      (tx.sourceId?.toLowerCase().contains(lowerCaseQuery) ?? false) ||
-      (tx.notes?.toLowerCase().contains(lowerCaseQuery) ?? false),
-    ).toList();
+    return all
+        .where(
+          (tx) =>
+              tx.category.toLowerCase().contains(lowerCaseQuery) ||
+              tx.type.toLowerCase().contains(lowerCaseQuery) ||
+              (tx.sourceId?.toLowerCase().contains(lowerCaseQuery) ?? false) ||
+              (tx.notes?.toLowerCase().contains(lowerCaseQuery) ?? false),
+        )
+        .toList();
   }
 
   // DATA MAPPING
@@ -168,29 +177,4 @@ class VaultFirestoreDatasource {
     'sourceId': tx.sourceId,
     'runningBalance': tx.runningBalance,
   };
-}
-
-// EXTENSION FOR COPYWITH
-extension on VaultTransaction {
-  VaultTransaction copyWith({
-    String? id,
-    String? type,
-    String? category,
-    double? amount,
-    DateTime? date,
-    String? notes,
-    String? sourceId,
-    double? runningBalance,
-  }) {
-    return VaultTransaction(
-      id: id ?? this.id,
-      type: type ?? this.type,
-      category: category ?? this.category,
-      amount: amount ?? this.amount,
-      date: date ?? this.date,
-      notes: notes ?? this.notes,
-      sourceId: sourceId ?? this.sourceId,
-      runningBalance: runningBalance ?? this.runningBalance,
-    );
-  }
 }

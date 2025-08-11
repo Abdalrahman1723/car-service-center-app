@@ -410,12 +410,18 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
             final index = entry.key;
             final item = entry.value;
             // Determine quantity status and color
-            final inventoryItem = _inventory?.items.firstWhere(
-              (i) => i.name == item.name,
-            );
+            final inventoryItem = (() {
+              try {
+                return _inventory?.items.firstWhere((i) => i.name == item.name);
+              } catch (e) {
+                return null;
+              }
+            })();
             final totalQuantity = inventoryItem?.quantity ?? 0;
             final Color statusColor = totalQuantity == 0
-                ? Colors.red
+                ? inventoryItem == null
+                      ? Colors.blueGrey
+                      : Colors.red
                 : totalQuantity <= 5
                 ? Colors.orange
                 : Colors.green;
@@ -555,7 +561,9 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'In Stock: $totalQuantity',
+                                  inventoryItem == null
+                                      ? "External Item"
+                                      : 'In Stock: $totalQuantity',
                                   style: TextStyle(
                                     fontSize: 12.0,
                                     color: statusColor,
@@ -571,6 +579,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // remove
                         IconButton(
                           icon: const Icon(
                             Icons.remove_circle_outline,
@@ -588,6 +597,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                             }
                           },
                         ),
+                        //add
                         IconButton(
                           icon: const Icon(
                             Icons.add_circle_outline,
@@ -595,7 +605,8 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                             size: 24.0,
                           ),
                           onPressed: () {
-                            if (item.quantity < totalQuantity) {
+                            if (inventoryItem == null ||
+                                item.quantity < totalQuantity) {
                               setState(() {
                                 item.quantity++;
                                 totalAmount += item.price;
