@@ -12,14 +12,9 @@ class ExportButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        ElevatedButton(
-          onPressed: () => _exportToPdf(context),
-          child: const Text('Export PDF'),
-        ),
-      ],
+    return ElevatedButton(
+      onPressed: () => _exportToPdf(context),
+      child: const Text('Export PDF'),
     );
   }
 
