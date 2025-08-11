@@ -18,6 +18,8 @@ import 'package:m_world/modules/employee/supplier_management/presentation/pages/
 import 'package:m_world/modules/manager/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/pages/inventory_panel.dart';
 import 'package:m_world/modules/manager/features/manage_clients/presentation/pages/client_list_screen.dart';
+import 'package:m_world/modules/manager/features/vault/data/repositories/vault_repository_impl.dart';
+import 'package:m_world/modules/manager/features/vault/domain/usecases/add_vault_transaction.dart';
 import 'package:m_world/modules/manager/features/vault/presentation/cubit/vault_cubit.dart';
 import 'package:m_world/modules/manager/features/vault/presentation/pages/add_vault_transaction_screen.dart';
 import 'package:m_world/modules/manager/features/vault/presentation/pages/vault_screen.dart';
@@ -119,6 +121,7 @@ final routes = {
         ClientRepositoryImpl(FirebaseClientDataSource()),
       ),
       inventoryRepository: InventoryModule.provideInventoryRepository(),
+      addTransaction: AddVaultTransaction(VaultRepositoryImpl()), //!
     ),
     child: InvoiceAddScreen(
       draftData:
@@ -144,6 +147,7 @@ final routes = {
         ClientRepositoryImpl(FirebaseClientDataSource()),
       ),
       inventoryRepository: InventoryModule.provideInventoryRepository(),
+      addTransaction: AddVaultTransaction(VaultRepositoryImpl()), //!
     ),
     child: const InvoiceListScreen(),
   ),

@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:m_world/modules/manager/features/vault/domain/entities/vault_transaction.dart';
+import 'package:m_world/modules/manager/features/vault/domain/usecases/add_vault_transaction.dart';
 import '../../../../../shared/models/client.dart';
 import '../../../../../shared/models/invoice.dart';
 import '../../../../../shared/models/item.dart';
@@ -16,12 +17,14 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
   final GetAllInvoices getAllInvoicesUseCase;
   final GetAllClients getAllClientsUseCase;
   final InventoryRepository inventoryRepository;
+  final AddVaultTransaction addTransaction;
 
   InvoiceManagementCubit({
     required this.addInvoiceUseCase,
     required this.getAllInvoicesUseCase,
     required this.getAllClientsUseCase,
     required this.inventoryRepository,
+    required this.addTransaction,
   }) : super(InvoiceManagementInitial());
 
   // Add a new invoice and update client history
@@ -62,8 +65,15 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
         final inventory = await inventoryRepository.getInventory();
         final inventoryItem = inventory.items.firstWhere(
           (invItem) => invItem.name == entry.key,
-          orElse: () =>
-              throw Exception('Item ${entry.key} not found in inventory'),
+          orElse: () => Item(
+            id: '', // No inventory id for external item
+            name: entry.key,
+            timeAdded: DateTime.now(),
+            quantity: entry.value, // Effectively unlimited for external items
+            code: '',
+            price: 0,
+            description: 'External item',
+          ),
         );
         //in case the quantity is not sufficient
         if (inventoryItem.quantity < entry.value) {
@@ -79,7 +89,17 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
           description: inventoryItem.description,
         );
         await inventoryRepository.updateItemInInventory(updatedItem);
+        //add the amount to the vault
       }
+      await addTransaction.execute(
+        VaultTransaction(
+          type: "income",
+          category: "Invoice",
+          amount: amount,
+          date: issueDate!,
+          runningBalance: 0,
+        ),
+      );
       emit(InvoiceManagementSuccess('Invoice added successfully'));
     } catch (e) {
       emit(InvoiceManagementError(e.toString()));
