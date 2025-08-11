@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../config/routes.dart';
 
-
 // Screen to display all drafted invoices
 class InvoiceDraftListScreen extends StatefulWidget {
   const InvoiceDraftListScreen({super.key});

@@ -167,6 +167,7 @@ class DashboardScreen extends StatelessWidget {
                           Navigator.of(context).pushNamed(Routes.shipments);
                         },
                       ),
+                      //the vault
                       buildDrawerItem(
                         context,
                         icon: Icons.account_balance,
@@ -175,12 +176,7 @@ class DashboardScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.pop(context);
                           // Navigate to vault page
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const Placeholder(),
-                            ),
-                          );
+                          Navigator.of(context).pushNamed(Routes.vault);
                         },
                       ),
 

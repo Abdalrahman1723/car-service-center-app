@@ -18,6 +18,9 @@ import 'package:m_world/modules/employee/supplier_management/presentation/pages/
 import 'package:m_world/modules/manager/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/pages/inventory_panel.dart';
 import 'package:m_world/modules/manager/features/manage_clients/presentation/pages/client_list_screen.dart';
+import 'package:m_world/modules/manager/features/vault/presentation/cubit/vault_cubit.dart';
+import 'package:m_world/modules/manager/features/vault/presentation/pages/add_vault_transaction_screen.dart';
+import 'package:m_world/modules/manager/features/vault/presentation/pages/vault_screen.dart';
 import 'package:m_world/shared/splash/splash_screen.dart';
 import '../modules/employee/invoice_management/data/datasources/invoice_datasource.dart';
 import '../modules/employee/invoice_management/data/repositories/invoice_repository_impl.dart';
@@ -58,6 +61,9 @@ class Routes {
   static const String addSupplier = '/AddSupplierPage';
   static const String shipments = '/ShipmentsPage';
   static const String addShipment = '/AddShipmentPage';
+  static const String vault = '/vault';
+  static const String addVaultTransaction = '/add_vault_transaction';
+  static const String vaultReport = '/vault_report';
 }
 
 final routes = {
@@ -142,7 +148,6 @@ final routes = {
     child: const InvoiceListScreen(),
   ),
   Routes.invoiceDraftList: (context) => const InvoiceDraftListScreen(),
-
   //-------------------
   Routes.suppliers: (context) => BlocProvider(
     create: (context) => SuppliersCubit(
@@ -161,7 +166,6 @@ final routes = {
     )..loadSuppliers(),
     child: const SuppliersScreen(),
   ),
-
   //------------------- takes args
   Routes.addSupplier: (context) {
     final args =
@@ -248,4 +252,15 @@ final routes = {
       ),
     );
   },
+
+  //-------------
+  Routes.vault: (context) => BlocProvider(
+    create: (context) => VaultCubit(),
+    child: const VaultTransactionsScreen(),
+  ),
+  //-------------
+  Routes.addVaultTransaction: (context) => BlocProvider(
+    create: (context) => VaultCubit(),
+    child: const AddTransactionScreen(),
+  ),
 };
