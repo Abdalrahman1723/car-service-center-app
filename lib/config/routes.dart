@@ -15,11 +15,12 @@ import 'package:m_world/modules/employee/shipment_management/presentation/cubit/
 import 'package:m_world/modules/employee/shipment_management/presentation/pages/add_shipment_screen.dart';
 import 'package:m_world/modules/employee/shipment_management/presentation/pages/shipments_screen.dart';
 import 'package:m_world/modules/employee/supplier_management/presentation/pages/suppliers_screen.dart';
-import 'package:m_world/modules/manager/features/add_employee/domain/entities/employee.dart';
-import 'package:m_world/modules/manager/features/add_employee/presentation/cubit/employee_management_cubit.dart';
-import 'package:m_world/modules/manager/features/add_employee/presentation/pages/add_employee_screen.dart';
-import 'package:m_world/modules/manager/features/add_employee/presentation/pages/employee_list_screen.dart';
+import 'package:m_world/modules/manager/features/employee_management/domain/entities/employee.dart';
+import 'package:m_world/modules/manager/features/employee_management/presentation/cubit/employee_management_cubit.dart';
+import 'package:m_world/modules/manager/features/employee_management/presentation/pages/add_employee_screen.dart';
+import 'package:m_world/modules/manager/features/employee_management/presentation/pages/employee_list_screen.dart';
 import 'package:m_world/modules/manager/features/dashboard/presentation/pages/dashboard_screen.dart';
+import 'package:m_world/modules/manager/features/employee_management/presentation/pages/employee_profile_screen.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/pages/inventory_panel.dart';
 import 'package:m_world/modules/manager/features/manage_clients/presentation/pages/client_list_screen.dart';
 import 'package:m_world/modules/manager/features/vault/data/repositories/vault_repository_impl.dart';
@@ -72,6 +73,7 @@ class Routes {
   static const String vaultReport = '/vault_report';
   static const String employeeList = '/Employee_List';
   static const String addEmployee = '/Add_employee';
+  static const String employeeProfile = '/Employee_profile';
 }
 
 final routes = {
@@ -290,6 +292,19 @@ final routes = {
       child: AddEmployeeScreen(
         employee: args['employee'] as Employee?,
         isEdit: args['isEdit'] as bool? ?? false,
+      ),
+    );
+  },
+  //-------------
+  Routes.employeeProfile: (context) {
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+        {};
+    return BlocProvider(
+      create: (context) => EmployeeManagementCubit(),
+      child: EmployeeProfileScreen(
+        employeeId: args['employeeID'] ?? "id error",
+        fullName: args['fullName'] ?? "unknown",
       ),
     );
   },

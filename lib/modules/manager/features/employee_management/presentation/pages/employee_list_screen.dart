@@ -3,9 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/config/routes.dart';
-
-import '../../../employee_management/domain/entities/employee.dart';
-import '../../../employee_management/presentation/cubit/employee_management_cubit.dart';
+import '../../domain/entities/employee.dart';
+import '../cubit/employee_management_cubit.dart';
 
 class EmployeeListScreen extends StatefulWidget {
   const EmployeeListScreen({super.key});
@@ -199,9 +198,8 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
             : null,
         onTap: () => Navigator.pushNamed(
           context,
-          "",
-          // Routes.employeeProfile,
-          arguments: {'employee': employee},
+          Routes.employeeProfile,
+          arguments: {'employeeID': employee.id, 'fullName': employee.fullName},
         ),
       ),
     );
