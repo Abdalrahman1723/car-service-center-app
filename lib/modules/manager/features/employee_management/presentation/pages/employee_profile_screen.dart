@@ -141,7 +141,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     onPressed: () {
                       Navigator.pushNamed(
                         context,
-                        "",
+                        Routes.employeeAttendance,
                         arguments: {
                           'employee': Employee(
                             id: employee.id,

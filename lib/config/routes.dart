@@ -15,6 +15,10 @@ import 'package:m_world/modules/employee/shipment_management/presentation/cubit/
 import 'package:m_world/modules/employee/shipment_management/presentation/pages/add_shipment_screen.dart';
 import 'package:m_world/modules/employee/shipment_management/presentation/pages/shipments_screen.dart';
 import 'package:m_world/modules/employee/supplier_management/presentation/pages/suppliers_screen.dart';
+import 'package:m_world/modules/manager/features/attendance_management/presentation/cubit/attendance_cubit.dart';
+import 'package:m_world/modules/manager/features/attendance_management/presentation/pages/attendance_table_screen.dart';
+import 'package:m_world/modules/manager/features/attendance_management/presentation/pages/employee_attendance_screen.dart';
+import 'package:m_world/modules/manager/features/attendance_management/presentation/pages/manage_attendance_screen.dart';
 import 'package:m_world/modules/manager/features/employee_management/domain/entities/employee.dart';
 import 'package:m_world/modules/manager/features/employee_management/presentation/cubit/employee_management_cubit.dart';
 import 'package:m_world/modules/manager/features/employee_management/presentation/pages/add_employee_screen.dart';
@@ -74,6 +78,9 @@ class Routes {
   static const String employeeList = '/Employee_List';
   static const String addEmployee = '/Add_employee';
   static const String employeeProfile = '/Employee_profile';
+  static const String weeklyAttendanceTable = '/WeeklyAttendanceTableScreen';
+  static const String employeeAttendance = '/EmployeeAttendanceScreen';
+  static const String manageAttendance = '/ManageAttendanceScreen';
 }
 
 final routes = {
@@ -308,4 +315,24 @@ final routes = {
       ),
     );
   },
+  //-------------
+  Routes.weeklyAttendanceTable: (context) => BlocProvider(
+    create: (context) => AttendanceCubit(),
+    child: const WeeklyAttendanceTableScreen(),
+  ),
+  //-------------
+  Routes.employeeAttendance: (context) {
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+        {};
+    return BlocProvider(
+      create: (context) => AttendanceCubit(),
+      child: EmployeeAttendanceScreen(employee: args['employee']),
+    );
+  },
+  //-------------
+  Routes.manageAttendance: (context) => BlocProvider(
+    create: (context) => AttendanceCubit(),
+    child: const SupervisorAttendanceScreen(),
+  ),
 };

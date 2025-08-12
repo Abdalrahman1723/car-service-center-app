@@ -169,6 +169,11 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () =>
+            Navigator.of(context).pushNamed(Routes.manageAttendance),
+        child: Icon(Icons.add),
+      ),
     );
   }
 

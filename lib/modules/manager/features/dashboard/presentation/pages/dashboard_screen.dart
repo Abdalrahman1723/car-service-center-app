@@ -191,6 +191,20 @@ class DashboardScreen extends StatelessWidget {
                           Navigator.of(context).pushNamed(Routes.employeeList);
                         },
                       ),
+                    
+                      //
+                      buildDrawerItem(
+                        context,
+                        icon: Icons.schedule,
+                        title: 'Attendance Table',
+                        subtitle: 'Manage team attendance',
+                        onTap: () {
+                          Navigator.pop(context);
+                          // Navigate to employees page
+                          Navigator.of(context).pushNamed(Routes.weeklyAttendanceTable);
+                        },
+                      ),
+                    
                     ],
                   ),
                 ),
