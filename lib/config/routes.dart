@@ -15,6 +15,10 @@ import 'package:m_world/modules/employee/shipment_management/presentation/cubit/
 import 'package:m_world/modules/employee/shipment_management/presentation/pages/add_shipment_screen.dart';
 import 'package:m_world/modules/employee/shipment_management/presentation/pages/shipments_screen.dart';
 import 'package:m_world/modules/employee/supplier_management/presentation/pages/suppliers_screen.dart';
+import 'package:m_world/modules/manager/features/add_employee/domain/entities/employee.dart';
+import 'package:m_world/modules/manager/features/add_employee/presentation/cubit/employee_management_cubit.dart';
+import 'package:m_world/modules/manager/features/add_employee/presentation/pages/add_employee_screen.dart';
+import 'package:m_world/modules/manager/features/add_employee/presentation/pages/employee_list_screen.dart';
 import 'package:m_world/modules/manager/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/pages/inventory_panel.dart';
 import 'package:m_world/modules/manager/features/manage_clients/presentation/pages/client_list_screen.dart';
@@ -66,6 +70,8 @@ class Routes {
   static const String vault = '/vault';
   static const String addVaultTransaction = '/add_vault_transaction';
   static const String vaultReport = '/vault_report';
+  static const String employeeList = '/Employee_List';
+  static const String addEmployee = '/Add_employee';
 }
 
 final routes = {
@@ -269,4 +275,22 @@ final routes = {
     create: (context) => VaultCubit(),
     child: const AddTransactionScreen(),
   ),
+  //-------------
+  Routes.employeeList: (context) => BlocProvider(
+    create: (context) => EmployeeManagementCubit(),
+    child: const EmployeeListScreen(),
+  ),
+  //-------------
+  Routes.addEmployee: (context) {
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+        {};
+    return BlocProvider(
+      create: (context) => EmployeeManagementCubit(),
+      child: AddEmployeeScreen(
+        employee: args['employee'] as Employee?,
+        isEdit: args['isEdit'] as bool? ?? false,
+      ),
+    );
+  },
 };

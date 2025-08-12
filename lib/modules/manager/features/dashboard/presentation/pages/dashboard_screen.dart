@@ -179,7 +179,7 @@ class DashboardScreen extends StatelessWidget {
                           Navigator.of(context).pushNamed(Routes.vault);
                         },
                       ),
-
+                      //employees
                       buildDrawerItem(
                         context,
                         icon: Icons.work,
@@ -188,12 +188,7 @@ class DashboardScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.pop(context);
                           // Navigate to employees page
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const Placeholder(),
-                            ),
-                          );
+                          Navigator.of(context).pushNamed(Routes.employeeList);
                         },
                       ),
                     ],

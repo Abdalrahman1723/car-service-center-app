@@ -35,28 +35,32 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   DateTime? _issueDate;
   late String selectedClientName;
   Color quantityContainerColor = Colors.blueAccent;
+
+  // Add a new variable to track the draft ID
+  String? _draftId;
   @override
   void initState() {
     super.initState();
     context.read<InvoiceManagementCubit>().loadClients();
     context.read<InvoiceManagementCubit>().loadInventory();
-    // Populate form with draft data if provided
-
     if (widget.draftData != null) {
       _loadDraftData();
       log("draft loaded");
-    } else {}
+    }
   }
 
   void _loadDraftData() {
     final draft = widget.draftData!;
+    log("the draft $draft");
     setState(() {
-      _selectedClientId = draft['clientId'];
+      _draftId = draft['id'];
+      _selectedClientId = draft['clientId'] ?? ""; // Add as String?
       _amountController.text = draft['amount']?.toString() ?? '0.0';
-      _maintenanceByController.text = draft['maintenanceBy'] ?? '';
-      _notesController.text = draft['notes'] ?? '';
+      _maintenanceByController.text =
+          draft['maintenanceBy'] as String? ?? ''; // Fix here
+      _notesController.text = draft['notes'] as String? ?? ''; // Fix here
       _isPaid = draft['isPaid'] ?? false;
-      _paymentMethod = draft['paymentMethod'];
+      _paymentMethod = draft['paymentMethod'] as String?; // Add as String?
       _discountController.text = draft['discount']?.toString() ?? '';
       _issueDate = draft['issueDate'] != null
           ? DateTime.parse(draft['issueDate'])
@@ -303,8 +307,13 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                         onPressed: state is InvoiceManagementLoading
                             ? null
                             : () async {
+                                // A draft ID already exists, so we are updating an existing draft
+                                final String currentDraftId =
+                                    _draftId ??
+                                    DateTime.now().toIso8601String();
+
                                 final draft = {
-                                  'id': DateTime.now().toString(),
+                                  'id': currentDraftId,
                                   'clientId': _selectedClientId,
                                   'amount': double.tryParse(
                                     _amountController.text,
@@ -334,22 +343,55 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                                     _discountController.text,
                                   ),
                                   'issueDate': _issueDate?.toIso8601String(),
-                                  'createdAt': DateTime.now().toIso8601String(),
+                                  'createdAt': widget.draftData != null
+                                      ? widget.draftData!['createdAt']
+                                      : DateTime.now().toIso8601String(),
                                 };
+
                                 final prefs =
                                     await SharedPreferences.getInstance();
                                 final drafts =
                                     prefs.getStringList('invoice_drafts') ?? [];
-                                drafts.add(jsonEncode(draft));
+
+                                final existingDraftIndex = drafts.indexWhere((
+                                  draftString,
+                                ) {
+                                  final draftMap = jsonDecode(draftString);
+                                  return draftMap['id'] == currentDraftId;
+                                });
+
+                                if (existingDraftIndex != -1) {
+                                  // Update existing draft
+                                  drafts[existingDraftIndex] = jsonEncode(
+                                    draft,
+                                  );
+                                } else {
+                                  // Add new draft
+                                  drafts.add(jsonEncode(draft));
+                                }
+
                                 await prefs.setStringList(
                                   'invoice_drafts',
                                   drafts,
                                 );
+
+                                // Show feedback
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Invoice saved as draft'),
+                                  SnackBar(
+                                    content: Text(
+                                      existingDraftIndex != -1
+                                          ? 'Draft updated successfully!'
+                                          : 'Invoice saved as draft!',
+                                    ),
                                   ),
                                 );
+
+                                // Update the draft ID in the state to reflect the change
+                                if (_draftId == null) {
+                                  setState(() {
+                                    _draftId = currentDraftId;
+                                  });
+                                }
                               },
                         child: const Text('Save Draft'),
                       ),

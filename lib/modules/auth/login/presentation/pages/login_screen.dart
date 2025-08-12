@@ -39,7 +39,23 @@ class LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         _emailController.text.trim() == "mohamed@gmail.com"
             ? Navigator.pushNamed(context, Routes.adminDashboard)
-            : null; //!should go to employee screen
+            //todo: special screen for other users
+            : Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const Scaffold(
+                    body: Center(
+                      child: Text(
+                        'Welcome Supervisor',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
