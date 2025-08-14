@@ -126,11 +126,13 @@ class SupervisorAttendanceScreenState
   ) {
     final isDayComplete = todayRecord?.checkOutTime != null;
     final canCheckIn = todayRecord == null;
-    final cardColor = isDayComplete
-        ? Colors.green.shade100
-        : todayRecord != null
-        ? Colors.orange.shade100
-        : Colors.blueAccent.shade100;
+    final cardColor = todayRecord?.absenceReason != null
+        ? Colors.grey.shade300
+        : isDayComplete
+            ? Colors.green.shade100
+            : todayRecord != null
+                ? Colors.orange.shade100
+                : Colors.blueAccent.shade100;
 
     return Card(
       color: cardColor,
