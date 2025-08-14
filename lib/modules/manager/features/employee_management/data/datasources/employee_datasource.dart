@@ -6,12 +6,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../domain/entities/employee.dart';
 
 class EmployeeDataSource {
-  final FirebaseFirestore _firestore ;
+  final FirebaseFirestore _firestore;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   static const String _employeesCollection = 'employees';
   static const String _usersCollection = 'users';
 
-  EmployeeDataSource({required FirebaseFirestore firestore}) : _firestore = firestore;
+  EmployeeDataSource({required FirebaseFirestore firestore})
+    : _firestore = firestore;
 
   // Stream all employees in real-time
   Stream<List<Employee>> streamEmployees({
@@ -48,17 +49,27 @@ class EmployeeDataSource {
 
   // Create employee with Firebase Auth account
   Future<void> addEmployee(
-    Employee employee,
-    String email,
-    String password,
-  ) async {
+    Employee employee, {
+    String? email,
+    String? password,
+  }) async {
     try {
+      final userId = employee.phoneNumber;
+
       // Create Firebase Auth user
-      final userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      final userId = userCredential.user!.uid;
+      if ((email != null && password != null) &&
+          (email.isNotEmpty && password.isNotEmpty)) {
+        log("username : $email , password : $password");
+        await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+        // Save user role in users collection
+        await _firestore.collection(_usersCollection).doc(userId).set({
+          'role': employee.role,
+          'email': email,
+        });
+      }
 
       // Save employee data
       await _firestore
@@ -66,11 +77,6 @@ class EmployeeDataSource {
           .doc(userId)
           .set(employee.copyWith(id: userId).toMap());
 
-      // Save user role in users collection
-      await _firestore.collection(_usersCollection).doc(userId).set({
-        'role': employee.role,
-        'email': email,
-      });
       log('Added employee: ${employee.fullName}');
     } catch (e) {
       log('Add employee error: $e');
@@ -95,10 +101,14 @@ class EmployeeDataSource {
   // Soft delete employee
   Future<void> deleteEmployee(String employeeId) async {
     try {
-      await _firestore.collection(_employeesCollection).doc(employeeId).update({
-        'isActive': false,
-      });
-      log('Soft deleted employee: $employeeId');
+      await _firestore
+          .collection(_employeesCollection)
+          .doc(employeeId)
+          .delete();
+      //delete from the users collection
+      await _firestore.collection(_usersCollection).doc(employeeId).delete();
+
+      log('Successfully deleted employee: $employeeId');
     } catch (e) {
       log('Delete employee error: $e');
       throw Exception('Failed to delete employee: $e');

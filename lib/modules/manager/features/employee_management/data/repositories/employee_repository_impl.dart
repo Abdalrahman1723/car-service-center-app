@@ -24,8 +24,8 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
   }
 
   @override
-  Future<void> addEmployee(Employee employee, String email, String password) {
-    return dataSource.addEmployee(employee, email, password);
+  Future<void> addEmployee(Employee employee, {String? email, String? password}) {
+    return dataSource.addEmployee(employee,email:  email,password:  password);
   }
 
   @override

@@ -125,6 +125,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     try {
       await _updateCompensationStatus(attendanceId, status);
       emit(AttendanceSuccess('Compensation status updated successfully'));
+      startListening();
     } catch (e) {
       log('Update compensation status error: $e');
       emit(AttendanceError('Failed to update compensation status: $e'));

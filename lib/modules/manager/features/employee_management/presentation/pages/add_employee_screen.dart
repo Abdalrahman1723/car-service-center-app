@@ -123,24 +123,29 @@ class AddEmployeeScreenState extends State<AddEmployeeScreen> {
                 ),
                 if (!widget.isEdit) ...[
                   const SizedBox(height: 12),
+                  //email
                   TextFormField(
                     controller: _emailController,
                     decoration: const InputDecoration(
-                      labelText: 'Email',
+                      labelText: 'Email  (for creating email)',
                       border: OutlineInputBorder(),
                     ),
-                    validator: (value) =>
-                        value!.isEmpty ? 'Email is required' : null,
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 12),
+                  //password
                   TextFormField(
                     controller: _passwordController,
                     decoration: const InputDecoration(
-                      labelText: 'Password',
+                      labelText: 'Password (for creating email)',
                       border: OutlineInputBorder(),
                     ),
-                    validator: (value) => value!.length < 6
+                    validator: (value) =>
+                        _emailController.text.isEmpty && value!.isEmpty
+                        ? null
+                        : _emailController.text.isEmpty
+                        ? "Enter email first to make the password"
+                        : value!.length < 6
                         ? 'Password must be at least 6 characters'
                         : null,
                     obscureText: true,

@@ -293,7 +293,7 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
   void _confirmDelete(BuildContext context, Employee employee) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Delete Employee'),
         content: Text('Are you sure you want to delete ${employee.fullName}?'),
         actions: [

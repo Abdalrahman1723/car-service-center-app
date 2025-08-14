@@ -28,7 +28,6 @@ class EmployeeManagementCubit extends Cubit<EmployeeManagementState> {
     _deleteEmployee = DeleteEmployee(_repository);
   }
 
-
   void startListening({String? searchQuery, String? role, bool? isActive}) {
     emit(EmployeeManagementLoading());
     try {
@@ -58,13 +57,18 @@ class EmployeeManagementCubit extends Cubit<EmployeeManagementState> {
     String email,
     String password,
   ) async {
+    if (isClosed) return;
     emit(EmployeeManagementLoading());
     try {
-      await _addEmployee(employee, email, password);
-      emit(EmployeeManagementSuccess('Employee added successfully'));
+      await _addEmployee(employee, email: email, password: password);
+      if (!isClosed) {
+        emit(EmployeeManagementSuccess('Employee added successfully'));
+      }
     } catch (e) {
-      log('Add employee error: $e');
-      emit(EmployeeManagementError('Failed to add employee: $e'));
+      log('Add employee error cubit: $e');
+      if (!isClosed) {
+        emit(EmployeeManagementError('Failed to add employee: $e'));
+      }
     }
   }
 
@@ -84,6 +88,7 @@ class EmployeeManagementCubit extends Cubit<EmployeeManagementState> {
     try {
       await _deleteEmployee(employeeId);
       emit(EmployeeManagementSuccess('Employee deleted successfully'));
+      startListening();
     } catch (e) {
       log('Delete employee error: $e');
       emit(EmployeeManagementError('Failed to delete employee: $e'));

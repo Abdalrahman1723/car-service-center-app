@@ -122,7 +122,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Role: ${employee.role}'),
-                          Text('Phone: ${employee.phoneNumber}'),
+                          SelectableText('Phone: ${employee.phoneNumber}'),
                           Text(
                             'Address: ${employee.address == null || employee.address!.isEmpty ? 'N/A' : employee.address}',
                           ),

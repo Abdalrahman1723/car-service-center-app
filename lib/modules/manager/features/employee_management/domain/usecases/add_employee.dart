@@ -7,7 +7,7 @@ class AddEmployee {
 
   AddEmployee(this.repository);
 
-  Future<void> call(Employee employee, String email, String password) async {
-    await repository.addEmployee(employee, email, password);
+  Future<void> call(Employee employee, {String? email, String? password}) async {
+    await repository.addEmployee(employee,email:  email,password:  password);
   }
 }
