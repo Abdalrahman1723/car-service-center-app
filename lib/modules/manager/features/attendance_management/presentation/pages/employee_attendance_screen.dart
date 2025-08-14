@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 import 'package:m_world/modules/manager/features/attendance_management/domain/entities/attendance.dart';
 import 'package:m_world/modules/manager/features/attendance_management/presentation/cubit/attendance_cubit.dart';
 import 'package:m_world/modules/manager/features/employee_management/domain/entities/employee.dart';
@@ -262,10 +263,12 @@ class EmployeeAttendanceScreenState extends State<EmployeeAttendanceScreen> {
   }
 
   Widget _buildAttendanceCard(BuildContext context, Attendance record) {
-    final statusColor = record.compensationStatus == 'On Time'
+    final statusColor = record.compensationStatus == AppStrings.onTime
         ? Colors.green
-        : record.compensationStatus == 'Late – Compensated'
+        : record.compensationStatus == AppStrings.compensated
         ? Colors.orange
+        : record.compensationStatus == AppStrings.notCompensated
+        ? Colors.amber
         : Colors.red;
 
     return Card(
@@ -351,9 +354,9 @@ class EmployeeAttendanceScreenState extends State<EmployeeAttendanceScreen> {
           DropdownButtonFormField<String>(
             value: selectedStatus,
             items: [
-              'On Time',
-              'Late – Compensated',
-              'Late – Not Compensated',
+              AppStrings.onTime,
+              AppStrings.compensated,
+              AppStrings.notCompensated,
             ].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
             onChanged: (value) => setState(() => selectedStatus = value),
             decoration: const InputDecoration(
