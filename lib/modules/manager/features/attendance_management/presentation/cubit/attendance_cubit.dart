@@ -85,6 +85,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     try {
       await _checkIn(employeeId, checkInTime);
       emit(AttendanceSuccess('Checked in successfully'));
+      // Re-trigger the stream to refresh the UI
+      startListening(allEmployees: true);
     } catch (e) {
       log('Check-in error: $e');
       emit(AttendanceError('Failed to check in: $e'));
@@ -96,6 +98,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     try {
       await _checkOut(attendanceId, checkOutTime);
       emit(AttendanceSuccess('Checked out successfully'));
+      // Re-trigger the stream to refresh the UI
+      startListening(allEmployees: true);
     } catch (e) {
       log('Check-out error: $e');
       emit(AttendanceError('Failed to check out: $e'));
@@ -111,6 +115,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     try {
       await _markAbsence(employeeId, date, reason);
       emit(AttendanceSuccess('Absence marked successfully'));
+      // Re-trigger the stream to refresh the UI
+      startListening(allEmployees: true);
     } catch (e) {
       log('Mark absence error: $e');
       emit(AttendanceError('Failed to mark absence: $e'));

@@ -210,6 +210,7 @@ class SupervisorAttendanceScreenState
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        //check in button
         IconButton(
           icon: Icon(
             Icons.login,
@@ -220,13 +221,14 @@ class SupervisorAttendanceScreenState
               ? () => _showCheckInDialog(context, employee)
               : null,
         ),
+        //check out button
         IconButton(
           icon: Icon(
             Icons.logout,
-            color: !isDayComplete && !canCheckIn ? Colors.red : Colors.grey,
+            color: !isDayComplete && !canCheckIn && (todayRecord?.absenceReason == null) ? Colors.red : Colors.grey,
           ),
           tooltip: 'Check Out',
-          onPressed: !isDayComplete && !canCheckIn
+          onPressed: (!isDayComplete && !canCheckIn && (todayRecord?.absenceReason == null))
               ? () => _showCheckOutDialog(context, employee, todayRecord!)
               : null,
         ),

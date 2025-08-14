@@ -119,7 +119,7 @@ class AttendanceDataSource {
         employeeId: employeeId,
         date: date,
         absenceReason: reason,
-        compensationStatus: 'On Time',
+        compensationStatus: 'Abcent',
       );
       final docRef = _firestore.collection(_attendanceCollection).doc();
       await docRef.set(attendance.copyWith(id: docRef.id).toMap());
