@@ -118,6 +118,7 @@ class InvoiceListScreenState extends State<InvoiceListScreen> {
           invoice: invoice,
           clientName: client.name,
           onTap: () => InvoiceClientDialog.show(context, client),
+          
         );
       },
     );

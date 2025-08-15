@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:m_world/modules/employee/invoice_management/presentation/widgets/invoice_export_button.dart';
 import '../../../../../shared/models/invoice.dart';
 
 // Widget to display a single invoice in a card
@@ -24,6 +25,22 @@ class InvoiceCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
         onTap: onTap,
+        onLongPress: () async {
+          await showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Print Invoice'),
+              content: const Text('Do you want to print/export this invoice?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('Cancel'),
+                ),
+                InvoiceExportButton(invoice: invoice, clientName: clientName),
+              ],
+            ),
+          );
+        },
         title: Text('Invoice #${invoice.id}'),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
