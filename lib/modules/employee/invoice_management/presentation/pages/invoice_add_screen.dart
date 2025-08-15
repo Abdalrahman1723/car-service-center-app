@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:m_world/modules/employee/invoice_management/presentation/widgets/invoice_export_button.dart';
+import 'package:m_world/shared/models/invoice.dart';
 import 'package:m_world/shared/models/item.dart';
 import 'package:m_world/shared/models/client.dart';
 import 'package:m_world/modules/manager/features/inventory/domain/entities/inventory_entity.dart';
@@ -252,151 +254,123 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                   const SizedBox(height: 24),
                   // Submit and Draft buttons
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        onPressed:
-                            (state is InvoiceManagementLoading || !isFormValid)
-                            ? null
-                            : () {
-                                if (_formKey.currentState!.validate()) {
-                                  if (_selectedClientId == null) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Please select a client'),
-                                      ),
-                                    );
-                                    return;
-                                  }
-                                  final amount =
-                                      double.tryParse(_amountController.text) ??
-                                      0.0;
-                                  final discount = double.tryParse(
-                                    _discountController.text,
-                                  );
-                                  context
-                                      .read<InvoiceManagementCubit>()
-                                      .addInvoice(
-                                        clientId: _selectedClientId!,
-                                        amount: amount,
-                                        maintenanceBy:
-                                            _maintenanceByController.text,
-                                        items: _items,
-                                        notes: _notesController.text.isEmpty
-                                            ? null
-                                            : _notesController.text,
-                                        isPaid: _isPaid,
-                                        paymentMethod: _paymentMethod,
-                                        discount: discount,
-                                        issueDate: _issueDate ?? DateTime.now(),
-                                      );
-                                }
-                              },
-                        child: state is InvoiceManagementLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Add Invoice'),
-                      ),
-                      //----------draft button
-                      ElevatedButton(
-                        onPressed: state is InvoiceManagementLoading
-                            ? null
-                            : () async {
-                                // A draft ID already exists, so we are updating an existing draft
-                                final String currentDraftId =
-                                    _draftId ??
-                                    DateTime.now().toIso8601String();
-
-                                final draft = {
-                                  'id': currentDraftId,
-                                  'clientId': _selectedClientId,
-                                  'amount': double.tryParse(
-                                    _amountController.text,
-                                  ),
-                                  'maintenanceBy':
-                                      _maintenanceByController.text,
-                                  'items': _items
-                                      .map((item) => item.toMap())
-                                      .toList(),
-                                  'notes': _notesController.text.isEmpty
-                                      ? null
-                                      : _notesController.text,
-                                  'isPaid': _isPaid,
-                                  'clientName':
-                                      (state is InvoiceManagementClientsLoaded &&
-                                          _selectedClientId != null)
-                                      ? state.clients
-                                            .firstWhere(
-                                              (element) =>
-                                                  element.phoneNumber ==
-                                                  _selectedClientId,
-                                            )
-                                            .name
-                                      : null,
-                                  'paymentMethod': _paymentMethod,
-                                  'discount': double.tryParse(
-                                    _discountController.text,
-                                  ),
-                                  'issueDate': _issueDate?.toIso8601String(),
-                                  'createdAt': widget.draftData != null
-                                      ? widget.draftData!['createdAt']
-                                      : DateTime.now().toIso8601String(),
-                                };
-
-                                final prefs =
-                                    await SharedPreferences.getInstance();
-                                final drafts =
-                                    prefs.getStringList('invoice_drafts') ?? [];
-
-                                final existingDraftIndex = drafts.indexWhere((
-                                  draftString,
-                                ) {
-                                  final draftMap = jsonDecode(draftString);
-                                  return draftMap['id'] == currentDraftId;
-                                });
-
-                                if (existingDraftIndex != -1) {
-                                  // Update existing draft
-                                  drafts[existingDraftIndex] = jsonEncode(
-                                    draft,
-                                  );
-                                } else {
-                                  // Add new draft
-                                  drafts.add(jsonEncode(draft));
-                                }
-
-                                await prefs.setStringList(
-                                  'invoice_drafts',
-                                  drafts,
-                                );
-
-                                // Show feedback
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      existingDraftIndex != -1
-                                          ? 'Draft updated successfully!'
-                                          : 'Invoice saved as draft!',
-                                    ),
-                                  ),
-                                );
-
-                                // Update the draft ID in the state to reflect the change
-                                if (_draftId == null) {
-                                  setState(() {
-                                    _draftId = currentDraftId;
-                                  });
-                                }
-                              },
-                        child: const Text('Save Draft'),
-                      ),
-                    ],
+  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  children: [
+    ElevatedButton(
+      onPressed: (state is InvoiceManagementLoading || !isFormValid)
+          ? null
+          : () {
+              if (_formKey.currentState!.validate()) {
+                if (_selectedClientId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please select a client'),
+                    ),
+                  );
+                  return;
+                }
+                final amount = double.tryParse(_amountController.text) ?? 0.0;
+                final discount = double.tryParse(_discountController.text);
+                context.read<InvoiceManagementCubit>().addInvoice(
+                      clientId: _selectedClientId!,
+                      amount: amount,
+                      maintenanceBy: _maintenanceByController.text,
+                      items: _items,
+                      notes: _notesController.text.isEmpty ? null : _notesController.text,
+                      isPaid: _isPaid,
+                      paymentMethod: _paymentMethod,
+                      discount: discount,
+                      issueDate: _issueDate ?? DateTime.now(),
+                    );
+              }
+            },
+      child: state is InvoiceManagementLoading
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+              ),
+            )
+          : const Text('Add Invoice'),
+    ),
+ElevatedButton(
+      onPressed: state is InvoiceManagementLoading
+          ? null
+          : () async {
+              final String currentDraftId = _draftId ?? DateTime.now().toIso8601String();
+              final draft = {
+                'id': currentDraftId,
+                'clientId': _selectedClientId,
+                'amount': double.tryParse(_amountController.text),
+                'maintenanceBy': _maintenanceByController.text,
+                'items': _items.map((item) => item.toMap()).toList(),
+                'notes': _notesController.text.isEmpty ? null : _notesController.text,
+                'isPaid': _isPaid,
+                'clientName': (state is InvoiceManagementClientsLoaded && _selectedClientId != null)
+                    ? state.clients
+                        .firstWhere((element) => element.phoneNumber == _selectedClientId)
+                        .name
+                    : null,
+                'paymentMethod': _paymentMethod,
+                'discount': double.tryParse(_discountController.text),
+                'issueDate': _issueDate?.toIso8601String(),
+                'createdAt': widget.draftData != null
+                    ? widget.draftData!['createdAt']
+                    : DateTime.now().toIso8601String(),
+              };
+              final prefs = await SharedPreferences.getInstance();
+              final drafts = prefs.getStringList('invoice_drafts') ?? [];
+              final existingDraftIndex = drafts.indexWhere((draftString) {
+                final draftMap = jsonDecode(draftString);
+                return draftMap['id'] == currentDraftId;
+              });
+              if (existingDraftIndex != -1) {
+                drafts[existingDraftIndex] = jsonEncode(draft);
+              } else {
+                drafts.add(jsonEncode(draft));
+              }
+              await prefs.setStringList('invoice_drafts', drafts);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    existingDraftIndex != -1
+                        ? 'Draft updated successfully!'
+                        : 'Invoice saved as draft!',
                   ),
+                ),
+              );
+              if (_draftId == null) {
+                setState(() {
+                  _draftId = currentDraftId;
+                });
+              }
+            },
+      child: const Text('Save Draft'),
+    ),
+    InvoiceExportButton(
+      clientName: (state is InvoiceManagementClientsLoaded && _selectedClientId != null)
+          ? state.clients
+              .firstWhere(
+                (element) => element.phoneNumber == _selectedClientId,
+              )
+              .name
+          : '',
+      invoice: Invoice(
+        id: '',
+        clientId: _selectedClientId ?? 'N/A',
+        amount: double.tryParse(_amountController.text) ?? 0.0,
+        maintenanceBy: _maintenanceByController.text,
+        items: _items,
+        notes: _notesController.text.isEmpty ? null : _notesController.text,
+        isPaid: _isPaid,
+        paymentMethod: _paymentMethod,
+        discount: double.tryParse(_discountController.text),
+        issueDate: _issueDate,
+      ),
+    ),
+  ],
+)
                 ],
               ),
             ),
