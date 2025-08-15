@@ -166,7 +166,7 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                         ),
                         onDelete: () => showDialog(
                           context: context,
-                          builder: (context) => AlertDialog(
+                          builder: (ctx) => AlertDialog(
                             title: const Text('Delete Shipment'),
                             content: Text(
                               'Are you sure you want to delete this shipment?',

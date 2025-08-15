@@ -191,8 +191,7 @@ class DashboardScreen extends StatelessWidget {
                           Navigator.of(context).pushNamed(Routes.employeeList);
                         },
                       ),
-                    
-                      //
+                      // attendance table
                       buildDrawerItem(
                         context,
                         icon: Icons.schedule,
@@ -201,10 +200,11 @@ class DashboardScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.pop(context);
                           // Navigate to employees page
-                          Navigator.of(context).pushNamed(Routes.weeklyAttendanceTable);
+                          Navigator.of(
+                            context,
+                          ).pushNamed(Routes.weeklyAttendanceTable);
                         },
                       ),
-                    
                     ],
                   ),
                 ),
@@ -374,6 +374,7 @@ class DashboardScreen extends StatelessWidget {
                       lineBarsData: [
                         LineChartBarData(
                           spots: [
+                           
                             const FlSpot(0, 1000),
                             const FlSpot(1, 1500),
                             const FlSpot(2, 1200),
