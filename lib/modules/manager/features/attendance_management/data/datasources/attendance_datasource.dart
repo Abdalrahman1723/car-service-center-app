@@ -3,10 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:m_world/modules/manager/features/attendance_management/domain/entities/attendance.dart';
 
 class AttendanceDataSource {
-  final FirebaseFirestore _firestore ;
+  final FirebaseFirestore _firestore;
   static const String _attendanceCollection = 'attendance';
 
-  AttendanceDataSource({required FirebaseFirestore firestore}) : _firestore = firestore;
+  AttendanceDataSource({required FirebaseFirestore firestore})
+    : _firestore = firestore;
 
   Stream<List<Attendance>> streamAttendance({
     required String employeeId,
@@ -19,15 +20,20 @@ class AttendanceDataSource {
           .collection(_attendanceCollection)
           .where('employeeId', isEqualTo: employeeId)
           .orderBy('date', descending: true);
-      if (status != null) query = query.where('compensationStatus', isEqualTo: status);
+      if (status != null)
+        query = query.where('compensationStatus', isEqualTo: status);
       if (startDate != null && endDate != null) {
         query = query
             .where('date', isGreaterThanOrEqualTo: startDate.toIso8601String())
             .where('date', isLessThanOrEqualTo: endDate.toIso8601String());
       }
       return query.snapshots().map((snapshot) {
-        final attendance = snapshot.docs.map((doc) => Attendance.fromMap(doc.id, doc.data())).toList();
-        log('Streamed ${attendance.length} attendance records for employee: $employeeId');
+        final attendance = snapshot.docs
+            .map((doc) => Attendance.fromMap(doc.id, doc.data()))
+            .toList();
+        log(
+          'Streamed ${attendance.length} attendance records for employee: $employeeId',
+        );
         return attendance;
       });
     } catch (e) {
@@ -41,15 +47,21 @@ class AttendanceDataSource {
     DateTime? endDate,
   }) {
     try {
-      var query = _firestore.collection(_attendanceCollection).orderBy('date', descending: true);
+      var query = _firestore
+          .collection(_attendanceCollection)
+          .orderBy('date', descending: true);
       if (startDate != null && endDate != null) {
         query = query
             .where('date', isGreaterThanOrEqualTo: startDate.toIso8601String())
             .where('date', isLessThanOrEqualTo: endDate.toIso8601String());
       }
       return query.snapshots().map((snapshot) {
-        final attendance = snapshot.docs.map((doc) => Attendance.fromMap(doc.id, doc.data())).toList();
-        log('Streamed ${attendance.length} attendance records for all employees');
+        final attendance = snapshot.docs
+            .map((doc) => Attendance.fromMap(doc.id, doc.data()))
+            .toList();
+        log(
+          'Streamed ${attendance.length} attendance records for all employees',
+        );
         return attendance;
       });
     } catch (e) {
@@ -60,9 +72,17 @@ class AttendanceDataSource {
 
   Future<void> checkIn(String employeeId, DateTime checkInTime) async {
     try {
-      final standardStart = DateTime(checkInTime.year, checkInTime.month, checkInTime.day, 8, 0); // 8:00 AM
+      final standardStart = DateTime(
+        checkInTime.year,
+        checkInTime.month,
+        checkInTime.day,
+        9,
+        0,
+      ); // 9:00 AM
       final isLate = checkInTime.isAfter(standardStart);
-      final lateMinutes = isLate ? checkInTime.difference(standardStart).inMinutes : 0;
+      final lateMinutes = isLate
+          ? checkInTime.difference(standardStart).inMinutes
+          : 0;
       final compensationStatus = isLate ? 'Late – Not Compensated' : 'On Time';
 
       final attendance = Attendance(
@@ -86,14 +106,24 @@ class AttendanceDataSource {
 
   Future<void> checkOut(String attendanceId, DateTime checkOutTime) async {
     try {
-      final docRef = _firestore.collection(_attendanceCollection).doc(attendanceId);
+      final docRef = _firestore
+          .collection(_attendanceCollection)
+          .doc(attendanceId);
       final snapshot = await docRef.get();
       if (!snapshot.exists) throw Exception('Attendance record not found');
 
       final attendance = Attendance.fromMap(attendanceId, snapshot.data()!);
-      final standardEnd = DateTime(checkOutTime.year, checkOutTime.month, checkOutTime.day, 16, 0); // 4:00 PM
+      final standardEnd = DateTime(
+        checkOutTime.year,
+        checkOutTime.month,
+        checkOutTime.day,
+        18,
+        0,
+      ); // 6:00 PM
       final isEarly = checkOutTime.isBefore(standardEnd);
-      final earlyMinutes = isEarly ? standardEnd.difference(checkOutTime).inMinutes : 0;
+      final earlyMinutes = isEarly
+          ? standardEnd.difference(checkOutTime).inMinutes
+          : 0;
       final hoursWorked = attendance.checkInTime != null
           ? checkOutTime.difference(attendance.checkInTime!).inHours.toDouble()
           : 0.0;
@@ -112,7 +142,11 @@ class AttendanceDataSource {
     }
   }
 
-  Future<void> markAbsence(String employeeId, DateTime date, String reason) async {
+  Future<void> markAbsence(
+    String employeeId,
+    DateTime date,
+    String reason,
+  ) async {
     try {
       final attendance = Attendance(
         id: '',
@@ -130,12 +164,18 @@ class AttendanceDataSource {
     }
   }
 
-  Future<void> updateCompensationStatus(String attendanceId, String status) async {
+  Future<void> updateCompensationStatus(
+    String attendanceId,
+    String status,
+  ) async {
     try {
-      await _firestore.collection(_attendanceCollection).doc(attendanceId).update({
-        'compensationStatus': status,
-      });
-      log('Updated compensation status for attendance: $attendanceId to $status');
+      await _firestore
+          .collection(_attendanceCollection)
+          .doc(attendanceId)
+          .update({'compensationStatus': status});
+      log(
+        'Updated compensation status for attendance: $attendanceId to $status',
+      );
     } catch (e) {
       log('Update compensation status error: $e');
       throw Exception('Failed to update compensation status: $e');
