@@ -42,6 +42,14 @@ class SupplierDataSource {
   Future<void> deleteSupplier(String supplierId) async {
     try {
       await _firestore.collection('suppliers').doc(supplierId).delete();
+    // Also delete all the shipments for the supplier
+    final shipmentsQuery = await _firestore
+        .collection('shipments')
+        .where('supplierId', isEqualTo: supplierId)
+        .get();
+    for (final doc in shipmentsQuery.docs) {
+      await _firestore.collection('shipments').doc(doc.id).delete();
+    }
     } catch (e) {
       throw Exception('Failed to delete supplier: $e');
     }
