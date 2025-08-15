@@ -27,6 +27,8 @@ dependencies:
   shared_preferences: ^2.5.3
   flutter_debouncer: ^2.0.0
   printing: ^5.14.2
+  firebase_messaging: ^16.0.0
+  flutter_local_notifications: ^19.4.0
 
 dev_dependencies:
   flutter_test:
