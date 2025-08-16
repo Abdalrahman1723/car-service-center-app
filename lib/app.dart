@@ -20,11 +20,18 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        locale: DevicePreview.locale(context),
-        builder: DevicePreview.appBuilder,
+        locale: const Locale('ar', 'EG'), // Set Arabic locale
         theme: carServiceTheme(),
         initialRoute: '/',
         routes: routes, //using routes instead of home
+        // Add RTL support and device preview
+        builder: (context, child) {
+          final devicePreviewChild = DevicePreview.appBuilder(context, child);
+          return Directionality(
+            textDirection: TextDirection.rtl,
+            child: devicePreviewChild,
+          );
+        },
       ),
     );
   }

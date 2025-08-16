@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 import 'package:m_world/modules/manager/features/manage_clients/presentation/widgets/client_card.dart';
 import 'package:m_world/shared/models/client.dart';
 
@@ -55,7 +56,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('All Clients')),
+      appBar: AppBar(title: const Text('جميع العملاء')),
       body: BlocConsumer<ClientManagementCubit, ClientManagementState>(
         listener: (context, state) {
           // Handle success and error states with snackbar notifications
@@ -79,7 +80,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
           // Display client list when loaded
           else if (state is ClientManagementClientsLoaded) {
             if (state.clients.isEmpty) {
-              return const Center(child: Text('No clients found'));
+              return const Center(child: Text('لا توجد عملاء'));
             }
 
             // Filter clients based on search query
@@ -113,15 +114,15 @@ class _ClientListScreenState extends State<ClientListScreen> {
                                 showDialog(
                                   context: context,
                                   builder: (dialogContext) => AlertDialog(
-                                    title: const Text('Delete Client'),
+                                    title: const Text('حذف العميل'),
                                     content: Text(
-                                      'Are you sure you want to delete ${client.name}?',
+                                      'هل أنت متأكد من حذف ${client.name}؟',
                                     ),
                                     actions: [
                                       TextButton(
                                         onPressed: () =>
                                             Navigator.pop(dialogContext),
-                                        child: const Text('Cancel'),
+                                        child: const Text(AppStrings.cancel),
                                       ),
                                       TextButton(
                                         onPressed: () {
@@ -132,7 +133,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
                                           Navigator.pop(dialogContext);
                                         },
                                         child: const Text(
-                                          'Delete',
+                                          AppStrings.delete,
                                           style: TextStyle(color: Colors.red),
                                         ),
                                       ),
@@ -148,7 +149,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
             );
           }
           // Display initial state with loading prompt
-          return const Center(child: Text('Loading clients...'));
+          return const Center(child: Text('جاري تحميل العملاء...'));
         },
       ),
     );
@@ -158,7 +159,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
     return TextField(
       controller: _searchController,
       decoration: InputDecoration(
-        hintText: 'Search clients by name, phone, or plate number...',
+        hintText: 'البحث في العملاء بالاسم أو الهاتف أو رقم اللوحة...',
         prefixIcon: const Icon(Icons.search),
         suffixIcon: _searchController.text.isNotEmpty
             ? IconButton(
@@ -210,14 +211,14 @@ class _ClientListScreenState extends State<ClientListScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No Clients Found',
+            'لا توجد عملاء',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Theme.of(context).disabledColor,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Try adjusting your search terms',
+            'جرب تعديل مصطلحات البحث',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).disabledColor,
             ),

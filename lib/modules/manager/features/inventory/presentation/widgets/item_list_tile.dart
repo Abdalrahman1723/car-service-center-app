@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 import 'package:m_world/shared/models/item.dart';
 
 class ItemListTile extends StatelessWidget {
@@ -48,7 +49,7 @@ class ItemListTile extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodySmall,
                   children: [
                     const TextSpan(
-                      text: 'Code: ',
+                      text: 'الكود: ',
                       style: TextStyle(fontWeight: FontWeight.normal),
                     ),
                     // the code
@@ -78,13 +79,13 @@ class ItemListTile extends StatelessWidget {
                   children: [
                     _buildInfoChip(
                       context,
-                      'Qty: ${item.quantity}',
+                      'الكمية: ${item.quantity}',
                       _getQuantityColor(context),
                     ),
                     const SizedBox(width: 8),
                     _buildInfoChip(
                       context,
-                      '\$${item.price.toStringAsFixed(2)}',
+                      '${item.price.toStringAsFixed(2)} ${AppStrings.currency}',
                       Theme.of(context).primaryColor,
                     ),
                   ],
@@ -107,13 +108,13 @@ class ItemListTile extends StatelessWidget {
               IconButton(
                 onPressed: onEdit,
                 icon: const Icon(Icons.edit, size: 20),
-                tooltip: 'Edit Item',
+                tooltip: 'تعديل العنصر',
               ),
             if (onDelete != null)
               IconButton(
                 onPressed: onDelete,
                 icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-                tooltip: 'Delete Item',
+                tooltip: 'حذف العنصر',
               ),
           ],
         ),

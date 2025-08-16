@@ -24,7 +24,7 @@ class ClientManagementScreen extends StatelessWidget {
     final notesController = TextEditingController();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add New Client')),
+      appBar: AppBar(title: const Text('إضافة عميل جديد')),
       body: BlocConsumer<ClientManagementCubit, ClientManagementState>(
         listener: (context, state) {
           // Handle success and error states with snackbar notifications
@@ -97,8 +97,8 @@ class ClientManagementScreen extends StatelessWidget {
         TextField(
           controller: nameController,
           decoration: const InputDecoration(
-            labelText: 'Name *',
-            hintText: 'Enter client full name',
+            labelText: 'الاسم *',
+            hintText: 'أدخل الاسم الكامل للعميل',
           ),
         ),
         const SizedBox(height: 16),
@@ -107,8 +107,8 @@ class ClientManagementScreen extends StatelessWidget {
           maxLength: 15,
           controller: phoneController,
           decoration: const InputDecoration(
-            labelText: 'Phone Number',
-            hintText: 'Enter contact number',
+            labelText: 'رقم الهاتف',
+            hintText: 'أدخل رقم الاتصال',
           ),
           keyboardType: TextInputType.phone,
         ),
@@ -117,8 +117,8 @@ class ClientManagementScreen extends StatelessWidget {
         TextField(
           controller: carTypeController,
           decoration: const InputDecoration(
-            labelText: 'Car Type *',
-            hintText: 'e.g., Sedan, SUV, Truck',
+            labelText: 'نوع السيارة *',
+            hintText: 'مثال: سيدان، دفع رباعي، شاحنة',
           ),
         ),
         const SizedBox(height: 16),
@@ -126,8 +126,8 @@ class ClientManagementScreen extends StatelessWidget {
         TextField(
           controller: modelController,
           decoration: const InputDecoration(
-            labelText: 'Model',
-            hintText: 'e.g., Toyota Camry 2020',
+            labelText: 'الموديل',
+            hintText: 'مثال: تويوتا كامري 2020',
           ),
         ),
         const SizedBox(height: 16),
@@ -135,8 +135,8 @@ class ClientManagementScreen extends StatelessWidget {
         TextField(
           controller: balanceController,
           decoration: const InputDecoration(
-            labelText: 'Balance *',
-            hintText: 'Enter current balance',
+            labelText: 'الرصيد *',
+            hintText: 'أدخل الرصيد الحالي',
           ),
           keyboardType: TextInputType.number,
         ),
@@ -145,8 +145,8 @@ class ClientManagementScreen extends StatelessWidget {
         TextField(
           controller: emailController,
           decoration: const InputDecoration(
-            labelText: 'Email',
-            hintText: 'Enter email address',
+            labelText: 'البريد الإلكتروني',
+            hintText: 'أدخل عنوان البريد الإلكتروني',
           ),
           keyboardType: TextInputType.emailAddress,
         ),
@@ -160,8 +160,8 @@ class ClientManagementScreen extends StatelessWidget {
                 maxLength: 7,
                 controller: licensePlateNumberController,
                 decoration: const InputDecoration(
-                  labelText: 'Plate Numbers',
-                  hintText: '1 2 3 4',
+                  labelText: 'أرقام اللوحة',
+                  hintText: '١ ٢ ٣ ٤',
                 ),
                 keyboardType: TextInputType.number,
                 inputFormatters: [
@@ -178,8 +178,8 @@ class ClientManagementScreen extends StatelessWidget {
                 maxLength: 5,
                 controller: licensePlateLetterController,
                 decoration: const InputDecoration(
-                  labelText: 'Plate Letters',
-                  hintText: 'A B C',
+                  labelText: 'حروف اللوحة',
+                  hintText: 'أ ب ج',
                 ),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(
@@ -195,8 +195,8 @@ class ClientManagementScreen extends StatelessWidget {
         TextField(
           controller: notesController,
           decoration: const InputDecoration(
-            labelText: 'Notes',
-            hintText: 'Additional notes about the client',
+            labelText: 'ملاحظات',
+            hintText: 'ملاحظات إضافية حول العميل',
           ),
           maxLines: 3,
         ),
@@ -241,7 +241,7 @@ class ClientManagementScreen extends StatelessWidget {
                 width: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : const Text('Add Client'),
+            : const Text('إضافة العميل'),
       ),
     );
   }
@@ -264,7 +264,7 @@ class ClientManagementScreen extends StatelessWidget {
         carTypeController.text.isEmpty ||
         balanceController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all required fields')),
+        const SnackBar(content: Text('يرجى ملء جميع الحقول المطلوبة')),
       );
       return;
     }

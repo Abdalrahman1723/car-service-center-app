@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 
 import '../../domain/entities/vault_transaction.dart';
 
@@ -31,10 +32,12 @@ class TransactionCard extends StatelessWidget {
         trailing: Column(
           children: [
             Text(
-              '${transaction.type == 'income' ? '+' : '-'}${transaction.amount}',
+              '${transaction.type == 'income' ? '+' : '-'}${transaction.amount} ${AppStrings.currency}',
               style: TextStyle(color: color),
             ),
-            Text('Balance: ${transaction.runningBalance}'),
+            Text(
+              'الرصيد: ${transaction.runningBalance} ${AppStrings.currency}',
+            ),
           ],
         ),
         onTap: onEdit,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 
 import '../../../../../../shared/models/client.dart';
 
@@ -32,24 +33,26 @@ class ClientCard extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Text('Car: ${client.carType} ${client.model ?? ''}'),
+            Text('السيارة: ${client.carType} ${client.model ?? ''}'),
             if (client.phoneNumber != null) ...[
               const SizedBox(height: 4),
-              SelectableText('Phone: ${client.phoneNumber}'),
+              SelectableText('الهاتف: ${client.phoneNumber}'),
             ],
             if (client.email != null) ...[
               const SizedBox(height: 4),
-              Text('Email: ${client.email}'),
+              Text('البريد الإلكتروني: ${client.email}'),
             ],
             if (client.licensePlate != null) ...[
               const SizedBox(height: 4),
-              SelectableText('License Plate: ${client.licensePlate}'),
+              SelectableText('رقم اللوحة: ${client.licensePlate}'),
             ],
             const SizedBox(height: 8),
-            SelectableText('Balance: \$${client.balance.toStringAsFixed(2)}'),
+            SelectableText(
+              'الرصيد: ${client.balance.toStringAsFixed(2)} ${AppStrings.currency}',
+            ),
             if (client.notes != null) ...[
               const SizedBox(height: 4),
-              Text('Notes: ${client.notes}'),
+              Text('ملاحظات: ${client.notes}'),
             ],
             const SizedBox(height: 16),
             // Action buttons for update and delete
@@ -57,12 +60,15 @@ class ClientCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 // Update button triggers callback
-                TextButton(onPressed: onUpdate, child: const Text('Update')),
+                TextButton(
+                  onPressed: onUpdate,
+                  child: const Text(AppStrings.update),
+                ),
                 // Delete button triggers callback
                 TextButton(
                   onPressed: onDelete,
                   child: const Text(
-                    'Delete',
+                    AppStrings.delete,
                     style: TextStyle(color: Colors.red),
                   ),
                 ),

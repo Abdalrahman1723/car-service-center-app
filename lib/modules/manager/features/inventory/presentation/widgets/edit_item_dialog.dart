@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 import 'package:m_world/shared/models/item.dart';
 
 class EditItemDialog extends StatefulWidget {
@@ -51,7 +52,7 @@ class _EditItemDialogState extends State<EditItemDialog> {
         children: [
           Icon(Icons.edit, color: Theme.of(context).primaryColor),
           const SizedBox(width: 8),
-          const Text('Edit Item'),
+          const Text('تعديل العنصر'),
         ],
       ),
       content: SingleChildScrollView(
@@ -60,11 +61,11 @@ class _EditItemDialogState extends State<EditItemDialog> {
           children: [
             _buildTextField(
               controller: _nameController,
-              label: 'Item Name',
+              label: 'اسم العنصر',
               icon: Icons.inventory_2,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Item name is required';
+                  return 'اسم العنصر مطلوب';
                 }
                 return null;
               },
@@ -72,7 +73,7 @@ class _EditItemDialogState extends State<EditItemDialog> {
             const SizedBox(height: 16),
             _buildTextField(
               controller: _codeController,
-              label: 'Item Code',
+              label: 'كود العنصر',
               icon: Icons.qr_code,
             ),
             const SizedBox(height: 16),
@@ -81,17 +82,17 @@ class _EditItemDialogState extends State<EditItemDialog> {
                 Expanded(
                   child: _buildTextField(
                     controller: _quantityController,
-                    label: 'Quantity',
+                    label: 'الكمية',
                     icon: Icons.numbers,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Quantity is required';
+                        return 'الكمية مطلوبة';
                       }
                       final quantity = int.tryParse(value);
                       if (quantity == null || quantity < 0) {
-                        return 'Quantity must be a positive number';
+                        return 'يجب أن تكون الكمية رقم موجب';
                       }
                       return null;
                     },
@@ -101,7 +102,7 @@ class _EditItemDialogState extends State<EditItemDialog> {
                 Expanded(
                   child: _buildTextField(
                     controller: _priceController,
-                    label: 'Price',
+                    label: 'السعر',
                     icon: Icons.attach_money,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -111,11 +112,11 @@ class _EditItemDialogState extends State<EditItemDialog> {
                     ],
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Price is required';
+                        return 'السعر مطلوب';
                       }
                       final price = double.tryParse(value);
                       if (price == null || price < 0) {
-                        return 'Price must be a positive number';
+                        return 'يجب أن يكون السعر رقم موجب';
                       }
                       return null;
                     },
@@ -126,7 +127,7 @@ class _EditItemDialogState extends State<EditItemDialog> {
             const SizedBox(height: 16),
             _buildTextField(
               controller: _descriptionController,
-              label: 'Description (Optional)',
+              label: 'الوصف (اختياري)',
               icon: Icons.description,
               maxLines: 3,
             ),
@@ -136,11 +137,11 @@ class _EditItemDialogState extends State<EditItemDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: const Text(AppStrings.cancel),
         ),
         ElevatedButton(
           onPressed: _validateAndSave,
-          child: const Text('Save Changes'),
+          child: const Text('حفظ التغييرات'),
         ),
       ],
     );
@@ -174,19 +175,19 @@ class _EditItemDialogState extends State<EditItemDialog> {
   void _validateAndSave() {
     // Validate required fields
     if (_nameController.text.trim().isEmpty) {
-      _showError('Item name is required');
+      _showError('اسم العنصر مطلوب');
       return;
     }
 
     final quantity = int.tryParse(_quantityController.text);
     if (quantity == null || quantity < 0) {
-      _showError('Quantity must be a positive number');
+      _showError('يجب أن تكون الكمية رقم موجب');
       return;
     }
 
     final price = double.tryParse(_priceController.text);
     if (price == null || price < 0) {
-      _showError('Price must be a positive number');
+      _showError('يجب أن يكون السعر رقم موجب');
       return;
     }
 

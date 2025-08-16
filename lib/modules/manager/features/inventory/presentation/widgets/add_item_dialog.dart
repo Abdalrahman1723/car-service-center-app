@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 import 'package:m_world/shared/models/item.dart';
 
 class AddItemDialog extends StatefulWidget {
@@ -32,7 +33,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Add Item to ${widget.inventoryName}'),
+      title: Text('إضافة عنصر إلى ${widget.inventoryName}'),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -43,13 +44,13 @@ class _AddItemDialogState extends State<AddItemDialog> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Item Name',
-                  hintText: 'Enter item name',
+                  labelText: 'اسم العنصر',
+                  hintText: 'أدخل اسم العنصر',
                   prefixIcon: Icon(Icons.inventory_2),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter item name';
+                    return 'يرجى إدخال اسم العنصر';
                   }
                   return null;
                 },
@@ -63,7 +64,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
                     child: TextFormField(
                       controller: _quantityController,
                       decoration: const InputDecoration(
-                        labelText: 'Quantity',
+                        labelText: 'الكمية',
                         hintText: '0',
                         prefixIcon: Icon(Icons.numbers),
                       ),
@@ -71,11 +72,11 @@ class _AddItemDialogState extends State<AddItemDialog> {
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Please enter quantity';
+                          return 'يرجى إدخال الكمية';
                         }
                         final quantity = int.tryParse(value);
                         if (quantity == null || quantity < 0) {
-                          return 'Please enter a valid quantity';
+                          return 'يرجى إدخال كمية صحيحة';
                         }
                         return null;
                       },
@@ -87,7 +88,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
                     child: TextFormField(
                       controller: _priceController,
                       decoration: const InputDecoration(
-                        labelText: 'Price',
+                        labelText: 'السعر',
                         hintText: '0.00',
                         prefixIcon: Icon(Icons.attach_money),
                       ),
@@ -101,11 +102,11 @@ class _AddItemDialogState extends State<AddItemDialog> {
                       ],
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Please enter price';
+                          return 'يرجى إدخال السعر';
                         }
                         final price = double.tryParse(value);
                         if (price == null || price < 0) {
-                          return 'Please enter a valid price';
+                          return 'يرجى إدخال سعر صحيح';
                         }
                         return null;
                       },
@@ -117,8 +118,8 @@ class _AddItemDialogState extends State<AddItemDialog> {
               TextFormField(
                 controller: _codeController,
                 decoration: const InputDecoration(
-                  labelText: 'Item code (Optional)',
-                  hintText: 'Enter item code',
+                  labelText: 'كود العنصر (اختياري)',
+                  hintText: 'أدخل كود العنصر',
                   prefixIcon: Icon(Icons.qr_code),
                 ),
               ),
@@ -126,8 +127,8 @@ class _AddItemDialogState extends State<AddItemDialog> {
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(
-                  labelText: 'Description (Optional)',
-                  hintText: 'Enter item description',
+                  labelText: 'الوصف (اختياري)',
+                  hintText: 'أدخل وصف العنصر',
                   prefixIcon: Icon(Icons.description),
                 ),
                 maxLines: 3,
@@ -139,9 +140,12 @@ class _AddItemDialogState extends State<AddItemDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: const Text(AppStrings.cancel),
         ),
-        ElevatedButton(onPressed: _submitForm, child: const Text('Add Item')),
+        ElevatedButton(
+          onPressed: _submitForm,
+          child: const Text('إضافة العنصر'),
+        ),
       ],
     );
   }

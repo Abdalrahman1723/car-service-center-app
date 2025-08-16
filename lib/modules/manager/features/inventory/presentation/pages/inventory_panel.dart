@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 import 'package:m_world/modules/manager/features/inventory/data/datasources/inventory_remote_datasource.dart';
 import 'package:m_world/modules/manager/features/inventory/data/repositories/inventory_repository_impl.dart';
 import 'package:m_world/modules/manager/features/inventory/domain/entities/inventory_entity.dart';
@@ -98,21 +99,21 @@ class _InventoryPanelState extends State<InventoryPanel> {
           } else if (state is ItemAdded) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Item added successfully!'),
+                content: Text('تمت إضافة العنصر بنجاح!'),
                 backgroundColor: Colors.green,
               ),
             );
           } else if (state is ItemUpdated) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Item updated successfully!'),
+                content: Text('تم تحديث العنصر بنجاح!'),
                 backgroundColor: Colors.green,
               ),
             );
           } else if (state is ItemRemoved) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Item deleted successfully!'),
+                content: Text('تم حذف العنصر بنجاح!'),
                 backgroundColor: Colors.green,
               ),
             );
@@ -146,7 +147,7 @@ class _InventoryPanelState extends State<InventoryPanel> {
           const Icon(Icons.car_repair, color: Colors.white, size: 28),
           const SizedBox(width: 12),
           Text(
-            'Inventory Management',
+            'إدارة المخزون',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -193,7 +194,7 @@ class _InventoryPanelState extends State<InventoryPanel> {
               Icon(Icons.inventory_2, color: Theme.of(context).primaryColor),
               const SizedBox(width: 8),
               Text(
-                'Items',
+                'العناصر',
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -233,15 +234,15 @@ class _InventoryPanelState extends State<InventoryPanel> {
       children: [
         _buildStatChip(
           context,
-          'Total Items',
+          'إجمالي العناصر',
           '${inventory.totalItems}',
           Icons.inventory,
         ),
         const SizedBox(width: 8),
         _buildStatChip(
           context,
-          'Total Value',
-          '\$${inventory.totalValue.toStringAsFixed(2)}',
+          'إجمالي القيمة',
+          '${inventory.totalValue.toStringAsFixed(2)} ${AppStrings.currency}',
           Icons.attach_money,
         ),
       ],
@@ -289,7 +290,7 @@ class _InventoryPanelState extends State<InventoryPanel> {
     return TextField(
       controller: _searchController,
       decoration: InputDecoration(
-        hintText: 'Search items by name or code...',
+        hintText: 'البحث في العناصر بالاسم أو الكود...',
         prefixIcon: const Icon(Icons.search),
         suffixIcon: _searchController.text.isNotEmpty
             ? IconButton(
@@ -341,14 +342,14 @@ class _InventoryPanelState extends State<InventoryPanel> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No Items Found',
+            'لا توجد عناصر',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Theme.of(context).disabledColor,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Try adjusting your search terms',
+            'جرب تعديل مصطلحات البحث',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).disabledColor,
             ),
@@ -366,7 +367,7 @@ class _InventoryPanelState extends State<InventoryPanel> {
     return FloatingActionButton.extended(
       onPressed: () => _showAddItemDialog(context),
       icon: const Icon(Icons.add),
-      label: const Text('Add Item'),
+      label: const Text('إضافة عنصر'),
     );
   }
 
@@ -374,7 +375,7 @@ class _InventoryPanelState extends State<InventoryPanel> {
     final item = await showDialog<Item>(
       context: context,
       builder: (context) =>
-          const AddItemDialog(inventoryName: 'Main Inventory'),
+          const AddItemDialog(inventoryName: 'المخزون الرئيسي'),
     );
 
     if (item != null && mounted) {
@@ -398,12 +399,12 @@ class _InventoryPanelState extends State<InventoryPanel> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Item'),
-        content: Text('Are you sure you want to delete "${item.name}"?'),
+        title: const Text('حذف العنصر'),
+        content: Text('هل أنت متأكد من حذف "${item.name}"؟'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: const Text(AppStrings.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
@@ -411,7 +412,7 @@ class _InventoryPanelState extends State<InventoryPanel> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: const Text(AppStrings.delete),
           ),
         ],
       ),

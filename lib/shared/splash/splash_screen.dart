@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/config/routes.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 import 'splash_cubit.dart';
 import 'splash_state.dart';
 
@@ -23,7 +24,7 @@ class SplashScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'M World Service Center',
+                  AppStrings.appName,
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,

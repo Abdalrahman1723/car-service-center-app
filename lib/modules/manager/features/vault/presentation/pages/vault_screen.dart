@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 
 import '../../../../../../config/routes.dart';
 import '../../domain/entities/vault_transaction.dart';
@@ -27,7 +28,7 @@ class _VaultTransactionsScreenState extends State<VaultTransactionsScreen> {
       create: (context) => VaultCubit()..getTransactions(),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Vault Transactions'),
+          title: const Text('حركات الخزينة'),
           actions: [
             // Reload Button
             IconButton(
@@ -41,14 +42,14 @@ class _VaultTransactionsScreenState extends State<VaultTransactionsScreen> {
         body: BlocListener<VaultCubit, VaultState>(
           listener: (context, state) {
             if (state is UpdatingTransaction) {
-              _showSnackbar(context, 'Updating transaction...', isError: false);
+              _showSnackbar(context, 'جاري تحديث الحركة...', isError: false);
             } else if (state is DeletingTransaction) {
-              _showSnackbar(context, 'Deleting transaction...', isError: false);
+              _showSnackbar(context, 'جاري حذف الحركة...', isError: false);
             } else if (state is VaultLoaded) {
               // Only show a success message after an action, not on initial load
               // You can check a flag or state variable if needed.
             } else if (state is VaultError) {
-              _showSnackbar(context, 'Error: ${state.message}', isError: true);
+              _showSnackbar(context, 'خطأ: ${state.message}', isError: true);
               log("Error in VaultTransactionsScreen: ${state.message}");
             }
           },
@@ -70,14 +71,14 @@ class _VaultTransactionsScreenState extends State<VaultTransactionsScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            'Total Balance:',
+                            'إجمالي الرصيد:',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(
-                            '\$${totalBalance.toStringAsFixed(2)}',
+                            '${totalBalance.toStringAsFixed(2)} ${AppStrings.currency}',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -124,7 +125,7 @@ class _VaultTransactionsScreenState extends State<VaultTransactionsScreen> {
                   ],
                 );
               } else if (state is VaultError) {
-                return Center(child: Text('Error: ${state.message}'));
+                return Center(child: Text('خطأ: ${state.message}'));
               } else {
                 return const SizedBox.shrink();
               }
@@ -167,7 +168,7 @@ class _VaultTransactionsScreenState extends State<VaultTransactionsScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Edit Transaction'),
+          title: const Text('تعديل الحركة'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -175,26 +176,23 @@ class _VaultTransactionsScreenState extends State<VaultTransactionsScreen> {
                 TextFormField(
                   controller: amountController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Amount'),
+                  decoration: const InputDecoration(labelText: 'المبلغ'),
                 ),
                 TextFormField(
                   controller: notesController,
-                  decoration: const InputDecoration(labelText: 'Notes'),
+                  decoration: const InputDecoration(labelText: 'ملاحظات'),
                 ),
                 DropdownButtonFormField<String>(
                   value: selectedCategory,
                   items: const [
-                    DropdownMenuItem(
-                      value: 'Shipment',
-                      child: Text('Shipment'),
-                    ),
-                    DropdownMenuItem(value: 'Invoice', child: Text('Invoice')),
-                    DropdownMenuItem(value: 'Salary', child: Text('Salary')),
+                    DropdownMenuItem(value: 'Shipment', child: Text('شحنة')),
+                    DropdownMenuItem(value: 'Invoice', child: Text('فاتورة')),
+                    DropdownMenuItem(value: 'Salary', child: Text('راتب')),
                     DropdownMenuItem(
                       value: 'Office Expense',
-                      child: Text('Office Expense'),
+                      child: Text('مصروفات مكتبية'),
                     ),
-                    DropdownMenuItem(value: 'Other', child: Text('Other')),
+                    DropdownMenuItem(value: 'Other', child: Text('أخرى')),
                   ],
                   onChanged: (val) {
                     if (val != null) {
@@ -208,7 +206,7 @@ class _VaultTransactionsScreenState extends State<VaultTransactionsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: const Text(AppStrings.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -220,7 +218,7 @@ class _VaultTransactionsScreenState extends State<VaultTransactionsScreen> {
                 context.read<VaultCubit>().updateTransaction(updatedTx);
                 Navigator.pop(ctx);
               },
-              child: const Text('Save'),
+              child: const Text(AppStrings.save),
             ),
           ],
         );
@@ -233,21 +231,19 @@ class _VaultTransactionsScreenState extends State<VaultTransactionsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Transaction'),
-        content: const Text(
-          'Are you sure you want to delete this transaction?',
-        ),
+        title: const Text('حذف الحركة'),
+        content: const Text('هل أنت متأكد من حذف هذه الحركة؟'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: const Text(AppStrings.cancel),
           ),
           TextButton(
             onPressed: () {
               context.read<VaultCubit>().deleteTransaction(id);
               Navigator.pop(ctx);
             },
-            child: const Text('Delete'),
+            child: const Text(AppStrings.delete),
           ),
         ],
       ),

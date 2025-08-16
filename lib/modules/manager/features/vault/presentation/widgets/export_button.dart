@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart'; // Add printing for PDF preview/share
+import 'package:m_world/core/constants/app_strings.dart';
 import '../../domain/entities/vault_transaction.dart';
 import '../../domain/usecases/export_transaction.dart';
 
@@ -14,7 +15,7 @@ class ExportButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () => _exportToPdf(context),
-      child: const Text('Export PDF'),
+      child: const Text('تصدير PDF'),
     );
   }
 
@@ -103,11 +104,11 @@ class ExportButton extends StatelessWidget {
                 ], // Translated headers
                 data: transactions.map((tx) {
                   return [
-                    tx.type,
+                    tx.type == 'income' ? 'دخل' : 'مصروف',
                     tx.category,
-                    '${tx.amount.toStringAsFixed(2)} \$',
+                    '${tx.amount.toStringAsFixed(2)} ${AppStrings.currency}',
                     tx.date.toLocal().toIso8601String().split('T').first,
-                    tx.notes ?? 'N/A',
+                    tx.notes ?? 'غير محدد',
                   ];
                 }).toList(),
                 headerStyle: pw.TextStyle(
@@ -157,7 +158,7 @@ class ExportButton extends StatelessWidget {
         children: [
           pw.Text(label, style: pw.TextStyle(font: font, fontSize: 12)),
           pw.Text(
-            '${amount.toStringAsFixed(2)} \$',
+            '${amount.toStringAsFixed(2)} ${AppStrings.currency}',
             style: pw.TextStyle(font: font, fontSize: 12, color: color),
           ),
         ],

@@ -94,7 +94,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add New Invoice'),
+        title: const Text('إضافة فاتورة جديدة'),
         actions: [
           IconButton(
             icon: const Icon(Icons.drafts),
@@ -138,17 +138,17 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                   TextFormField(
                     controller: _maintenanceByController,
                     decoration: const InputDecoration(
-                      labelText: 'Maintenance By *',
+                      labelText: 'الصيانة بواسطة *',
                     ),
                     validator: (value) =>
-                        value!.isEmpty ? 'Maintenance By is required' : null,
+                        value!.isEmpty ? 'حقل الصيانة مطلوب' : null,
                   ),
                   const SizedBox(height: 16),
                   // Issue Date field
                   TextFormField(
                     readOnly: true,
                     decoration: InputDecoration(
-                      labelText: 'Issue Date *',
+                      labelText: 'تاريخ الإصدار *',
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.calendar_today),
                         onPressed: () async {
@@ -172,7 +172,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                           : '',
                     ),
                     validator: (value) =>
-                        _issueDate == null ? 'Issue Date is required' : null,
+                        _issueDate == null ? 'تاريخ الإصدار مطلوب' : null,
                   ),
                   const SizedBox(height: 16),
                   // Items selection
@@ -181,33 +181,39 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                   // Notes field
                   TextFormField(
                     controller: _notesController,
-                    decoration: const InputDecoration(labelText: 'Notes'),
+                    decoration: const InputDecoration(labelText: 'ملاحظات'),
                     maxLines: 3,
                   ),
                   const SizedBox(height: 16),
                   // Is Paid checkbox
                   CheckboxListTile(
-                    title: const Text('Is Paid'),
+                    title: const Text('تم الدفع'),
                     value: _isPaid,
                     onChanged: (value) => setState(() => _isPaid = value!),
                   ),
                   // Payment method dropdown
                   DropdownButtonFormField<String>(
                     decoration: const InputDecoration(
-                      labelText: 'Payment Method',
+                      labelText: 'طريقة الدفع',
                     ),
-                    items: ['Cash', 'Credit Card', 'Bank Transfer']
-                        .map(
-                          (method) => DropdownMenuItem(
-                            value: method,
-                            child: Text(method),
-                          ),
-                        )
-                        .toList(),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'Cash',
+                        child: Text('نقداً'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Credit Card',
+                        child: Text('بطاقة ائتمان'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Bank Transfer',
+                        child: Text('تحويل بنكي'),
+                      ),
+                    ],
                     onChanged: (value) =>
                         setState(() => _paymentMethod = value),
                     validator: (value) => _isPaid && value == null
-                        ? 'Payment Method is required when paid'
+                        ? 'طريقة الدفع مطلوبة عند الدفع'
                         : null,
                   ),
                   const SizedBox(height: 16),
@@ -229,7 +235,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                       });
                     },
                     decoration: InputDecoration(
-                      labelText: 'Discount (amount)',
+                      labelText: 'الخصم (المبلغ)',
                       fillColor: _discountController.text.isEmpty
                           ? Colors.blueGrey.withOpacity(0.23)
                           : Colors.green.withOpacity(0.25),
@@ -243,13 +249,13 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                     controller: _amountController,
                     readOnly: true,
                     decoration: InputDecoration(
-                      labelText: 'Amount',
+                      labelText: 'المبلغ',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     validator: (value) =>
-                        value!.isEmpty ? 'Amount is required' : null,
+                        value!.isEmpty ? 'المبلغ مطلوب' : null,
                   ),
                   const SizedBox(height: 24),
                   // Submit and Draft buttons
@@ -264,7 +270,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                 if (_selectedClientId == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Please select a client'),
+                      content: Text('يرجى اختيار العميل'),
                     ),
                   );
                   return;
@@ -292,7 +298,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                 strokeWidth: 2,
               ),
             )
-          : const Text('Add Invoice'),
+          : const Text('إضافة الفاتورة'),
     ),
 ElevatedButton(
       onPressed: state is InvoiceManagementLoading
@@ -335,8 +341,8 @@ ElevatedButton(
                 SnackBar(
                   content: Text(
                     existingDraftIndex != -1
-                        ? 'Draft updated successfully!'
-                        : 'Invoice saved as draft!',
+                        ? 'تم تحديث المسودة بنجاح!'
+                        : 'تم حفظ الفاتورة كمسودة!',
                   ),
                 ),
               );
@@ -346,7 +352,7 @@ ElevatedButton(
                 });
               }
             },
-      child: const Text('Save Draft'),
+      child: const Text('حفظ كمسودة'),
     ),
     InvoiceExportButton(
       clientName: (state is InvoiceManagementClientsLoaded && _selectedClientId != null)
@@ -387,17 +393,17 @@ ElevatedButton(
       clients = state.clients;
     }
     return DropdownButtonFormField<String>(
-      decoration: const InputDecoration(labelText: 'Select Client *'),
+      decoration: const InputDecoration(labelText: 'اختر العميل *'),
       items: clients.map((client) {
         return DropdownMenuItem(
           value: client.phoneNumber,
-          child: Text('${client.name} (${client.phoneNumber ?? 'No Phone'})'),
+          child: Text('${client.name} (${client.phoneNumber ?? 'بدون رقم'})'),
         );
       }).toList(),
       onChanged: (value) => setState(() {
         _selectedClientId = value;
       }),
-      validator: (value) => value == null ? 'Client is required' : null,
+      validator: (value) => value == null ? 'العميل مطلوب' : null,
     );
   }
 
@@ -414,7 +420,7 @@ ElevatedButton(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Items',
+            'العناصر',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18.0,
@@ -450,18 +456,18 @@ ElevatedButton(
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: const Text('Confirm Delete'),
+                      title: const Text('تأكيد الحذف'),
                       content: Text(
-                        'Are you sure you want to remove ${item.name}?',
+                        'هل أنت متأكد أنك تريد إزالة ${item.name}؟',
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text('Cancel'),
+                          child: const Text('إلغاء'),
                         ),
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text('Delete'),
+                          child: const Text('حذف'),
                         ),
                       ],
                     );
@@ -477,9 +483,9 @@ ElevatedButton(
                 });
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('${item.name} removed'),
+                    content: Text('تمت إزالة ${item.name}'),
                     action: SnackBarAction(
-                      label: 'Undo',
+                      label: 'تراجع',
                       onPressed: () {
                         setState(() {
                           _items.insert(index, item);
@@ -534,7 +540,7 @@ ElevatedButton(
                           ),
                           const SizedBox(height: 4.0),
                           Text(
-                            'Price: \$${item.price.toStringAsFixed(2)}',
+                            'السعر: \$${item.price.toStringAsFixed(2)}',
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 14.0,
@@ -569,7 +575,7 @@ ElevatedButton(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Qty: ${item.quantity}',
+                                  'الكمية: ${item.quantity}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     color: statusColor,
@@ -578,8 +584,8 @@ ElevatedButton(
                                 ),
                                 Text(
                                   inventoryItem == null
-                                      ? "External Item"
-                                      : 'In Stock: $totalQuantity',
+                                      ? "عنصر خارجي"
+                                      : 'في المخزون: $totalQuantity',
                                   style: TextStyle(
                                     fontSize: 12.0,
                                     color: statusColor,
@@ -643,7 +649,7 @@ ElevatedButton(
             child: TextButton(
               onPressed: () => _showItemDialog(context),
               child: const Text(
-                'Add Item',
+                'إضافة عنصر',
                 style: TextStyle(
                   fontSize: 16.0,
                   fontWeight: FontWeight.w600,
@@ -667,15 +673,15 @@ ElevatedButton(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Add Item'),
+          title: const Text('إضافة عنصر'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<bool>(
                 value: isInventoryItem,
                 items: const [
-                  DropdownMenuItem(value: true, child: Text('From Inventory')),
-                  DropdownMenuItem(value: false, child: Text('External Item')),
+                  DropdownMenuItem(value: true, child: Text('من المخزون')),
+                  DropdownMenuItem(value: false, child: Text('عنصر خارجي')),
                 ],
                 onChanged: (value) =>
                     setDialogState(() => isInventoryItem = value!),
@@ -683,7 +689,7 @@ ElevatedButton(
               const SizedBox(height: 10),
               if (isInventoryItem)
                 DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Select Item'),
+                  decoration: const InputDecoration(labelText: 'اختر العنصر'),
                   items:
                       _inventory?.items
                           .map(
@@ -708,12 +714,12 @@ ElevatedButton(
               else ...[
                 TextField(
                   controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Item Name'),
+                  decoration: const InputDecoration(labelText: 'اسم العنصر'),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: priceController,
-                  decoration: const InputDecoration(labelText: 'Price'),
+                  decoration: const InputDecoration(labelText: 'السعر'),
                   keyboardType: TextInputType.number,
                 ),
               ],
@@ -722,7 +728,7 @@ ElevatedButton(
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
+              child: const Text('إلغاء'),
             ),
             TextButton(
               onPressed: () {
@@ -745,7 +751,7 @@ ElevatedButton(
                   Navigator.pop(dialogContext);
                 }
               },
-              child: const Text('Add'),
+              child: const Text('إضافة'),
             ),
           ],
         ),

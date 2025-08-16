@@ -46,7 +46,7 @@ class LoginScreenState extends State<LoginScreen> {
                   builder: (context) => const Scaffold(
                     body: Center(
                       child: Text(
-                        'Welcome Supervisor',
+                        'مرحباً بالمشرف',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -99,7 +99,7 @@ class LoginScreenState extends State<LoginScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorResetMessage = "Something went wrong.";
+        _errorResetMessage = "حدث خطأ ما.";
       });
     }
   }
@@ -109,81 +109,81 @@ class LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('تسجيل الدخول'), // Login
+        title: const Text('تسجيل الدخول'),
       ),
-      body: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'مرحبًا بك في ${AppStrings.appName}',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+
+            //----enter email
+            TextFormField(
+              controller: _emailController,
+              decoration: const InputDecoration(
+                labelText: AppStrings.email,
+                hintText: 'أدخل البريد الإلكتروني',
+              ),
+              textDirection: TextDirection.ltr, // Email input in LTR
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 16),
+
+            //----enter password
+            TextFormField(
+              controller: _passwordController,
+              decoration: InputDecoration(
+                labelText: AppStrings.password,
+                hintText: 'أدخل كلمة المرور',
+                suffixIcon: _isPasswordVisible
+                    ? IconButton(
+                        icon: const Icon(Icons.remove_red_eye),
+                        onPressed: _togglePasswordVisibility,
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.visibility_off),
+                        onPressed: _togglePasswordVisibility,
+                      ),
+              ),
+              textDirection: TextDirection.ltr, // Password input in LTR
+              obscureText: _isPasswordVisible ? false : true,
+            ),
+            const SizedBox(height: 20),
+            if (_errorMessage != null)
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+            //forgot password
+            TextButton(
+              onPressed: sendResetEmail,
+              child: const Text("هل نسيت كلمة المرور؟"),
+            ),
+            const SizedBox(height: 20),
+            if (emailSent)
               const Text(
-                'مرحبًا بك في ${AppStrings.appName}',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                "تحقق من بريدك الإلكتروني للحصول على رابط إعادة التعيين!",
+                style: TextStyle(color: Colors.green),
               ),
-              const SizedBox(height: 20),
-
-              //----enter email
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'البريد الإلكتروني', // Email
-                  hintText: 'Enter Email',
-                ),
-                textDirection: TextDirection.ltr, // Email input in LTR
-                keyboardType: TextInputType.emailAddress,
+            if (_errorResetMessage != null)
+              Text(
+                _errorResetMessage!,
+                style: const TextStyle(color: Colors.red),
               ),
-              const SizedBox(height: 16),
-
-              //----enter password
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'كلمة المرور', // Password
-                  hintText: 'Enter Password',
-                  suffixIcon: _isPasswordVisible
-                      ? IconButton(
-                          icon: Icon(Icons.remove_red_eye),
-                          onPressed: _togglePasswordVisibility,
-                        )
-                      : IconButton(
-                          icon: Icon(Icons.visibility_off),
-                          onPressed: _togglePasswordVisibility,
-                        ),
-                ),
-                textDirection: TextDirection.ltr, // Password input in LTR
-                obscureText: _isPasswordVisible ? false : true,
-              ),
-              const SizedBox(height: 20),
-              if (_errorMessage != null)
-                Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-              //forgot password
-              TextButton(
-                onPressed: sendResetEmail,
-                child: Text("هل نسيت كلمة المرور؟"),
-              ),
-              const SizedBox(height: 20),
-              if (emailSent)
-                const Text(
-                  "Check your email for the reset link!",
-                  style: TextStyle(color: Colors.green),
-                ),
-              if (_errorMessage != null)
-                Text(
-                  "$_errorResetMessage",
-                  style: const TextStyle(color: Colors.red),
-                ),
-              const SizedBox(height: 10),
-              //----login button
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
+            const SizedBox(height: 10),
+            //----login button
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
                       onPressed: _login,
-                      child: const Text('تسجيل الدخول'), // Login
+                      child: const Text('تسجيل الدخول'),
                     ),
-            ],
-          ),
+                  ),
+          ],
         ),
       ),
     );

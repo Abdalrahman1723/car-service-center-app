@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:m_world/config/routes.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 import '../cubit/dashboard_cubit.dart';
 import '../widgets/build_card.dart';
 import '../widgets/drawer_item.dart';
@@ -83,7 +84,7 @@ class DashboardScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     const Text(
-                      'Manager Dashboard',
+                      'لوحة تحكم المدير',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -91,7 +92,7 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                     const Text(
-                      'Welcome back!',
+                      'مرحباً بعودتك!',
                       style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ],
@@ -113,8 +114,8 @@ class DashboardScreen extends StatelessWidget {
                       buildDrawerItem(
                         context,
                         icon: Icons.receipt_long,
-                        title: 'All Invoices',
-                        subtitle: 'View and manage invoices',
+                        title: 'جميع الفواتير',
+                        subtitle: 'عرض وإدارة الفواتير',
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.of(context).pushNamed(Routes.invoiceList);
@@ -124,8 +125,8 @@ class DashboardScreen extends StatelessWidget {
                       buildDrawerItem(
                         context,
                         icon: Icons.people,
-                        title: 'All Clients',
-                        subtitle: 'Manage client information',
+                        title: 'جميع العملاء',
+                        subtitle: 'إدارة معلومات العملاء',
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.of(context).pushNamed(Routes.clientList);
@@ -135,8 +136,8 @@ class DashboardScreen extends StatelessWidget {
                       buildDrawerItem(
                         context,
                         icon: Icons.inventory,
-                        title: 'The Inventory',
-                        subtitle: 'Stock management',
+                        title: 'المخزون',
+                        subtitle: 'إدارة المخزون',
                         onTap: () {
                           Navigator.pop(context);
                           // Navigate to inventory page
@@ -147,8 +148,8 @@ class DashboardScreen extends StatelessWidget {
                       buildDrawerItem(
                         context,
                         icon: Icons.local_shipping,
-                        title: 'All Suppliers',
-                        subtitle: 'Manage supplier relationships',
+                        title: 'جميع الموردين',
+                        subtitle: 'إدارة علاقات الموردين',
                         onTap: () {
                           Navigator.pop(context);
                           // Navigate to suppliers page
@@ -159,8 +160,8 @@ class DashboardScreen extends StatelessWidget {
                       buildDrawerItem(
                         context,
                         icon: Icons.shopping_cart,
-                        title: 'The Purchases',
-                        subtitle: 'Track purchase orders',
+                        title: 'المشتريات',
+                        subtitle: 'تتبع طلبات الشراء',
                         onTap: () {
                           Navigator.pop(context);
                           // Navigate to purchases page
@@ -171,8 +172,8 @@ class DashboardScreen extends StatelessWidget {
                       buildDrawerItem(
                         context,
                         icon: Icons.account_balance,
-                        title: 'The Vault',
-                        subtitle: 'Financial management',
+                        title: 'الخزينة',
+                        subtitle: 'الإدارة المالية',
                         onTap: () {
                           Navigator.pop(context);
                           // Navigate to vault page
@@ -183,8 +184,8 @@ class DashboardScreen extends StatelessWidget {
                       buildDrawerItem(
                         context,
                         icon: Icons.work,
-                        title: 'The Employees',
-                        subtitle: 'Manage team members',
+                        title: 'الموظفين',
+                        subtitle: 'إدارة أعضاء الفريق',
                         onTap: () {
                           Navigator.pop(context);
                           // Navigate to employees page
@@ -195,8 +196,8 @@ class DashboardScreen extends StatelessWidget {
                       buildDrawerItem(
                         context,
                         icon: Icons.schedule,
-                        title: 'Attendance Table',
-                        subtitle: 'Manage team attendance',
+                        title: 'جدول الحضور',
+                        subtitle: 'إدارة حضور الفريق',
                         onTap: () {
                           Navigator.pop(context);
                           // Navigate to employees page
@@ -233,7 +234,7 @@ class DashboardScreen extends StatelessWidget {
                         const Icon(Icons.logout, color: Colors.red, size: 20),
                         const SizedBox(width: 15),
                         const Text(
-                          'Logout',
+                          'تسجيل الخروج',
                           style: TextStyle(
                             color: Colors.red,
                             fontSize: 16,
@@ -263,12 +264,12 @@ class DashboardScreen extends StatelessWidget {
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
-                title: const Text('Confirm Logout'),
-                content: const Text('Are you sure you want to logout?'),
+                title: const Text('تأكيد تسجيل الخروج'),
+                content: const Text('هل أنت متأكد من تسجيل الخروج؟'),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(), // Cancel
-                    child: const Text('Cancel'),
+                    child: const Text(AppStrings.cancel),
                   ),
                   TextButton(
                     onPressed: () async {
@@ -284,7 +285,7 @@ class DashboardScreen extends StatelessWidget {
                         ).pushReplacementNamed('/LoginScreen');
                       }
                     },
-                    child: const Text('Logout'),
+                    child: const Text('تسجيل الخروج'),
                   ),
                 ],
               ),
@@ -298,14 +299,14 @@ class DashboardScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Welcome, Manager!',
+                  'مرحباً، المدير!',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: clientController,
                   decoration: const InputDecoration(
-                    labelText: 'Search Clients',
+                    labelText: 'البحث في العملاء',
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (value) => cubit.searchClients(value),
@@ -314,7 +315,7 @@ class DashboardScreen extends StatelessWidget {
                 TextField(
                   controller: invoiceController,
                   decoration: const InputDecoration(
-                    labelText: 'Search Invoices',
+                    labelText: 'البحث في الفواتير',
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (value) => cubit.searchInvoices(value),
@@ -330,21 +331,21 @@ class DashboardScreen extends StatelessWidget {
                     //add new invoice
                     buildCard(
                       context,
-                      'Add New Invoice',
+                      'إضافة فاتورة جديدة',
                       Icons.add_circle,
                       () => Navigator.of(context).pushNamed(Routes.invoiceAdd),
                     ),
                     //all invoices
                     buildCard(
                       context,
-                      'All Invoices',
+                      'جميع الفواتير',
                       Icons.list,
                       () => Navigator.of(context).pushNamed(Routes.invoiceList),
                     ),
                     //add new client
                     buildCard(
                       context,
-                      'Add New Client',
+                      'إضافة عميل جديد',
                       Icons.person_add,
                       () => Navigator.of(
                         context,
@@ -353,7 +354,7 @@ class DashboardScreen extends StatelessWidget {
                     //all clients
                     buildCard(
                       context,
-                      'All Clients',
+                      'جميع العملاء',
                       Icons.people,
                       () => Navigator.of(context).pushNamed(Routes.clientList),
                     ),
@@ -362,7 +363,7 @@ class DashboardScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 //----------sales chart
                 const Text(
-                  'Sales Chart',
+                  'رسم بياني للمبيعات',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(
@@ -374,7 +375,6 @@ class DashboardScreen extends StatelessWidget {
                       lineBarsData: [
                         LineChartBarData(
                           spots: [
-                           
                             const FlSpot(0, 1000),
                             const FlSpot(1, 1500),
                             const FlSpot(2, 1200),
@@ -392,7 +392,7 @@ class DashboardScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 //----------cost chart
                 const Text(
-                  'Costs & Payments Chart',
+                  'رسم بياني للتكاليف والمدفوعات',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(
@@ -433,7 +433,7 @@ class DashboardScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 //----------timeline
                 const Text(
-                  'Activity Timeline',
+                  'خط الزمن للنشاطات',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),

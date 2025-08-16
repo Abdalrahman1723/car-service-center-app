@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 
 import '../../../../../../shared/models/client.dart';
 import '../cubit/client_management_cubit.dart';
@@ -27,7 +28,7 @@ class ClientUpdateDialog {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Update Client'),
+        title: const Text('تحديث العميل'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -36,52 +37,54 @@ class ClientUpdateDialog {
               // Form fields for updating client information
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: 'Name *'),
+                decoration: const InputDecoration(labelText: 'الاسم *'),
               ),
               SizedBox(height: 8),
               TextField(
                 maxLength: 15,
                 controller: phoneController,
-                decoration: const InputDecoration(labelText: 'Phone Number'),
+                decoration: const InputDecoration(labelText: 'رقم الهاتف'),
                 keyboardType: TextInputType.phone,
               ),
               SizedBox(height: 8),
 
               TextField(
                 controller: carTypeController,
-                decoration: const InputDecoration(labelText: 'Car Type *'),
+                decoration: const InputDecoration(labelText: 'نوع السيارة *'),
               ),
               SizedBox(height: 8),
 
               TextField(
                 controller: modelController,
-                decoration: const InputDecoration(labelText: 'Model'),
+                decoration: const InputDecoration(labelText: 'الموديل'),
               ),
               SizedBox(height: 8),
 
               TextField(
                 controller: balanceController,
-                decoration: const InputDecoration(labelText: 'Balance *'),
+                decoration: const InputDecoration(labelText: 'الرصيد *'),
                 keyboardType: TextInputType.number,
               ),
               SizedBox(height: 8),
 
               TextField(
                 controller: emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: const InputDecoration(
+                  labelText: 'البريد الإلكتروني',
+                ),
                 keyboardType: TextInputType.emailAddress,
               ),
               SizedBox(height: 8),
 
               TextField(
                 controller: licensePlateController,
-                decoration: const InputDecoration(labelText: 'License Plate'),
+                decoration: const InputDecoration(labelText: 'رقم اللوحة'),
               ),
               SizedBox(height: 8),
 
               TextField(
                 controller: notesController,
-                decoration: const InputDecoration(labelText: 'Notes'),
+                decoration: const InputDecoration(labelText: 'ملاحظات'),
                 maxLines: 3,
               ),
               SizedBox(height: 8),
@@ -92,7 +95,7 @@ class ClientUpdateDialog {
           // Cancel button
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: const Text(AppStrings.cancel),
           ),
           // Save button with validation
           TextButton(
@@ -103,7 +106,7 @@ class ClientUpdateDialog {
                   balanceController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Please fill all required fields'),
+                    content: Text('يرجى ملء جميع الحقول المطلوبة'),
                   ),
                 );
                 return;
@@ -137,7 +140,7 @@ class ClientUpdateDialog {
               );
               Navigator.pop(dialogContext);
             },
-            child: const Text('Save'),
+            child: const Text(AppStrings.save),
           ),
         ],
       ),

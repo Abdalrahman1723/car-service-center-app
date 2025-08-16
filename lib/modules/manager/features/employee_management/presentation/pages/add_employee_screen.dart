@@ -42,7 +42,7 @@ class AddEmployeeScreenState extends State<AddEmployeeScreen> {
     );
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
-    _selectedRole = widget.employee?.role ?? 'Other';
+    _selectedRole = widget.employee?.role ?? 'أخرى';
     _isActive = widget.employee?.isActive ?? true;
   }
 
@@ -61,7 +61,7 @@ class AddEmployeeScreenState extends State<AddEmployeeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEdit ? 'Edit Employee' : 'Add Employee'),
+        title: Text(widget.isEdit ? 'تعديل الموظف' : 'إضافة موظف'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -73,42 +73,41 @@ class AddEmployeeScreenState extends State<AddEmployeeScreen> {
                 TextFormField(
                   controller: _fullNameController,
                   decoration: const InputDecoration(
-                    labelText: 'Full Name',
+                    labelText: 'الاسم الكامل',
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) =>
-                      value!.isEmpty ? 'Full name is required' : null,
+                      value!.isEmpty ? 'الاسم الكامل مطلوب' : null,
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   decoration: const InputDecoration(
-                    labelText: 'Role',
+                    labelText: 'الدور',
                     border: OutlineInputBorder(),
                   ),
                   value: _selectedRole,
-                  items: ['Manager', 'Supervisor', 'Inventory Worker', 'Other']
+                  items: ['مدير', 'مشرف', 'عامل مخزون', 'أخرى']
                       .map((r) => DropdownMenuItem(value: r, child: Text(r)))
                       .toList(),
                   onChanged: (value) => setState(() => _selectedRole = value),
-                  validator: (value) =>
-                      value == null ? 'Role is required' : null,
+                  validator: (value) => value == null ? 'الدور مطلوب' : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _phoneNumberController,
                   decoration: const InputDecoration(
-                    labelText: 'Phone Number',
+                    labelText: 'رقم الهاتف',
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) =>
-                      value!.isEmpty ? 'Phone number is required' : null,
+                      value!.isEmpty ? 'رقم الهاتف مطلوب' : null,
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _addressController,
                   decoration: const InputDecoration(
-                    labelText: 'Address (Optional)',
+                    labelText: 'العنوان (اختياري)',
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -116,7 +115,7 @@ class AddEmployeeScreenState extends State<AddEmployeeScreen> {
                 TextFormField(
                   controller: _salaryController,
                   decoration: const InputDecoration(
-                    labelText: 'Salary/Hourly Rate (Optional)',
+                    labelText: 'الراتب/المعدل بالساعة (اختياري)',
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
@@ -127,7 +126,7 @@ class AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   TextFormField(
                     controller: _emailController,
                     decoration: const InputDecoration(
-                      labelText: 'Email  (for creating email)',
+                      labelText: 'البريد الإلكتروني (لإنشاء الحساب)',
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.emailAddress,
@@ -137,23 +136,23 @@ class AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   TextFormField(
                     controller: _passwordController,
                     decoration: const InputDecoration(
-                      labelText: 'Password (for creating email)',
+                      labelText: 'كلمة المرور (لإنشاء الحساب)',
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) =>
                         _emailController.text.isEmpty && value!.isEmpty
                         ? null
                         : _emailController.text.isEmpty
-                        ? "Enter email first to make the password"
+                        ? "أدخل البريد الإلكتروني أولاً لإنشاء كلمة المرور"
                         : value!.length < 6
-                        ? 'Password must be at least 6 characters'
+                        ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'
                         : null,
                     obscureText: true,
                   ),
                 ],
                 const SizedBox(height: 12),
                 CheckboxListTile(
-                  title: const Text('Active'),
+                  title: const Text('نشط'),
                   value: _isActive,
                   onChanged: (value) => setState(() => _isActive = value!),
                 ),
@@ -188,7 +187,7 @@ class AddEmployeeScreenState extends State<AddEmployeeScreen> {
                       Navigator.pop(context);
                     }
                   },
-                  child: Text(widget.isEdit ? 'Update' : 'Add'),
+                  child: Text(widget.isEdit ? 'تحديث' : 'إضافة'),
                 ),
               ],
             ),
