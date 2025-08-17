@@ -21,7 +21,7 @@ class InventoryEntity {
   int get totalItems => items.fold(0, (sum, item) => sum + item.quantity);
 
   double get totalValue =>
-      items.fold(0.0, (sum, item) => sum + (item.price * item.quantity));
+      items.fold(0.0, (sum, item) => sum + (item.cost * item.quantity));
 
   List<Item> get lowStockItems =>
       items.where((item) => item.quantity <= 10).toList();

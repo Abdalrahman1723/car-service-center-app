@@ -115,8 +115,8 @@ class InvoiceExportButton extends StatelessWidget {
                   return [
                     item.name,
                     item.quantity.toString(),
-                    '${item.price.toStringAsFixed(2)} \$',
-                    '${(item.price * item.quantity).toStringAsFixed(2)} \$',
+                    '${item.price!.toStringAsFixed(2)} \$',
+                    '${(item.price! * item.quantity).toStringAsFixed(2)} \$',
                   ];
                 }).toList(),
                 headerStyle: pw.TextStyle(

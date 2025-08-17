@@ -16,7 +16,7 @@ class _EditItemDialogState extends State<EditItemDialog> {
   late TextEditingController _nameController;
   late TextEditingController _codeController;
   late TextEditingController _quantityController;
-  late TextEditingController _priceController;
+  late TextEditingController _costController;
   late TextEditingController _descriptionController;
 
   @override
@@ -27,8 +27,8 @@ class _EditItemDialogState extends State<EditItemDialog> {
     _quantityController = TextEditingController(
       text: widget.item.quantity.toString(),
     );
-    _priceController = TextEditingController(
-      text: widget.item.price.toString(),
+    _costController = TextEditingController(
+      text: widget.item.cost.toString(),
     );
     _descriptionController = TextEditingController(
       text: widget.item.description ?? '',
@@ -40,7 +40,7 @@ class _EditItemDialogState extends State<EditItemDialog> {
     _nameController.dispose();
     _codeController.dispose();
     _quantityController.dispose();
-    _priceController.dispose();
+    _costController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
@@ -101,7 +101,7 @@ class _EditItemDialogState extends State<EditItemDialog> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildTextField(
-                    controller: _priceController,
+                    controller: _costController,
                     label: 'السعر',
                     icon: Icons.attach_money,
                     keyboardType: const TextInputType.numberWithOptions(
@@ -114,8 +114,8 @@ class _EditItemDialogState extends State<EditItemDialog> {
                       if (value == null || value.trim().isEmpty) {
                         return 'السعر مطلوب';
                       }
-                      final price = double.tryParse(value);
-                      if (price == null || price < 0) {
+                      final cost = double.tryParse(value);
+                      if (cost == null || cost < 0) {
                         return 'يجب أن يكون السعر رقم موجب';
                       }
                       return null;
@@ -185,8 +185,8 @@ class _EditItemDialogState extends State<EditItemDialog> {
       return;
     }
 
-    final price = double.tryParse(_priceController.text);
-    if (price == null || price < 0) {
+    final cost = double.tryParse(_costController.text);
+    if (cost == null || cost < 0) {
       _showError('يجب أن يكون السعر رقم موجب');
       return;
     }
@@ -199,7 +199,7 @@ class _EditItemDialogState extends State<EditItemDialog> {
           ? null
           : _codeController.text.trim(),
       quantity: quantity,
-      price: price,
+      cost: cost, 
       description: _descriptionController.text.trim().isEmpty
           ? null
           : _descriptionController.text.trim(),

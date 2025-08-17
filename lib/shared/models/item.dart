@@ -3,7 +3,8 @@ class Item {
   final String name;
   int quantity;
   late final String? code;
-  final double price;
+  late final double? price;
+  final double cost;
   final DateTime? timeAdded;
   final String? description;
 
@@ -13,7 +14,8 @@ class Item {
     required this.timeAdded,
     required this.quantity,
     this.code,
-    required this.price,
+    this.price, 
+    required this.cost,
     this.description,
   });
 
@@ -21,6 +23,7 @@ class Item {
     'name': name,
     'quantity': quantity,
     'price': price,
+    'cost': cost,
     'code': code,
     'timeAdded': timeAdded?.toIso8601String(),
     'description': description,
@@ -34,6 +37,9 @@ class Item {
     price: (map['price'] is int)
         ? (map['price'] as int).toDouble()
         : (map['price'] ?? 0.0),
+    cost: (map['cost'] is int)
+        ? (map['cost'] as int).toDouble()
+        : (map['cost'] ?? 0.0),
     description: map['description'],
     timeAdded: map['timeAdded'] != null
         ? (map['timeAdded'] is DateTime
@@ -46,16 +52,18 @@ class Item {
     String? id,
     String? name,
     double? price,
+    double? cost,
     int? quantity,
     DateTime? timeAdded,
     String? code,
   }) => Item(
-        id: id ?? this.id,
-        name: name ?? this.name,
-        price: price ?? this.price,
-        quantity: quantity ?? this.quantity,
-        timeAdded: timeAdded ?? this.timeAdded,
-        code: code ?? this.code,
-      );
+    id: id ?? this.id,
+    name: name ?? this.name,
+    price: price ?? this.price,
+    cost: cost ?? this.cost,
+    quantity: quantity ?? this.quantity,
+    timeAdded: timeAdded ?? this.timeAdded,
+    code: code ?? this.code,
+    description: description,
+  );
 }
-

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:m_world/modules/employee/invoice_management/presentation/cubit/invoice_management_cubit.dart';
 import 'package:m_world/modules/employee/invoice_management/presentation/widgets/invoice_export_button.dart';
 import 'package:m_world/shared/models/invoice.dart';
 import 'package:m_world/shared/models/item.dart';
@@ -10,7 +11,6 @@ import 'package:m_world/shared/models/client.dart';
 import 'package:m_world/modules/manager/features/inventory/domain/entities/inventory_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../config/routes.dart';
-import '../cubit/invoice_management_cubit.dart';
 
 // Screen to add a new invoice for a client
 class InvoiceAddScreen extends StatefulWidget {
@@ -37,13 +37,25 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   DateTime? _issueDate;
   late String selectedClientName;
   Color quantityContainerColor = Colors.blueAccent;
-
+  List<Client> clients = [];
   // Add a new variable to track the draft ID
   String? _draftId;
+
   @override
   void initState() {
     super.initState();
     context.read<InvoiceManagementCubit>().loadClients();
+    context.read<InvoiceManagementCubit>().loadClients().then((_) {
+      if (mounted) {
+        final state = context.read<InvoiceManagementCubit>().state;
+        if (state is InvoiceManagementClientsLoaded) {
+          setState(() {
+            clients = state.clients;
+          });
+        }
+      }
+    });
+
     context.read<InvoiceManagementCubit>().loadInventory();
     if (widget.draftData != null) {
       _loadDraftData();
@@ -56,13 +68,12 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
     log("the draft $draft");
     setState(() {
       _draftId = draft['id'];
-      _selectedClientId = draft['clientId'] ?? ""; // Add as String?
+      _selectedClientId = draft['clientId'] ?? "";
       _amountController.text = draft['amount']?.toString() ?? '0.0';
-      _maintenanceByController.text =
-          draft['maintenanceBy'] as String? ?? ''; // Fix here
-      _notesController.text = draft['notes'] as String? ?? ''; // Fix here
+      _maintenanceByController.text = draft['maintenanceBy'] as String? ?? '';
+      _notesController.text = draft['notes'] as String? ?? '';
       _isPaid = draft['isPaid'] ?? false;
-      _paymentMethod = draft['paymentMethod'] as String?; // Add as String?
+      _paymentMethod = draft['paymentMethod'] as String?;
       _discountController.text = draft['discount']?.toString() ?? '';
       _issueDate = draft['issueDate'] != null
           ? DateTime.parse(draft['issueDate'])
@@ -76,9 +87,12 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                 (item) => Item(
                   id: item['id'],
                   name: item['name'],
-                  price: item['price'].toDouble(),
-                  timeAdded: DateTime.parse(item['timeAdded']),
                   quantity: item['quantity'],
+                  code: item['code'],
+                  price: item['price']?.toDouble(),
+                  cost: item['cost']?.toDouble() ?? 0.0,
+                  timeAdded: DateTime.parse(item['timeAdded']),
+                  description: item['description'],
                 ),
               )
               .toList(),
@@ -132,7 +146,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
               child: Column(
                 children: [
                   // Client dropdown
-                  _buildClientDropdown(state),
+                  _buildClientDropdown(state, clients),
                   const SizedBox(height: 16),
                   // Maintenance by field
                   TextFormField(
@@ -193,14 +207,9 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                   ),
                   // Payment method dropdown
                   DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(
-                      labelText: 'طريقة الدفع',
-                    ),
+                    decoration: const InputDecoration(labelText: 'طريقة الدفع'),
                     items: const [
-                      DropdownMenuItem(
-                        value: 'Cash',
-                        child: Text('نقداً'),
-                      ),
+                      DropdownMenuItem(value: 'Cash', child: Text('نقداً')),
                       DropdownMenuItem(
                         value: 'Credit Card',
                         child: Text('بطاقة ائتمان'),
@@ -260,123 +269,166 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                   const SizedBox(height: 24),
                   // Submit and Draft buttons
                   Row(
-  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  children: [
-    ElevatedButton(
-      onPressed: (state is InvoiceManagementLoading || !isFormValid)
-          ? null
-          : () {
-              if (_formKey.currentState!.validate()) {
-                if (_selectedClientId == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('يرجى اختيار العميل'),
-                    ),
-                  );
-                  return;
-                }
-                final amount = double.tryParse(_amountController.text) ?? 0.0;
-                final discount = double.tryParse(_discountController.text);
-                context.read<InvoiceManagementCubit>().addInvoice(
-                      clientId: _selectedClientId!,
-                      amount: amount,
-                      maintenanceBy: _maintenanceByController.text,
-                      items: _items,
-                      notes: _notesController.text.isEmpty ? null : _notesController.text,
-                      isPaid: _isPaid,
-                      paymentMethod: _paymentMethod,
-                      discount: discount,
-                      issueDate: _issueDate ?? DateTime.now(),
-                    );
-              }
-            },
-      child: state is InvoiceManagementLoading
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-              ),
-            )
-          : const Text('إضافة الفاتورة'),
-    ),
-ElevatedButton(
-      onPressed: state is InvoiceManagementLoading
-          ? null
-          : () async {
-              final String currentDraftId = _draftId ?? DateTime.now().toIso8601String();
-              final draft = {
-                'id': currentDraftId,
-                'clientId': _selectedClientId,
-                'amount': double.tryParse(_amountController.text),
-                'maintenanceBy': _maintenanceByController.text,
-                'items': _items.map((item) => item.toMap()).toList(),
-                'notes': _notesController.text.isEmpty ? null : _notesController.text,
-                'isPaid': _isPaid,
-                'clientName': (state is InvoiceManagementClientsLoaded && _selectedClientId != null)
-                    ? state.clients
-                        .firstWhere((element) => element.phoneNumber == _selectedClientId)
-                        .name
-                    : null,
-                'paymentMethod': _paymentMethod,
-                'discount': double.tryParse(_discountController.text),
-                'issueDate': _issueDate?.toIso8601String(),
-                'createdAt': widget.draftData != null
-                    ? widget.draftData!['createdAt']
-                    : DateTime.now().toIso8601String(),
-              };
-              final prefs = await SharedPreferences.getInstance();
-              final drafts = prefs.getStringList('invoice_drafts') ?? [];
-              final existingDraftIndex = drafts.indexWhere((draftString) {
-                final draftMap = jsonDecode(draftString);
-                return draftMap['id'] == currentDraftId;
-              });
-              if (existingDraftIndex != -1) {
-                drafts[existingDraftIndex] = jsonEncode(draft);
-              } else {
-                drafts.add(jsonEncode(draft));
-              }
-              await prefs.setStringList('invoice_drafts', drafts);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    existingDraftIndex != -1
-                        ? 'تم تحديث المسودة بنجاح!'
-                        : 'تم حفظ الفاتورة كمسودة!',
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed:
+                            (state is InvoiceManagementLoading || !isFormValid)
+                            ? null
+                            : () {
+                                if (_formKey.currentState!.validate()) {
+                                  if (_selectedClientId == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('يرجى اختيار العميل'),
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  final amount =
+                                      double.tryParse(_amountController.text) ??
+                                      0.0;
+                                  final discount = double.tryParse(
+                                    _discountController.text,
+                                  );
+                                  context
+                                      .read<InvoiceManagementCubit>()
+                                      .addInvoice(
+                                        clientId: _selectedClientId!,
+                                        amount: amount,
+                                        maintenanceBy:
+                                            _maintenanceByController.text,
+                                        items: _items,
+                                        notes: _notesController.text.isEmpty
+                                            ? null
+                                            : _notesController.text,
+                                        isPaid: _isPaid,
+                                        paymentMethod: _paymentMethod,
+                                        discount: discount,
+                                        issueDate: _issueDate ?? DateTime.now(),
+                                      );
+                                }
+                              },
+                        child: state is InvoiceManagementLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('إضافة الفاتورة'),
+                      ),
+                      ElevatedButton(
+                        onPressed: state is InvoiceManagementLoading
+                            ? null
+                            : () async {
+                                final String currentDraftId =
+                                    _draftId ??
+                                    DateTime.now().toIso8601String();
+                                final draft = {
+                                  'id': currentDraftId,
+                                  'clientId': _selectedClientId,
+                                  'amount': double.tryParse(
+                                    _amountController.text,
+                                  ),
+                                  'maintenanceBy':
+                                      _maintenanceByController.text,
+                                  'items': _items
+                                      .map((item) => item.toMap())
+                                      .toList(),
+                                  'notes': _notesController.text.isEmpty
+                                      ? null
+                                      : _notesController.text,
+                                  'isPaid': _isPaid,
+                                  'clientName':
+                                      (state is InvoiceManagementClientsLoaded &&
+                                          _selectedClientId != null)
+                                      ? state.clients
+                                            .firstWhere(
+                                              (element) =>
+                                                  element.phoneNumber ==
+                                                  _selectedClientId,
+                                            )
+                                            .name
+                                      : null,
+                                  'paymentMethod': _paymentMethod,
+                                  'discount': double.tryParse(
+                                    _discountController.text,
+                                  ),
+                                  'issueDate': _issueDate?.toIso8601String(),
+                                  'createdAt': widget.draftData != null
+                                      ? widget.draftData!['createdAt']
+                                      : DateTime.now().toIso8601String(),
+                                };
+                                final prefs =
+                                    await SharedPreferences.getInstance();
+                                final drafts =
+                                    prefs.getStringList('invoice_drafts') ?? [];
+                                final existingDraftIndex = drafts.indexWhere((
+                                  draftString,
+                                ) {
+                                  final draftMap = jsonDecode(draftString);
+                                  return draftMap['id'] == currentDraftId;
+                                });
+                                if (existingDraftIndex != -1) {
+                                  drafts[existingDraftIndex] = jsonEncode(
+                                    draft,
+                                  );
+                                } else {
+                                  drafts.add(jsonEncode(draft));
+                                }
+                                await prefs.setStringList(
+                                  'invoice_drafts',
+                                  drafts,
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      existingDraftIndex != -1
+                                          ? 'تم تحديث المسودة بنجاح!'
+                                          : 'تم حفظ الفاتورة كمسودة!',
+                                    ),
+                                  ),
+                                );
+                                if (_draftId == null) {
+                                  setState(() {
+                                    _draftId = currentDraftId;
+                                  });
+                                }
+                              },
+                        child: const Text('حفظ كمسودة'),
+                      ),
+                      InvoiceExportButton(
+                        clientName:
+                            (state is InvoiceManagementClientsLoaded &&
+                                _selectedClientId != null)
+                            ? state.clients
+                                  .firstWhere(
+                                    (element) =>
+                                        element.phoneNumber ==
+                                        _selectedClientId,
+                                  )
+                                  .name
+                            : '',
+                        invoice: Invoice(
+                          id: '',
+                          clientId: _selectedClientId ?? 'N/A',
+                          amount:
+                              double.tryParse(_amountController.text) ?? 0.0,
+                          maintenanceBy: _maintenanceByController.text,
+                          items: _items,
+                          notes: _notesController.text.isEmpty
+                              ? null
+                              : _notesController.text,
+                          isPaid: _isPaid,
+                          paymentMethod: _paymentMethod,
+                          discount: double.tryParse(_discountController.text),
+                          issueDate: _issueDate,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              );
-              if (_draftId == null) {
-                setState(() {
-                  _draftId = currentDraftId;
-                });
-              }
-            },
-      child: const Text('حفظ كمسودة'),
-    ),
-    InvoiceExportButton(
-      clientName: (state is InvoiceManagementClientsLoaded && _selectedClientId != null)
-          ? state.clients
-              .firstWhere(
-                (element) => element.phoneNumber == _selectedClientId,
-              )
-              .name
-          : '',
-      invoice: Invoice(
-        id: '',
-        clientId: _selectedClientId ?? 'N/A',
-        amount: double.tryParse(_amountController.text) ?? 0.0,
-        maintenanceBy: _maintenanceByController.text,
-        items: _items,
-        notes: _notesController.text.isEmpty ? null : _notesController.text,
-        isPaid: _isPaid,
-        paymentMethod: _paymentMethod,
-        discount: double.tryParse(_discountController.text),
-        issueDate: _issueDate,
-      ),
-    ),
-  ],
-)
                 ],
               ),
             ),
@@ -387,11 +439,10 @@ ElevatedButton(
   }
 
   // Client dropdown with name and phone number
-  Widget _buildClientDropdown(InvoiceManagementState state) {
-    List<Client> clients = [];
-    if (state is InvoiceManagementClientsLoaded) {
-      clients = state.clients;
-    }
+  Widget _buildClientDropdown(
+    InvoiceManagementState state,
+    List<Client> clients,
+  ) {
     return DropdownButtonFormField<String>(
       decoration: const InputDecoration(labelText: 'اختر العميل *'),
       items: clients.map((client) {
@@ -477,7 +528,7 @@ ElevatedButton(
               onDismissed: (direction) {
                 setState(() {
                   _items.removeAt(index);
-                  totalAmount -= item.price * item.quantity;
+                  totalAmount -= (item.price ?? 0.0) * item.quantity;
                   _amountController.text = totalAmount.toString();
                   _discountController.clear();
                 });
@@ -489,7 +540,7 @@ ElevatedButton(
                       onPressed: () {
                         setState(() {
                           _items.insert(index, item);
-                          totalAmount += item.price * item.quantity;
+                          totalAmount += (item.price ?? 0.0) * item.quantity;
                           _amountController.text = totalAmount.toString();
                         });
                       },
@@ -540,7 +591,7 @@ ElevatedButton(
                           ),
                           const SizedBox(height: 4.0),
                           Text(
-                            'السعر: \$${item.price.toStringAsFixed(2)}',
+                            'السعر: \$${item.price?.toStringAsFixed(2) ?? '0.00'}',
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 14.0,
@@ -612,14 +663,14 @@ ElevatedButton(
                             if (item.quantity > 1) {
                               setState(() {
                                 item.quantity--;
-                                totalAmount -= item.price;
+                                totalAmount -= item.price ?? 0.0;
                                 _amountController.text = totalAmount.toString();
                                 _discountController.clear();
                               });
                             }
                           },
                         ),
-                        //add
+                        // add
                         IconButton(
                           icon: const Icon(
                             Icons.add_circle_outline,
@@ -631,7 +682,7 @@ ElevatedButton(
                                 item.quantity < totalQuantity) {
                               setState(() {
                                 item.quantity++;
-                                totalAmount += item.price;
+                                totalAmount += item.price ?? 0.0;
                                 _amountController.text = totalAmount.toString();
                                 _discountController.clear();
                               });
@@ -695,7 +746,9 @@ ElevatedButton(
                           .map(
                             (item) => DropdownMenuItem<String>(
                               value: item.id,
-                              child: Text('${item.name} (\$${item.price})'),
+                              child: Text(
+                                '${item.name} (المخزون: ${item.quantity})',
+                              ),
                             ),
                           )
                           .toList() ??
@@ -706,23 +759,24 @@ ElevatedButton(
                         (i) => i.id == value,
                       );
                       nameController.text = item.name;
-                      priceController.text = item.price.toString();
-                      _discountController.clear();
+                      // Do not pre-fill price, as it's set by user
                     }
                   },
                 )
-              else ...[
+              else
                 TextField(
                   controller: nameController,
                   decoration: const InputDecoration(labelText: 'اسم العنصر'),
                 ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: priceController,
-                  decoration: const InputDecoration(labelText: 'السعر'),
-                  keyboardType: TextInputType.number,
-                ),
-              ],
+              const SizedBox(height: 8),
+              TextField(
+                controller: priceController,
+                decoration: const InputDecoration(labelText: 'سعر البيع *'),
+                keyboardType: TextInputType.number,
+
+                // validator: (value) =>
+                //     value!.isEmpty ? 'سعر البيع مطلوب' : null,
+              ),
             ],
           ),
           actions: [
@@ -734,19 +788,39 @@ ElevatedButton(
               onPressed: () {
                 if (nameController.text.isNotEmpty &&
                     priceController.text.isNotEmpty) {
+                  final price = double.tryParse(priceController.text) ?? 0.0;
+                  final inventoryItem = isInventoryItem && _inventory != null
+                      ? _inventory!.items.firstWhere(
+                          (i) => i.name == nameController.text,
+                          orElse: () => Item(
+                            id: '',
+                            name: nameController.text,
+                            quantity: 0,
+                            code: null,
+                            price: null,
+                            cost: 0.0,
+                            timeAdded: null,
+                            description: null,
+                          ),
+                        )
+                      : null;
                   setState(() {
-                    final price = double.tryParse(priceController.text) ?? 0.0;
-                    _items.add(
-                      Item(
-                        id: DateTime.now().toString(),
-                        name: nameController.text,
-                        price: price,
-                        timeAdded: DateTime.now(),
-                        quantity: 1,
-                      ),
+                    final item = Item(
+                      id: DateTime.now().toString(),
+                      name: nameController.text,
+                      quantity: 1,
+                      code: inventoryItem?.code,
+                      price: price, // Set price from user input
+                      cost:
+                          inventoryItem?.cost ??
+                          0.0, // Set cost for inventory item or default
+                      timeAdded: DateTime.now(),
+                      description: inventoryItem?.description,
                     );
+                    _items.add(item);
                     totalAmount += price;
                     _amountController.text = totalAmount.toString();
+                    _discountController.clear();
                   });
                   Navigator.pop(dialogContext);
                 }

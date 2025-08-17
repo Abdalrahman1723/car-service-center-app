@@ -43,7 +43,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
       _notesController.text = widget.shipment!.notes ?? '';
       _totalAmount = widget.shipment!.items.fold(
         0,
-        (summ, item) => summ + item.price * item.quantity,
+        (summ, item) => summ + item.cost * item.quantity,
       );
     }
   }
@@ -77,7 +77,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
     bool isInventoryItem = true;
     String? selectedItemId;
     final nameController = TextEditingController();
-    final priceController = TextEditingController();
+    final costController = TextEditingController();
     final quantityController = TextEditingController(text: '1');
     final codeController = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -106,7 +106,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                       isInventoryItem = value!;
                       selectedItemId = null;
                       nameController.clear();
-                      priceController.clear();
+                      costController.clear();
                       codeController.clear();
                     }),
                     decoration: const InputDecoration(
@@ -126,7 +126,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                             (item) => DropdownMenuItem(
                               value: item.id,
                               child: Text(
-                                '${item.name} (\$${item.price.toStringAsFixed(2)})',
+                                '${item.name} (\$${item.cost.toStringAsFixed(2)})',
                               ),
                             ),
                           )
@@ -137,7 +137,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                           (i) => i.id == value,
                         );
                         nameController.text = item.name;
-                        priceController.text = item.price.toString();
+                        costController.text = item.cost.toString();
                         codeController.text = item.code ?? '';
                       }),
                       validator: (value) => value == null && isInventoryItem
@@ -156,17 +156,17 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
-                      controller: priceController,
+                      controller: costController,
                       decoration: const InputDecoration(
-                        labelText: 'Price *',
+                        labelText: 'cost *',
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
-                        if (value!.isEmpty) return 'Price is required';
+                        if (value!.isEmpty) return 'cost is required';
                         if (double.tryParse(value) == null ||
                             double.parse(value) <= 0) {
-                          return 'Invalid price';
+                          return 'Invalid cost';
                         }
                         return null;
                       },
@@ -219,17 +219,17 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                     newItem = Item(
                       id: inventoryItem.id,
                       name: inventoryItem.name,
-                      price: inventoryItem.price,
+                      cost: inventoryItem.cost,
                       quantity: quantity,
                       timeAdded: inventoryItem.timeAdded,
                       code: code,
                     );
                   } else {
-                    final price = double.parse(priceController.text);
+                    final cost = double.parse(costController.text);
                     newItem = Item(
                       id: DateTime.now().toString(),
                       name: nameController.text,
-                      price: price,
+                      cost: cost,
                       quantity: quantity,
                       timeAdded: DateTime.now(),
                       code: code,
@@ -239,7 +239,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                     _items.add(newItem);
                     _totalAmount = _items.fold(
                       0,
-                      (summ, item) => summ + item.price * item.quantity,
+                      (summ, item) => summ + item.cost * item.quantity,
                     );
                   });
                   Navigator.pop(dialogContext);
@@ -334,7 +334,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                               orElse: () => Item(
                                 id: item.id,
                                 name: item.name,
-                                price: item.price,
+                                cost: item.cost,
                                 quantity: 0,
                                 timeAdded: item.timeAdded,
                                 code: item.code,
@@ -380,7 +380,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                   _totalAmount = _items.fold(
                                     0,
                                     (summ, item) =>
-                                        summ + item.price * item.quantity,
+                                        summ + item.cost * item.quantity,
                                   );
                                 });
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -395,7 +395,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                             0,
                                             (summ, item) =>
                                                 summ +
-                                                item.price * item.quantity,
+                                                item.cost * item.quantity,
                                           );
                                         });
                                       },
@@ -446,7 +446,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                           ),
                                           const SizedBox(height: 4.0),
                                           Text(
-                                            'Price: \$${item.price.toStringAsFixed(2)}',
+                                            'cost: \$${item.cost.toStringAsFixed(2)}',
                                             style: TextStyle(
                                               color: Colors.grey[600],
                                               fontSize: 14.0,
@@ -521,7 +521,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                                 _items[index] = Item(
                                                   id: item.id,
                                                   name: item.name,
-                                                  price: item.price,
+                                                  cost: item.cost,
                                                   quantity: item.quantity - 1,
                                                   timeAdded: item.timeAdded,
                                                   code: item.code,
@@ -530,7 +530,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                                   0,
                                                   (summ, item) =>
                                                       summ +
-                                                      item.price *
+                                                      item.cost *
                                                           item.quantity,
                                                 );
                                               });
@@ -548,7 +548,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                               _items[index] = Item(
                                                 id: item.id,
                                                 name: item.name,
-                                                price: item.price,
+                                                cost: item.cost,
                                                 quantity: item.quantity + 1,
                                                 timeAdded: item.timeAdded,
                                                 code: item.code,
@@ -557,7 +557,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                                 0,
                                                 (summ, item) =>
                                                     summ +
-                                                    item.price * item.quantity,
+                                                    item.cost * item.quantity,
                                               );
                                             });
                                           },

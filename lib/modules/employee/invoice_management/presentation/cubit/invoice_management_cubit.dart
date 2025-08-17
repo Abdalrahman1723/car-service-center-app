@@ -71,7 +71,7 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
             timeAdded: DateTime.now(),
             quantity: entry.value, // Effectively unlimited for external items
             code: '',
-            price: 0,
+            cost: 0,
             description: 'External item',
           ),
         );
@@ -85,7 +85,7 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
           timeAdded: inventoryItem.timeAdded,
           quantity: inventoryItem.quantity - entry.value,
           code: inventoryItem.code,
-          price: inventoryItem.price,
+          cost: inventoryItem.cost,
           description: inventoryItem.description,
         );
         await inventoryRepository.updateItemInInventory(updatedItem);

@@ -76,7 +76,7 @@ class ShipmentModel {
                   id: item['itemId'] as String,
                   name: item['name'] as String,
                   quantity: item['quantity'] as int,
-                  price: (item['price'] is int)
+                  cost: (item['price'] is int)
                       ? (item['price'] as int).toDouble()
                       : item['price'] as double,
                   timeAdded: DateTime.now(), // Not stored in shipment

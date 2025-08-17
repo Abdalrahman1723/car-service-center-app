@@ -56,7 +56,7 @@ class ShipmentDataSource {
           updatedItems[index] = Item(
             id: shipmentItem.id,
             name: shipmentItem.name,
-            price: shipmentItem.price,
+            cost: shipmentItem.cost,
             quantity: updatedItems[index].quantity + shipmentItem.quantity,
             timeAdded: updatedItems[index].timeAdded,
             code: updatedItems[index].code ?? shipmentItem.code,
@@ -109,7 +109,9 @@ class ShipmentDataSource {
       final shipmentRef = _firestore
           .collection('shipments')
           .doc(oldShipment.id);
-      final inventoryRef = _firestore.collection('inventories').doc(_inventoryId);
+      final inventoryRef = _firestore
+          .collection('inventories')
+          .doc(_inventoryId);
       final supplierRef = _firestore
           .collection('suppliers')
           .doc(newShipment.supplierId);
@@ -150,7 +152,7 @@ class ShipmentDataSource {
           updatedItems[index] = Item(
             id: oldItem.id,
             name: updatedItems[index].name,
-            price: updatedItems[index].price,
+            cost: updatedItems[index].cost,
             quantity: newQuantity,
             timeAdded: updatedItems[index].timeAdded,
             code: updatedItems[index].code,
@@ -164,7 +166,7 @@ class ShipmentDataSource {
           updatedItems[index] = Item(
             id: newItem.id,
             name: updatedItems[index].name,
-            price: updatedItems[index].price,
+            cost: updatedItems[index].cost,
             quantity: updatedItems[index].quantity + newItem.quantity,
             timeAdded: updatedItems[index].timeAdded,
             code: updatedItems[index].code ?? newItem.code,
@@ -244,7 +246,7 @@ class ShipmentDataSource {
           updatedItems[index] = Item(
             id: item.id,
             name: updatedItems[index].name,
-            price: updatedItems[index].price,
+            cost: updatedItems[index].cost,
             quantity: newQuantity,
             timeAdded: updatedItems[index].timeAdded,
             code: updatedItems[index].code,

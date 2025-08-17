@@ -153,12 +153,13 @@ class _AddItemDialogState extends State<AddItemDialog> {
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       final item = Item(
+        
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         timeAdded: DateTime.now(),
         name: _nameController.text.trim(),
         code: _codeController.text.trim(),
         quantity: int.parse(_quantityController.text),
-        price: double.parse(_priceController.text),
+        cost: double.parse(_priceController.text),
         description: _descriptionController.text.trim().isEmpty
             ? null
             : _descriptionController.text.trim(),

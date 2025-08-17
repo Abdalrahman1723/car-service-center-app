@@ -85,7 +85,7 @@ class ItemListTile extends StatelessWidget {
                     const SizedBox(width: 8),
                     _buildInfoChip(
                       context,
-                      '${item.price.toStringAsFixed(2)} ${AppStrings.currency}',
+                      '${item.cost.toStringAsFixed(2)} ${AppStrings.currency}',
                       Theme.of(context).primaryColor,
                     ),
                   ],

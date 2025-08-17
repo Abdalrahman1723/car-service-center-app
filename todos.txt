@@ -1,8 +1,1 @@
-# handle delete employee //
-# add employee not always make a new user for the app  //
-
-# handle check in and out properly 
-
-# handle add attenadnce cases (early leave and other cases)
-
-# how to lable late or not or compensated 
+# fix the draft and make a collection for it
