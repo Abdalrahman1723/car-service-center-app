@@ -1,48 +1,127 @@
-// Import firebase messaging and other necessary packages
-import 'dart:developer';
-
+import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-// 1. Remove the underscore to make the function public.
-// 2. Add the annotation directly above the function.
-@pragma('vm:entry-point')
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Your background message handling logic here
-  debugPrint("Handling a background message: ${message.messageId}");
-}
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-class FirebaseNotificationService {
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+class NotificationService {
+  static final NotificationService _instance = NotificationService._internal();
+  factory NotificationService() => _instance;
+  NotificationService._internal();
 
-  Future<void> initialize() async {
-    NotificationSettings settings = await _firebaseMessaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
+  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+  static const String _channelId = 'car_service_notifications';
+  static const String _channelName = 'Car Service Updates';
+  static const String _channelDescription =
+      'Notifications for car service events';
+
+  Future<void> init() async {
+    await _fcm.requestPermission();
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
     );
-    debugPrint('User granted permission: ${settings.authorizationStatus}');
-    await getDeviceToken();
+    const iosSettings = DarwinInitializationSettings();
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+    await _localNotifications.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: _handleNotificationTap,
+    );
+
+    if (Platform.isAndroid) {
+      const channel = AndroidNotificationChannel(
+        _channelId,
+        _channelName,
+        description: _channelDescription,
+        importance: Importance.high,
+      );
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.createNotificationChannel(channel);
+    }
+
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('Got a message whilst in the foreground!');
-      debugPrint('Message data: ${message.data}');
-      if (message.notification != null) {
-        debugPrint('Message also contained a notification: ${message.notification}');
-      }
+      _showLocalNotification(message);
     });
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      debugPrint('A new onMessageOpenedApp event was published!');
-      debugPrint('Message data: ${message.data}');
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    String? token = await _fcm.getToken();
+    if (token != null && FirebaseAuth.instance.currentUser != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .set({'fcmToken': token}, SetOptions(merge: true));
+    }
+    _fcm.onTokenRefresh.listen((token) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .set({'fcmToken': token}, SetOptions(merge: true));
     });
   }
 
-  Future<String?> getDeviceToken() async {
-    String? token = await _firebaseMessaging.getToken();
-    log("Firebase Messaging Token: $token");
-    return token;
+  void _showLocalNotification(RemoteMessage message) {
+    final notification = message.notification;
+    if (notification != null) {
+      _localNotifications.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            _channelId,
+            _channelName,
+            channelDescription: _channelDescription,
+          ),
+          iOS: DarwinNotificationDetails(),
+        ),
+        payload: message.data['payload'],
+      );
+    }
+  }
+
+  void _handleNotificationTap(NotificationResponse response) {
+    if (response.payload != null) {
+      final payload = response.payload!;
+      final parts = payload.split(':');
+      final collection = parts[0];
+      final docId = parts[1];
+      navigatorKey.currentState?.pushNamed(
+        '/details_screen',
+        arguments: {'collection': collection, 'docId': docId},
+      );
+    }
+  }
+}
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  final localNotifications = FlutterLocalNotificationsPlugin();
+  final notification = message.notification;
+  if (notification != null) {
+    localNotifications.show(
+      notification.hashCode,
+      notification.title,
+      notification.body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'car_service_notifications',
+          'Car Service Updates',
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      payload: message.data['payload'],
+    );
   }
 }
