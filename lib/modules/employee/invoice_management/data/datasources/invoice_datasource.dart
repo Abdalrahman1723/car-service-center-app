@@ -24,7 +24,10 @@ class FirebaseInvoiceDataSource implements InvoiceDataSource {
   @override
   Future<List<Invoice>> getAllInvoices() async {
     // Retrieve all invoices from Firestore
-    final snapshot = await _firestore.collection('invoices').get();
+    final snapshot = await _firestore
+        .collection('invoices')
+        .orderBy("issueDate", descending: true)
+        .get();
     return snapshot.docs
         .map((doc) => Invoice.fromMap(doc.id, doc.data()))
         .toList();
