@@ -1,7 +1,10 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:m_world/config/routes.dart';
 import 'package:m_world/core/constants/app_strings.dart';
+import 'package:m_world/core/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -32,30 +35,45 @@ class LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+      final authService = AuthService();
+      await authService.signInWithEmailAndPassword(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
       );
+
       if (mounted) {
-        _emailController.text.trim() == "mohamed@gmail.com"
-            ? Navigator.pushNamed(context, Routes.adminDashboard)
-            //todo: special screen for other users
-            : Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const Scaffold(
-                    body: Center(
-                      child: Text(
-                        'مرحباً بالمشرف',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
+        // if (_emailController.text.trim() == "mohamed@gmail.com") {
+        //   Navigator.pushReplacementNamed(context, Routes.adminDashboard);
+        // }
+
+        final user = authService.currentUser;
+        if (user != null) {
+          final role = await authService.getUserRole(user.uid);
+          log("the login user id ${user.uid} and the role $role ");
+          if (role != null) {
+            switch (role) {
+              case UserRole.admin:
+                Navigator.pushReplacementNamed(context, Routes.adminDashboard);
+                break;
+              case UserRole.supervisor:
+                Navigator.pushReplacementNamed(
+                  context,
+                  Routes.supervisorDashboard,
+                );
+                break;
+              case UserRole.inventory:
+                Navigator.pushReplacementNamed(
+                  context,
+                  Routes.inventoryDashboard,
+                );
+                break;
+            }
+          } else {
+            setState(() {
+              _errorMessage = 'لم يتم العثور على دور المستخدم';
+            });
+          }
+        }
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -88,7 +106,7 @@ class LoginScreenState extends State<LoginScreen> {
     });
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(
-        email: "abdalrahman.alaa.eldin@gmail.com", //!change later
+        email: "mw3837161@gmail.com", //!change later
       );
       setState(() {
         emailSent = true;

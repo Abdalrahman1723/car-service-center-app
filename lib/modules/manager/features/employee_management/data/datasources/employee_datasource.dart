@@ -54,22 +54,23 @@ class EmployeeDataSource {
     String? password,
   }) async {
     try {
-      final userId = employee.phoneNumber;
+      var userId = employee.phoneNumber;
 
       // Create Firebase Auth user
       if ((email != null && password != null) &&
           (email.isNotEmpty && password.isNotEmpty)) {
         log("username : $email , password : $password");
-        await _auth.createUserWithEmailAndPassword(
+        final userCredential = await _auth.createUserWithEmailAndPassword(
           email: email,
           password: password,
         );
+        userId = userCredential.user!.uid;
         // Save user role in users collection
         await _firestore.collection(_usersCollection).doc(userId).set({
           'role': employee.role,
           'email': email,
         });
-      }
+      }   
 
       // Save employee data
       await _firestore

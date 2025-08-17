@@ -61,7 +61,7 @@ class AddEmployeeScreenState extends State<AddEmployeeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEdit ? 'تعديل الموظف' : 'إضافة موظف'),
+        title: Text(widget.isEdit ? 'تعديل بيانات الموظف' : 'إضافة موظف'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -89,7 +89,10 @@ class AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   items: ['مدير', 'مشرف', 'عامل مخزون', 'أخرى']
                       .map((r) => DropdownMenuItem(value: r, child: Text(r)))
                       .toList(),
-                  onChanged: (value) => setState(() => _selectedRole = value),
+                  onChanged: (value) => setState(() {
+                    // Translate the selected role to English for database storage
+                    _selectedRole = value;
+                  }),
                   validator: (value) => value == null ? 'الدور مطلوب' : null,
                 ),
                 const SizedBox(height: 12),

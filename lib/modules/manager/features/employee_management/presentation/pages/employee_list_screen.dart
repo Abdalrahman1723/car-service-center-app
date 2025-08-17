@@ -71,12 +71,11 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
       appBar: AppBar(
         title: const Text('Employees'),
         actions: [
-          if (userRole == 'manager')
-            IconButton(
-              icon: const Icon(Icons.add),
-              tooltip: 'Add Employee',
-              onPressed: () => Navigator.pushNamed(context, Routes.addEmployee),
-            ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Add Employee',
+            onPressed: () => Navigator.pushNamed(context, Routes.addEmployee),
+          ),
           IconButton(
             icon: const Icon(Icons.filter_list),
             tooltip: 'Filter',

@@ -1,5 +1,5 @@
 class AppStrings {
-  static const String appName = "مركز خدمة إم وورلد";
+  static const String appName = "مركز خدمة M World";
   static const String compensated = "متأخر - معوض";
   static const String notCompensated = "متأخر - غير معوض";
   static const String onTime = "في الموعد";
