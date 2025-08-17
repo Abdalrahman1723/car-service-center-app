@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/config/routes.dart';
 import 'package:m_world/config/themes/theme.dart';
+import 'package:m_world/core/services/firestore_listener.dart';
 import 'package:m_world/modules/manager/features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import 'package:m_world/modules/manager/features/dashboard/presentation/cubit/dashboard_cubit.dart';
 
@@ -12,6 +13,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    FirestoreListener().startListening();
     return MultiBlocProvider(
       providers: [
         BlocProvider(

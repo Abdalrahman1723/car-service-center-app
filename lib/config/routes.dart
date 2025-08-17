@@ -32,6 +32,9 @@ import 'package:m_world/modules/manager/features/vault/domain/usecases/add_vault
 import 'package:m_world/modules/manager/features/vault/presentation/cubit/vault_cubit.dart';
 import 'package:m_world/modules/manager/features/vault/presentation/pages/add_vault_transaction_screen.dart';
 import 'package:m_world/modules/manager/features/vault/presentation/pages/vault_screen.dart';
+import 'package:m_world/modules/employee/supervisor/presentation/pages/supervisor_dashboard_screen.dart';
+import 'package:m_world/modules/employee/inventory/presentation/pages/inventory_dashboard_screen.dart';
+import 'package:m_world/modules/employee/inventory/presentation/pages/restricted_inventory_panel.dart';
 import 'package:m_world/shared/splash/splash_screen.dart';
 import '../modules/employee/invoice_management/data/datasources/invoice_datasource.dart';
 import '../modules/employee/invoice_management/data/repositories/invoice_repository_impl.dart';
@@ -62,7 +65,10 @@ class Routes {
   static const String splash = "/"; //?initial route
   static const String login = '/LoginScreen';
   static const String adminDashboard = '/DashboardScreen';
+  static const String supervisorDashboard = '/SupervisorDashboardScreen';
+  static const String inventoryDashboard = '/InventoryDashboardScreen';
   static const String inventoryPanel = '/InventoryPanel';
+  static const String restrictedInventoryPanel = '/RestrictedInventoryPanel';
   static const String clientManagement = '/ClientManagementScreen';
   static const String clientList = '/ClientListScreen';
   static const String invoiceAdd = '/InvoiceAddScreen';
@@ -87,7 +93,11 @@ final routes = {
   Routes.splash: (context) => const SplashScreen(),
   Routes.login: (context) => const LoginScreen(),
   Routes.adminDashboard: (context) => const DashboardScreen(),
+  Routes.supervisorDashboard: (context) => const SupervisorDashboardScreen(),
+  Routes.inventoryDashboard: (context) => const InventoryDashboardScreen(),
   Routes.inventoryPanel: (context) => const InventoryPanel(),
+  Routes.restrictedInventoryPanel: (context) =>
+      const RestrictedInventoryPanel(),
   Routes.clientManagement: (context) => BlocProvider(
     create: (context) => ClientManagementCubit(
       addClientUseCase: AddClient(
