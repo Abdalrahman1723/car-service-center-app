@@ -76,9 +76,9 @@ class AttendanceDataSource {
         checkInTime.year,
         checkInTime.month,
         checkInTime.day,
-        9,
+        14,
         0,
-      ); // 9:00 AM
+      ); // 2:00 PM
       final isLate = checkInTime.isAfter(standardStart);
       final lateMinutes = isLate
           ? checkInTime.difference(standardStart).inMinutes
@@ -117,9 +117,9 @@ class AttendanceDataSource {
         checkOutTime.year,
         checkOutTime.month,
         checkOutTime.day,
-        18,
         0,
-      ); // 6:00 PM
+        0,
+      ); // 12:00 AM
       final isEarly = checkOutTime.isBefore(standardEnd);
       final earlyMinutes = isEarly
           ? standardEnd.difference(checkOutTime).inMinutes
