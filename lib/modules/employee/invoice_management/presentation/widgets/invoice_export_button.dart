@@ -48,7 +48,7 @@ class InvoiceExportButton extends StatelessWidget {
             children: [
               // Invoice title
               pw.Text(
-                'فاتورة',
+                'Job order',
                 style: pw.TextStyle(
                   font: boldFont,
                   fontSize: 24,
