@@ -299,13 +299,13 @@ class DashboardScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'مرحباً، المدير!',
+                  'مرحباً!',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: clientController,
-                  decoration: const InputDecoration(
+                  decoration: const InputDecoration( 
                     labelText: 'البحث في العملاء',
                     border: OutlineInputBorder(),
                   ),

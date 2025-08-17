@@ -29,11 +29,11 @@ class AuthService {
       if (doc.exists) {
         final role = doc.data()?['role'] as String?;
         switch (role) {
-          case 'admin':
+          case 'مدير':
             return UserRole.admin;
-          case 'supervisor':
+          case 'مشرف':
             return UserRole.supervisor;
-          case 'inventory':
+          case 'عامل مخزن':
             return UserRole.inventory;
           default:
             return null;
