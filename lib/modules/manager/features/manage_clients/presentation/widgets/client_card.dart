@@ -33,7 +33,16 @@ class ClientCard extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Text('السيارة: ${client.carType} ${client.model ?? ''}'),
+            //show clients cars
+            ...client.cars.isNotEmpty
+                ? client.cars.map((car) {
+                    final type = car['type'] ?? '';
+                    final model = car['model'] ?? '';
+                    return Text(
+                      'السيارة: $type ${model.isNotEmpty ? model : ''}',
+                    );
+                  }).toList()
+                : [const Text('السيارة: لا يوجد سيارات')],
             if (client.phoneNumber != null) ...[
               const SizedBox(height: 4),
               SelectableText('الهاتف: ${client.phoneNumber}'),
@@ -42,10 +51,7 @@ class ClientCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text('البريد الإلكتروني: ${client.email}'),
             ],
-            if (client.licensePlate != null) ...[
-              const SizedBox(height: 4),
-              SelectableText('رقم اللوحة: ${client.licensePlate}'),
-            ],
+
             const SizedBox(height: 8),
             SelectableText(
               'الرصيد: ${client.balance.toStringAsFixed(2)} ${AppStrings.currency}',

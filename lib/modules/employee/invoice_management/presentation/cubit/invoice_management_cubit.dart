@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/modules/manager/features/vault/domain/entities/vault_transaction.dart';
 import 'package:m_world/modules/manager/features/vault/domain/usecases/add_vault_transaction.dart';
@@ -33,26 +35,28 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
     required double amount,
     required String maintenanceBy,
     required List<Item> items,
+    required DateTime issueDate,
     String? notes,
     bool isPaid = false,
     String? paymentMethod,
     double? discount,
-    DateTime? issueDate,
+    String? selectedCar, // selected car
   }) async {
     emit(InvoiceManagementLoading());
     try {
       final invoice = Invoice(
-        id: DateTime.now().toString(),
+        id: clientId,
         clientId: clientId,
         amount: amount,
         maintenanceBy: maintenanceBy,
         items: items,
-        creatDate: DateTime.now(),
+        createdAt: DateTime.now(),
         issueDate: issueDate,
         notes: notes,
         isPaid: isPaid,
         paymentMethod: paymentMethod,
         discount: discount,
+        selectedCar: selectedCar,
       );
       await addInvoiceUseCase(invoice);
       // For each unique item name in the invoice items, count how many times it appears,
@@ -96,7 +100,7 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
           type: "income",
           category: "Invoice",
           amount: amount,
-          date: issueDate!,
+          date: issueDate,
           runningBalance: 0,
         ),
       );
@@ -148,6 +152,73 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
       emit(InvoiceManagementInventoryLoaded(inventory));
     } catch (e) {
       emit(InvoiceManagementError(e.toString()));
+    }
+  }
+
+  //--------------------------------
+
+  Future<void> addClient({
+    required String name,
+    required List<Map<String, dynamic>> cars,
+    required double balance,
+    String? phoneNumber,
+    String? email,
+    String? notes,
+  }) async {
+    emit(InvoiceManagementLoading());
+    try {
+      final docRef = await FirebaseFirestore.instance
+          .collection('clients')
+          .add({
+            'name': name,
+            'cars': cars,
+            'balance': balance,
+            'phoneNumber': phoneNumber,
+            'email': email,
+            'notes': notes,
+            'createdBy': FirebaseAuth.instance.currentUser?.uid,
+          });
+      final List<Client> clients = (state is InvoiceManagementClientsLoaded)
+          ? List<Client>.from((state as InvoiceManagementClientsLoaded).clients)
+          : [];
+      clients.add(
+        Client.fromFirestore(
+          (await docRef.get()).data() as Map<String, dynamic>,
+          docRef.id,
+        ),
+      );
+      emit(InvoiceManagementClientsLoaded(clients));
+    } catch (e) {
+      emit(InvoiceManagementError('فشل في إضافة العميل: $e'));
+    }
+  }
+
+  Future<void> addCarToClient(String clientId, Map<String, dynamic> car) async {
+    emit(InvoiceManagementLoading());
+    try {
+      await FirebaseFirestore.instance
+          .collection('clients')
+          .doc(clientId)
+          .update({
+            'cars': FieldValue.arrayUnion([car]),
+          });
+      final List<Client> clients = (state is InvoiceManagementClientsLoaded)
+          ? List<Client>.from((state as InvoiceManagementClientsLoaded).clients)
+          : [];
+      final clientIndex = clients.indexWhere((c) => c.id == clientId);
+      if (clientIndex != -1) {
+        final clientDoc = await FirebaseFirestore.instance
+            .collection('clients')
+            .doc(clientId)
+            .get();
+        clients[clientIndex] = Client.fromFirestore(
+          clientDoc.data() as Map<String, dynamic>,
+          clientId,
+        );
+        emit(InvoiceManagementClientsLoaded(clients));
+      }
+    } catch (e) {
+      emit(InvoiceManagementError('فشل في إضافة السيارة: $e'));
     }
   }
 }

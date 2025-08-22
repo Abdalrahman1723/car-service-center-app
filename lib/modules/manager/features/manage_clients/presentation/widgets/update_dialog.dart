@@ -14,15 +14,21 @@ class ClientUpdateDialog {
     final phoneController = TextEditingController(
       text: client.phoneNumber ?? '',
     );
-    final carTypeController = TextEditingController(text: client.carType);
-    final modelController = TextEditingController(text: client.model ?? '');
+    // For supporting multiple cars, create a list of controllers for each car's type, model, and license plate
+    final List<TextEditingController> carTypeControllers = client.cars
+        .map((car) => TextEditingController(text: car['type'] ?? ''))
+        .toList();
+    final List<TextEditingController> carModelControllers = client.cars
+        .map((car) => TextEditingController(text: car['model'] ?? ''))
+        .toList();
+    final List<TextEditingController> carLicensePlateControllers = client.cars
+        .map((car) => TextEditingController(text: car['licensePlate'] ?? ''))
+        .toList();
+
     final balanceController = TextEditingController(
       text: client.balance.toString(),
     );
     final emailController = TextEditingController(text: client.email ?? '');
-    final licensePlateController = TextEditingController(
-      text: client.licensePlate ?? '',
-    );
     final notesController = TextEditingController(text: client.notes ?? '');
 
     showDialog(
@@ -48,15 +54,37 @@ class ClientUpdateDialog {
               ),
               SizedBox(height: 8),
 
-              TextField(
-                controller: carTypeController,
-                decoration: const InputDecoration(labelText: 'نوع السيارة *'),
-              ),
-              SizedBox(height: 8),
-
-              TextField(
-                controller: modelController,
-                decoration: const InputDecoration(labelText: 'الموديل'),
+              // Show car fields from map (supporting multiple cars)
+              ...List.generate(
+                carTypeControllers.length,
+                (index) => Column(
+                  children: [
+                    TextField(
+                      controller: carTypeControllers[index],
+                      decoration: InputDecoration(
+                        labelText:
+                            'نوع السيارة ${carTypeControllers.length > 1 ? '(${index + 1})' : ''} *',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: carModelControllers[index],
+                      decoration: InputDecoration(
+                        labelText:
+                            'موديل السيارة ${carModelControllers.length > 1 ? '(${index + 1})' : ''} *',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: carLicensePlateControllers[index],
+                      decoration: InputDecoration(
+                        labelText:
+                            'رقم اللوحة ${carLicensePlateControllers.length > 1 ? '(${index + 1})' : ''}',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
               ),
               SizedBox(height: 8),
 
@@ -73,12 +101,6 @@ class ClientUpdateDialog {
                   labelText: 'البريد الإلكتروني',
                 ),
                 keyboardType: TextInputType.emailAddress,
-              ),
-              SizedBox(height: 8),
-
-              TextField(
-                controller: licensePlateController,
-                decoration: const InputDecoration(labelText: 'رقم اللوحة'),
               ),
               SizedBox(height: 8),
 
@@ -102,7 +124,12 @@ class ClientUpdateDialog {
             onPressed: () {
               // Validate required fields
               if (nameController.text.isEmpty ||
-                  carTypeController.text.isEmpty ||
+                  carTypeControllers.any(
+                    (controller) => controller.text.isEmpty,
+                  ) ||
+                  carModelControllers.any(
+                    (controller) => controller.text.isEmpty,
+                  ) ||
                   balanceController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -121,17 +148,18 @@ class ClientUpdateDialog {
                   phoneNumber: phoneController.text.isEmpty
                       ? null
                       : phoneController.text,
-                  carType: carTypeController.text,
-                  model: modelController.text.isEmpty
-                      ? null
-                      : modelController.text,
+                  cars: List.generate(
+                    carTypeControllers.length,
+                    (index) => {
+                      'type': carTypeControllers[index].text,
+                      'model': carModelControllers[index].text,
+                      'licensePlate': carLicensePlateControllers[index].text,
+                    },
+                  ),
                   balance: balance,
                   email: emailController.text.isEmpty
                       ? null
                       : emailController.text,
-                  licensePlate: licensePlateController.text.isEmpty
-                      ? null
-                      : licensePlateController.text,
                   notes: notesController.text.isEmpty
                       ? null
                       : notesController.text,

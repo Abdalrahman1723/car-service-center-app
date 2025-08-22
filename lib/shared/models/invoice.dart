@@ -1,52 +1,79 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:m_world/shared/models/item.dart';
 
 class Invoice {
   final String id;
-  final String clientId; //phone number
-  final String maintenanceBy; //worker name
-  final double amount;
-  final DateTime creatDate;
+  final String clientId;
+  final String maintenanceBy;
   final DateTime issueDate;
+  final DateTime createdAt;
+  final double amount;
   final List<Item> items;
   final String? notes;
   final bool isPaid;
-  final String? paymentMethod; //in a drop down menu
-  final double? discount; //as a percentage or amount of money
+  final String? paymentMethod;
+  final double? discount;
+  final String? selectedCar; // Added
 
   Invoice({
     required this.id,
     required this.clientId,
+    required this.maintenanceBy,
+    required this.issueDate,
+    required this.createdAt,
     required this.amount,
-    this.maintenanceBy = '',
-    DateTime? creatDate,
-    DateTime? issueDate,
-    this.items = const [],
+    required this.items,
     this.notes,
-    this.isPaid = false,
+    required this.isPaid,
     this.paymentMethod,
     this.discount,
-  }) : creatDate = creatDate ?? DateTime.now(),
-       issueDate = issueDate ?? DateTime.now();
+    this.selectedCar,
+  });
 
-  Map<String, dynamic> toMap() => {
-    'clientId': clientId,
-    'amount': amount,
-    'maintenanceBy': maintenanceBy,
-    'creatDate': creatDate.toIso8601String(),
-    'issueDate': issueDate.toIso8601String(),
-    'items': items.map((item) => item.toMap()).toList(),
-    'notes': notes,
-    'isPaid': isPaid,
-    'paymentMethod': paymentMethod,
-    'discount': discount,
-  };
+  factory Invoice.fromFirestore(Map<String, dynamic> data, String id) {
+    return Invoice(
+      id: id,
+      clientId: data['clientId'] ?? '',
+      maintenanceBy: data['maintenanceBy'] ?? '',
+      createdAt: DateTime.now(),
+      issueDate: data['issueDate'] != null
+          ? (data['issueDate'] as Timestamp).toDate()
+          : DateTime.now(),
+      amount: (data['amount'] as num?)?.toDouble() ?? 0.0,
+      items:
+          (data['items'] as List<dynamic>?)
+              ?.map((item) => Item.fromMap("", item))
+              .toList() ??
+          [],
+      notes: data['notes'],
+      isPaid: data['isPaid'] ?? false,
+      paymentMethod: data['paymentMethod'],
+      discount: (data['discount'] as num?)?.toDouble(),
+      selectedCar: data['selectedCar'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'clientId': clientId,
+      'maintenanceBy': maintenanceBy,
+      'issueDate': Timestamp.fromDate(issueDate),
+      'amount': amount,
+      'items': items.map((item) => item.toMap()).toList(),
+      'notes': notes,
+      'isPaid': isPaid,
+      'paymentMethod': paymentMethod,
+      'discount': discount,
+      'selectedCar': selectedCar,
+    };
+  }
 
   factory Invoice.fromMap(String id, Map<String, dynamic> map) => Invoice(
     id: id,
     clientId: map['clientId'],
     amount: map['amount'],
     maintenanceBy: map['maintenanceBy'] ?? '',
-    creatDate: map['creatDate'] != null
+    createdAt: map['creatDate'] != null
         ? DateTime.parse(map['creatDate'])
         : DateTime.now(),
     issueDate: map['issueDate'] != null

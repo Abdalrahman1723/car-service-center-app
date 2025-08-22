@@ -86,7 +86,6 @@ class InvoiceListScreenState extends State<InvoiceListScreen> {
 
   // Build filtered invoice list
   Widget _buildInvoiceList(List<Invoice> invoices, List<Client> clients) {
-
     var filteredInvoices = invoices.where((invoice) {
       final matchesSearch =
           (invoice.clientId.toLowerCase()).contains(
@@ -112,13 +111,12 @@ class InvoiceListScreenState extends State<InvoiceListScreen> {
         final client = clients.firstWhere(
           (c) => c.phoneNumber == invoice.clientId,
           orElse: () =>
-              Client(id: '', name: 'Unknown', carType: '', balance: 0.0),
+              Client(id: '', name: 'Unknown', cars: const [], balance: 0.0),
         );
         return InvoiceCard(
           invoice: invoice,
           clientName: client.name,
           onTap: () => InvoiceClientDialog.show(context, client),
-          
         );
       },
     );

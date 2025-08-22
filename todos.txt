@@ -1,1 +1,5 @@
 # fix the draft and make a collection for it
+
+# the compensation for employees
+
+# change client id to phone number id 

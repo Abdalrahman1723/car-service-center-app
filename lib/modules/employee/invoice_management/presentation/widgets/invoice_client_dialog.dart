@@ -15,11 +15,15 @@ class InvoiceClientDialog {
             Text('Name: ${client.name}'),
             if (client.phoneNumber != null)
               Text('Phone: ${client.phoneNumber}'),
-            Text('Car: ${client.carType} ${client.model ?? ''}'),
+            ...client.cars.map((car) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4.0),
+                  child: Text(
+                    'Car: ${car['type'] ?? ''} ${car['model'] ?? ''} ${car['licensePlate'] != null ? '(${car['licensePlate']})' : ''}',
+                  ),
+                )),
             Text('Balance: \$${client.balance.toStringAsFixed(2)}'),
             if (client.email != null) Text('Email: ${client.email}'),
-            if (client.licensePlate != null)
-              Text('License Plate: ${client.licensePlate}'),
+            // License plate info is already shown per car above; no need to show client.licensePlate
             if (client.notes != null) Text('Notes: ${client.notes}'),
           ],
         ),

@@ -25,7 +25,7 @@ class ClientManagementCubit extends Cubit<ClientManagementState> {
   Future<void> addClient({
     required String name,
     String? phoneNumber,
-    required String carType,
+    required List<Map<String, String?>> cars,
     String? model,
     required double balance,
     String? email,
@@ -38,11 +38,9 @@ class ClientManagementCubit extends Cubit<ClientManagementState> {
         id: DateTime.now().toString(),
         name: name,
         phoneNumber: phoneNumber,
-        carType: carType,
-        model: model,
+        cars: cars,
         balance: balance,
         email: email,
-        licensePlate: licensePlate,
         notes: notes,
       );
       await addClientUseCase(client);
@@ -78,10 +76,14 @@ class ClientManagementCubit extends Cubit<ClientManagementState> {
   Future<void> loadClients() async {
     emit(ClientManagementLoading());
     try {
-      final clients = await ClientRepositoryImpl(FirebaseClientDataSource()).getAllClients();
+      final clients = await ClientRepositoryImpl(
+        FirebaseClientDataSource(),
+      ).getAllClients();
       emit(ClientManagementClientsLoaded(clients));
     } catch (e) {
       emit(ClientManagementError(e.toString()));
     }
   }
+
+
 }

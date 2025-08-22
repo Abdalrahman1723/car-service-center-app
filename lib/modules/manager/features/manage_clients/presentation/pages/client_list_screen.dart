@@ -39,11 +39,9 @@ class _ClientListScreenState extends State<ClientListScreen> {
     return clients.where((client) {
       final name = client.name.toLowerCase();
       final phoneNumber = (client.phoneNumber ?? '').toLowerCase();
-      final licensePlate = (client.licensePlate ?? '').toLowerCase();
 
       return name.contains(lowercaseQuery) ||
-          phoneNumber.contains(lowercaseQuery) ||
-          licensePlate.contains(lowercaseQuery);
+          phoneNumber.contains(lowercaseQuery);
     }).toList();
   }
 

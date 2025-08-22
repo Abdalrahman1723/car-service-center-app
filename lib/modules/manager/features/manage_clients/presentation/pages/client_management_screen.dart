@@ -1,33 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/services.dart'; // Added for FilteringTextInputFormatter
+import 'package:flutter/services.dart';
 
 import '../cubit/client_management_cubit.dart';
 
-// Page for adding a new client
-class ClientManagementScreen extends StatelessWidget {
+// Page for adding a new client with multiple cars
+class ClientManagementScreen extends StatefulWidget {
   const ClientManagementScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Initialize text controllers for form input
-    final nameController = TextEditingController();
-    final phoneController = TextEditingController();
-    final carTypeController = TextEditingController();
-    final modelController = TextEditingController();
-    final balanceController = TextEditingController(text: '0.0');
-    final emailController = TextEditingController();
-    final licensePlateNumberController =
-        TextEditingController(); // Only numbers
-    final licensePlateLetterController =
-        TextEditingController(); // Only letters
-    final notesController = TextEditingController();
+  ClientManagementScreenState createState() => ClientManagementScreenState();
+}
 
+class ClientManagementScreenState extends State<ClientManagementScreen> {
+  // Controllers for client details
+  final nameController = TextEditingController();
+  final phoneController = TextEditingController();
+  final balanceController = TextEditingController(text: '0.0');
+  final emailController = TextEditingController();
+  final notesController = TextEditingController();
+
+  // List of controllers for multiple cars
+  List<Map<String, TextEditingController>> carControllers = [
+    {
+      'type': TextEditingController(),
+      'model': TextEditingController(),
+      'licensePlateNumber': TextEditingController(),
+      'licensePlateLetter': TextEditingController(),
+    },
+  ];
+
+  // Add a new car entry
+  void _addCar() {
+    setState(() {
+      carControllers.add({
+        'type': TextEditingController(),
+        'model': TextEditingController(),
+        'licensePlateNumber': TextEditingController(),
+        'licensePlateLetter': TextEditingController(),
+      });
+    });
+  }
+
+  // Remove a car entry
+  void _removeCar(int index) {
+    setState(() {
+      carControllers[index].values.forEach(
+        (controller) => controller.dispose(),
+      );
+      carControllers.removeAt(index);
+    });
+  }
+
+  @override
+  void dispose() {
+    // Dispose client controllers
+    nameController.dispose();
+    phoneController.dispose();
+    balanceController.dispose();
+    emailController.dispose();
+    notesController.dispose();
+    // Dispose car controllers
+    for (var car in carControllers) {
+      car.values.forEach((controller) => controller.dispose());
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('إضافة عميل جديد')),
       body: BlocConsumer<ClientManagementCubit, ClientManagementState>(
         listener: (context, state) {
-          // Handle success and error states with snackbar notifications
           if (state is ClientManagementSuccess) {
             ScaffoldMessenger.of(
               context,
@@ -43,18 +88,39 @@ class ClientManagementScreen extends StatelessWidget {
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Client Information Form Fields
-                _buildFormFields(
+                _buildClientFormFields(
                   nameController: nameController,
                   phoneController: phoneController,
-                  carTypeController: carTypeController,
-                  modelController: modelController,
                   balanceController: balanceController,
                   emailController: emailController,
-                  licensePlateNumberController: licensePlateNumberController,
-                  licensePlateLetterController: licensePlateLetterController,
                   notesController: notesController,
+                ),
+                const SizedBox(height: 24),
+                // Car Information Form Fields
+                const Text(
+                  'معلومات السيارات',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                ...carControllers.asMap().entries.map(
+                  (entry) => _buildCarFormFields(
+                    index: entry.key,
+                    typeController: entry.value['type']!,
+                    modelController: entry.value['model']!,
+                    licensePlateNumberController:
+                        entry.value['licensePlateNumber']!,
+                    licensePlateLetterController:
+                        entry.value['licensePlateLetter']!,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Add Car Button
+                ElevatedButton.icon(
+                  onPressed: _addCar,
+                  icon: const Icon(Icons.add),
+                  label: const Text('إضافة سيارة أخرى'),
                 ),
                 const SizedBox(height: 24),
                 // Submit Button
@@ -63,13 +129,10 @@ class ClientManagementScreen extends StatelessWidget {
                   state: state,
                   nameController: nameController,
                   phoneController: phoneController,
-                  carTypeController: carTypeController,
-                  modelController: modelController,
                   balanceController: balanceController,
                   emailController: emailController,
-                  licensePlateNumberController: licensePlateNumberController,
-                  licensePlateLetterController: licensePlateLetterController,
                   notesController: notesController,
+                  carControllers: carControllers,
                 ),
               ],
             ),
@@ -79,21 +142,16 @@ class ClientManagementScreen extends StatelessWidget {
     );
   }
 
-  // Builds the form fields for client information
-  Widget _buildFormFields({
+  // Builds form fields for client information
+  Widget _buildClientFormFields({
     required TextEditingController nameController,
     required TextEditingController phoneController,
-    required TextEditingController carTypeController,
-    required TextEditingController modelController,
     required TextEditingController balanceController,
     required TextEditingController emailController,
-    required TextEditingController licensePlateNumberController, // Only numbers
-    required TextEditingController licensePlateLetterController, // Only letters
     required TextEditingController notesController,
   }) {
     return Column(
       children: [
-        // Required field - Client Name
         TextField(
           controller: nameController,
           decoration: const InputDecoration(
@@ -102,7 +160,6 @@ class ClientManagementScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        // Optional field - Phone Number
         TextField(
           maxLength: 15,
           controller: phoneController,
@@ -113,25 +170,6 @@ class ClientManagementScreen extends StatelessWidget {
           keyboardType: TextInputType.phone,
         ),
         const SizedBox(height: 16),
-        // Required field - Car Type
-        TextField(
-          controller: carTypeController,
-          decoration: const InputDecoration(
-            labelText: 'نوع السيارة *',
-            hintText: 'مثال: سيدان، دفع رباعي، شاحنة',
-          ),
-        ),
-        const SizedBox(height: 16),
-        // Optional field - Car Model
-        TextField(
-          controller: modelController,
-          decoration: const InputDecoration(
-            labelText: 'الموديل',
-            hintText: 'مثال: تويوتا كامري 2020',
-          ),
-        ),
-        const SizedBox(height: 16),
-        // Required field - Balance
         TextField(
           controller: balanceController,
           decoration: const InputDecoration(
@@ -141,7 +179,6 @@ class ClientManagementScreen extends StatelessWidget {
           keyboardType: TextInputType.number,
         ),
         const SizedBox(height: 16),
-        // Optional field - Email
         TextField(
           controller: emailController,
           decoration: const InputDecoration(
@@ -151,47 +188,6 @@ class ClientManagementScreen extends StatelessWidget {
           keyboardType: TextInputType.emailAddress,
         ),
         const SizedBox(height: 16),
-        // License Plate - Two adjacent fields
-        Row(
-          children: [
-            // Numbers (left)
-            Expanded(
-              child: TextField(
-                maxLength: 7,
-                controller: licensePlateNumberController,
-                decoration: const InputDecoration(
-                  labelText: 'أرقام اللوحة',
-                  hintText: '١ ٢ ٣ ٤',
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                    RegExp(r'^[0-9 ]*'),
-                  ), // Only numbers and spaces
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Letters (right)
-            Expanded(
-              child: TextField(
-                maxLength: 5,
-                controller: licensePlateLetterController,
-                decoration: const InputDecoration(
-                  labelText: 'حروف اللوحة',
-                  hintText: 'أ ب ج',
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                    RegExp(r'^[a-zA-Z\u0600-\u06FF ]*'),
-                  ), // Only letters and spaces
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        // Optional field - Notes
         TextField(
           controller: notesController,
           decoration: const InputDecoration(
@@ -204,19 +200,100 @@ class ClientManagementScreen extends StatelessWidget {
     );
   }
 
-  // Builds the submit button with validation and form submission logic
+  // Builds form fields for a single car
+  Widget _buildCarFormFields({
+    required int index,
+    required TextEditingController typeController,
+    required TextEditingController modelController,
+    required TextEditingController licensePlateNumberController,
+    required TextEditingController licensePlateLetterController,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'سيارة ${index + 1}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            if (index > 0)
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () => _removeCar(index),
+              ),
+          ],
+        ),
+        TextField(
+          controller: typeController,
+          decoration: const InputDecoration(
+            labelText: 'نوع السيارة *',
+            hintText: 'مثال: سيدان، دفع رباعي، شاحنة',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: modelController,
+          decoration: const InputDecoration(
+            labelText: 'الموديل',
+            hintText: 'مثال: تويوتا كامري 2020',
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                maxLength: 7,
+                controller: licensePlateNumberController,
+                decoration: const InputDecoration(
+                  labelText: 'أرقام اللوحة',
+                  hintText: '١ ٢ ٣ ٤',
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^[0-9 ]*')),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                maxLength: 5,
+                controller: licensePlateLetterController,
+                decoration: const InputDecoration(
+                  labelText: 'حروف اللوحة',
+                  hintText: 'أ ب ج',
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^[a-zA-Z\u0600-\u06FF ]*'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // Builds the submit button
   Widget _buildSubmitButton({
     required BuildContext context,
     required ClientManagementState state,
     required TextEditingController nameController,
     required TextEditingController phoneController,
-    required TextEditingController carTypeController,
-    required TextEditingController modelController,
     required TextEditingController balanceController,
     required TextEditingController emailController,
-    required TextEditingController licensePlateNumberController, // Only numbers
-    required TextEditingController licensePlateLetterController, // Only letters
     required TextEditingController notesController,
+    required List<Map<String, TextEditingController>> carControllers,
   }) {
     return SizedBox(
       width: double.infinity,
@@ -227,13 +304,10 @@ class ClientManagementScreen extends StatelessWidget {
                 context: context,
                 nameController: nameController,
                 phoneController: phoneController,
-                carTypeController: carTypeController,
-                modelController: modelController,
                 balanceController: balanceController,
                 emailController: emailController,
-                licensePlateNumberController: licensePlateNumberController,
-                licensePlateLetterController: licensePlateLetterController,
                 notesController: notesController,
+                carControllers: carControllers,
               ),
         child: state is ClientManagementLoading
             ? const SizedBox(
@@ -251,44 +325,53 @@ class ClientManagementScreen extends StatelessWidget {
     required BuildContext context,
     required TextEditingController nameController,
     required TextEditingController phoneController,
-    required TextEditingController carTypeController,
-    required TextEditingController modelController,
     required TextEditingController balanceController,
     required TextEditingController emailController,
-    required TextEditingController licensePlateNumberController, // Only numbers
-    required TextEditingController licensePlateLetterController, // Only letters
     required TextEditingController notesController,
+    required List<Map<String, TextEditingController>> carControllers,
   }) {
-    // Validate required fields
-    if (nameController.text.isEmpty ||
-        carTypeController.text.isEmpty ||
-        balanceController.text.isEmpty) {
+    // Validate required client fields
+    if (nameController.text.isEmpty || balanceController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى ملء جميع الحقول المطلوبة')),
+        const SnackBar(content: Text('يرجى ملء جميع الحقول المطلوبة للعميل')),
       );
       return;
     }
 
-    // Parse balance with fallback to 0.0
-    final balance = double.tryParse(balanceController.text) ?? 0.0;
-
-    // Combine license plate fields
-    String licensePlate = '';
-    if (licensePlateNumberController.text.trim().isNotEmpty ||
-        licensePlateLetterController.text.trim().isNotEmpty) {
-      licensePlate =
-          '${licensePlateNumberController.text.trim()} / ${licensePlateLetterController.text.trim()}';
+    // Validate at least one car with type
+    if (carControllers.isEmpty ||
+        carControllers.any((car) => car['type']!.text.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يرجى إدخال نوع السيارة لكل سيارة')),
+      );
+      return;
     }
 
-    // Add new client
+    // Parse balance
+    final balance = double.tryParse(balanceController.text) ?? 0.0;
+
+    // Build cars list
+    final cars = carControllers.map((car) {
+      String licensePlate = '';
+      if (car['licensePlateNumber']!.text.trim().isNotEmpty ||
+          car['licensePlateLetter']!.text.trim().isNotEmpty) {
+        licensePlate =
+            '${car['licensePlateNumber']!.text.trim()} / ${car['licensePlateLetter']!.text.trim()}';
+      }
+      return {
+        'type': car['type']!.text,
+        'model': car['model']!.text.isEmpty ? null : car['model']!.text,
+        'licensePlate': licensePlate.isEmpty ? null : licensePlate,
+      };
+    }).toList();
+
+    // Submit to cubit
     context.read<ClientManagementCubit>().addClient(
       name: nameController.text,
       phoneNumber: phoneController.text.isEmpty ? null : phoneController.text,
-      carType: carTypeController.text,
-      model: modelController.text.isEmpty ? null : modelController.text,
+      cars: cars,
       balance: balance,
       email: emailController.text.isEmpty ? null : emailController.text,
-      licensePlate: licensePlate.isEmpty ? null : licensePlate,
       notes: notesController.text.isEmpty ? null : notesController.text,
     );
   }

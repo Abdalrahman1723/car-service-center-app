@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -11,10 +10,11 @@ import 'package:m_world/shared/models/client.dart';
 import 'package:m_world/modules/manager/features/inventory/domain/entities/inventory_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../config/routes.dart';
+import 'package:flutter/services.dart';
 
 // Screen to add a new invoice for a client
 class InvoiceAddScreen extends StatefulWidget {
-  final Map<String, dynamic>? draftData; // Optional draft data to populate form
+  final Map<String, dynamic>? draftData;
 
   const InvoiceAddScreen({super.key, this.draftData});
 
@@ -25,6 +25,7 @@ class InvoiceAddScreen extends StatefulWidget {
 class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _selectedClientId;
+  String? _selectedCar;
   final _amountController = TextEditingController();
   final _maintenanceByController = TextEditingController();
   final _notesController = TextEditingController();
@@ -35,45 +36,30 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   InventoryEntity? _inventory;
   double totalAmount = 0;
   DateTime? _issueDate;
-  late String selectedClientName;
-  Color quantityContainerColor = Colors.blueAccent;
-  List<Client> clients = [];
-  // Add a new variable to track the draft ID
   String? _draftId;
+  List<Client> clients = [];
 
   @override
   void initState() {
     super.initState();
     context.read<InvoiceManagementCubit>().loadClients();
-    context.read<InvoiceManagementCubit>().loadClients().then((_) {
-      if (mounted) {
-        final state = context.read<InvoiceManagementCubit>().state;
-        if (state is InvoiceManagementClientsLoaded) {
-          setState(() {
-            clients = state.clients;
-          });
-        }
-      }
-    });
-
     context.read<InvoiceManagementCubit>().loadInventory();
     if (widget.draftData != null) {
       _loadDraftData();
-      log("draft loaded");
     }
   }
 
   void _loadDraftData() {
     final draft = widget.draftData!;
-    log("the draft $draft");
     setState(() {
       _draftId = draft['id'];
-      _selectedClientId = draft['clientId'] ?? "";
+      _selectedClientId = draft['clientId'];
+      _selectedCar = draft['selectedCar'];
       _amountController.text = draft['amount']?.toString() ?? '0.0';
       _maintenanceByController.text = draft['maintenanceBy'] as String? ?? '';
       _notesController.text = draft['notes'] as String? ?? '';
       _isPaid = draft['isPaid'] ?? false;
-      _paymentMethod = draft['paymentMethod'] as String?;
+      _paymentMethod = draft['paymentMethod'];
       _discountController.text = draft['discount']?.toString() ?? '';
       _issueDate = draft['issueDate'] != null
           ? DateTime.parse(draft['issueDate'])
@@ -104,7 +90,10 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   @override
   Widget build(BuildContext context) {
     bool isFormValid =
-        _items.isNotEmpty && (_isPaid ? _paymentMethod != null : true);
+        _items.isNotEmpty &&
+        _selectedClientId != null &&
+        _selectedCar != null &&
+        (_isPaid ? _paymentMethod != null : true);
 
     return Scaffold(
       appBar: AppBar(
@@ -136,6 +125,10 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
             );
           } else if (state is InvoiceManagementInventoryLoaded) {
             _inventory = state.inventory;
+          } else if (state is InvoiceManagementClientsLoaded) {
+            setState(() {
+              clients = state.clients;
+            });
           }
         },
         builder: (context, state) {
@@ -145,8 +138,11 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  // Client dropdown
+                  // Client dropdown with search dialog
                   _buildClientDropdown(state, clients),
+                  const SizedBox(height: 16),
+                  // Car dropdown with search dialog
+                  _buildCarDropdown(state, clients, context),
                   const SizedBox(height: 16),
                   // Maintenance by field
                   TextFormField(
@@ -233,14 +229,11 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                       setState(() {
                         final discountValue = double.tryParse(discount) ?? 0.0;
                         final discountedAmount = totalAmount - discountValue;
-                        if (_amountController.text !=
-                            discountedAmount.toString()) {
-                          _amountController.text = discountedAmount.toString();
-                          _amountController
-                              .selection = TextSelection.fromPosition(
-                            TextPosition(offset: _amountController.text.length),
-                          );
-                        }
+                        _amountController.text = discountedAmount.toString();
+                        _amountController
+                            .selection = TextSelection.fromPosition(
+                          TextPosition(offset: _amountController.text.length),
+                        );
                       });
                     },
                     decoration: InputDecoration(
@@ -277,14 +270,6 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                             ? null
                             : () {
                                 if (_formKey.currentState!.validate()) {
-                                  if (_selectedClientId == null) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('يرجى اختيار العميل'),
-                                      ),
-                                    );
-                                    return;
-                                  }
                                   final amount =
                                       double.tryParse(_amountController.text) ??
                                       0.0;
@@ -306,6 +291,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                                         paymentMethod: _paymentMethod,
                                         discount: discount,
                                         issueDate: _issueDate ?? DateTime.now(),
+                                        selectedCar: _selectedCar,
                                       );
                                 }
                               },
@@ -329,6 +315,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                                 final draft = {
                                   'id': currentDraftId,
                                   'clientId': _selectedClientId,
+                                  'selectedCar': _selectedCar,
                                   'amount': double.tryParse(
                                     _amountController.text,
                                   ),
@@ -341,14 +328,18 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                                       ? null
                                       : _notesController.text,
                                   'isPaid': _isPaid,
-                                  'clientName':
-                                      (state is InvoiceManagementClientsLoaded &&
-                                          _selectedClientId != null)
-                                      ? state.clients
+                                  'clientName': _selectedClientId != null
+                                      ? clients
                                             .firstWhere(
                                               (element) =>
-                                                  element.phoneNumber ==
+                                                  element.id ==
                                                   _selectedClientId,
+                                              orElse: () => Client(
+                                                id: '',
+                                                name: 'غير معروف',
+                                                cars: [],
+                                                balance: 0.0,
+                                              ),
                                             )
                                             .name
                                       : null,
@@ -400,14 +391,17 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                         child: const Text('حفظ كمسودة'),
                       ),
                       InvoiceExportButton(
-                        clientName:
-                            (state is InvoiceManagementClientsLoaded &&
-                                _selectedClientId != null)
-                            ? state.clients
+                        clientName: _selectedClientId != null
+                            ? clients
                                   .firstWhere(
                                     (element) =>
-                                        element.phoneNumber ==
-                                        _selectedClientId,
+                                        element.id == _selectedClientId,
+                                    orElse: () => Client(
+                                      id: '',
+                                      name: 'غير معروف',
+                                      cars: [],
+                                      balance: 0.0,
+                                    ),
                                   )
                                   .name
                             : '',
@@ -417,6 +411,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                           amount:
                               double.tryParse(_amountController.text) ?? 0.0,
                           maintenanceBy: _maintenanceByController.text,
+                          createdAt: DateTime.now(),
                           items: _items,
                           notes: _notesController.text.isEmpty
                               ? null
@@ -424,7 +419,8 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                           isPaid: _isPaid,
                           paymentMethod: _paymentMethod,
                           discount: double.tryParse(_discountController.text),
-                          issueDate: _issueDate,
+                          issueDate: _issueDate ?? DateTime.now(),
+                          selectedCar: _selectedCar,
                         ),
                       ),
                     ],
@@ -438,23 +434,396 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
     );
   }
 
-  // Client dropdown with name and phone number
+  // Client dropdown with search dialog
   Widget _buildClientDropdown(
     InvoiceManagementState state,
     List<Client> clients,
   ) {
-    return DropdownButtonFormField<String>(
-      decoration: const InputDecoration(labelText: 'اختر العميل *'),
-      items: clients.map((client) {
-        return DropdownMenuItem(
-          value: client.phoneNumber,
-          child: Text('${client.name} (${client.phoneNumber ?? 'بدون رقم'})'),
+    final selectedClient = _selectedClientId != null
+        ? clients.firstWhere(
+            (c) => c.id == _selectedClientId,
+            orElse: () =>
+                Client(id: '', name: 'غير معروف', cars: [], balance: 0.0),
+          )
+        : null;
+
+    return GestureDetector(
+      onTap: () => _showClientSelectionDialog(context, clients),
+      child: AbsorbPointer(
+        child: DropdownButtonFormField<String>(
+          decoration: const InputDecoration(
+            labelText: 'اختر العميل *',
+            border: OutlineInputBorder(),
+          ),
+          value: _selectedClientId,
+          items: clients
+              .map(
+                (client) => DropdownMenuItem<String>(
+                  value: client.id,
+                  child: Text(
+                    '${client.name} (${client.phoneNumber ?? 'بدون رقم'})',
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: (_) {},
+          hint: Text(
+            selectedClient != null
+                ? '${selectedClient.name} (${selectedClient.phoneNumber ?? 'بدون رقم'})'
+                : 'اختر العميل',
+          ),
+          validator: (value) =>
+              _selectedClientId == null ? 'العميل مطلوب' : null,
+        ),
+      ),
+    );
+  }
+
+  // Car dropdown with search dialog
+  Widget _buildCarDropdown(
+    InvoiceManagementState state,
+    List<Client> clients,
+    BuildContext context,
+  ) {
+    final selectedClient = _selectedClientId != null
+        ? clients.firstWhere(
+            (c) => c.id == _selectedClientId,
+            orElse: () =>
+                Client(id: '', name: 'غير معروف', cars: [], balance: 0.0),
+          )
+        : null;
+    final cars = selectedClient?.cars ?? [];
+    final selectedCar = _selectedCar != null && cars.isNotEmpty
+        ? cars.firstWhere(
+            (c) =>
+                c['licensePlate'] == _selectedCar || c['type'] == _selectedCar,
+            orElse: () => {'type': 'غير معروف', 'licensePlate': 'غير معروف'},
+          )
+        : null;
+
+    return GestureDetector(
+      onTap: _selectedClientId != null
+          ? () => _showCarSelectionDialog(context, _selectedClientId!, cars)
+          : null,
+      child: AbsorbPointer(
+        child: DropdownButtonFormField<String>(
+          decoration: const InputDecoration(
+            labelText: 'اختر السيارة *',
+            border: OutlineInputBorder(),
+          ),
+          value: _selectedCar,
+          items: cars
+              .map(
+                (car) => DropdownMenuItem<String>(
+                  value: car['licensePlate'] ?? car['type'],
+                  child: Text(
+                    '${car['type'] ?? 'غير محدد'} (${car['licensePlate'] ?? 'بدون لوحة'})',
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: (_) {},
+          hint: Text(
+            selectedCar != null
+                ? '${selectedCar['type'] ?? 'غير محدد'} (${selectedCar['licensePlate'] ?? 'بدون لوحة'})'
+                : 'اختر السيارة',
+          ),
+          validator: (value) =>
+              _selectedClientId != null && _selectedCar == null
+              ? 'السيارة مطلوبة'
+              : null,
+        ),
+      ),
+    );
+  }
+
+  // Dialog for client selection with search
+  void _showClientSelectionDialog(BuildContext context, List<Client> clients) {
+    final searchController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final filteredClients = clients
+                .where(
+                  (client) =>
+                      client.name.toLowerCase().contains(
+                        searchController.text.toLowerCase(),
+                      ) ||
+                      (client.phoneNumber?.toLowerCase().contains(
+                            searchController.text.toLowerCase(),
+                          ) ??
+                          false),
+                )
+                .toList();
+
+            return AlertDialog(
+              title: const Text('اختر العميل'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: searchController,
+                        decoration: const InputDecoration(
+                          labelText: 'ابحث عن العميل',
+                          hintText: 'الاسم أو رقم الهاتف',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) => setDialogState(() {}),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 200,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: filteredClients.length,
+                          itemBuilder: (context, index) {
+                            final client = filteredClients[index];
+                            return ListTile(
+                              title: Text(client.name),
+                              subtitle: Text(client.phoneNumber ?? 'بدون رقم'),
+                              onTap: () {
+                                setState(() {
+                                  _selectedClientId = client.id;
+                                  _selectedCar = null;
+                                });
+                                Navigator.pop(dialogContext);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('إلغاء'),
+                ),
+                TextButton(
+                  onPressed: () =>
+                      Navigator.pushNamed(context, Routes.clientManagement),
+                  child: const Text('إضافة عميل جديد'),
+                ),
+              ],
+            );
+          },
         );
-      }).toList(),
-      onChanged: (value) => setState(() {
-        _selectedClientId = value;
-      }),
-      validator: (value) => value == null ? 'العميل مطلوب' : null,
+      },
+    );
+  }
+
+  // Dialog for car selection with search
+  void _showCarSelectionDialog(
+    BuildContext context,
+    String clientId,
+    List<Map<String, dynamic>> cars,
+  ) {
+    // Get the cubit from the parent context
+    final invoiceManagementCubit = BlocProvider.of<InvoiceManagementCubit>(
+      context,
+    );
+    final searchController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final filteredCars = cars
+                .where(
+                  (car) =>
+                      (car['type']?.toLowerCase()?.contains(
+                            searchController.text.toLowerCase(),
+                          ) ??
+                          false) ||
+                      (car['licensePlate']?.toLowerCase()?.contains(
+                            searchController.text.toLowerCase(),
+                          ) ??
+                          false),
+                )
+                .toList();
+
+            return AlertDialog(
+              title: const Text('اختر السيارة'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: searchController,
+                        decoration: const InputDecoration(
+                          labelText: 'ابحث عن السيارة',
+                          hintText: 'النوع أو لوحة السيارة',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) => setDialogState(() {}),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 200,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: filteredCars.length,
+                          itemBuilder: (context, index) {
+                            final car = filteredCars[index];
+                            return ListTile(
+                              title: Text(car['type'] ?? 'غير محدد'),
+                              subtitle: Text(
+                                car['licensePlate'] ?? 'بدون لوحة',
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  _selectedCar =
+                                      car['licensePlate'] ?? car['type'];
+                                });
+                                Navigator.pop(dialogContext);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('إلغاء'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final carData = await _showAddCarDialog(
+                      context,
+                      dialogContext,
+                      clientId,
+                      invoiceManagementCubit,
+                    );
+                    if (carData != null) {
+                      setState(() {
+                        cars.add(carData);
+                      });
+                    }
+                  },
+                  child: const Text('إضافة سيارة جديدة'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Dialog to add a new car to an existing client
+  Future<Map<String, dynamic>?> _showAddCarDialog(
+    BuildContext context,
+    BuildContext dialogContext,
+    String clientId,
+    InvoiceManagementCubit invoiceManagementCubit,
+  ) async {
+    final carTypeController = TextEditingController();
+    final carModelController = TextEditingController();
+    final licensePlateNumberController = TextEditingController();
+    final licensePlateLetterController = TextEditingController();
+
+    return await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (addCarContext) => AlertDialog(
+        title: const Text('إضافة سيارة جديدة'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: carTypeController,
+                decoration: const InputDecoration(labelText: 'نوع السيارة *'),
+              ),
+              SizedBox(height: 8),
+              TextField(
+                controller: carModelController,
+                decoration: const InputDecoration(labelText: 'الموديل'),
+              ),
+              SizedBox(height: 8),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: licensePlateNumberController,
+                      decoration: const InputDecoration(
+                        labelText: 'أرقام اللوحة',
+                      ),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^[0-9 ]*')),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: licensePlateLetterController,
+                      decoration: const InputDecoration(
+                        labelText: 'حروف اللوحة',
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^[a-zA-Z\u0600-\u06FF ]*'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(addCarContext),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (carTypeController.text.isEmpty) {
+                ScaffoldMessenger.of(addCarContext).showSnackBar(
+                  const SnackBar(
+                    content: Text('نوع السيارة مطلوب'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+              String licensePlate = '';
+              if (licensePlateNumberController.text.trim().isNotEmpty ||
+                  licensePlateLetterController.text.trim().isNotEmpty) {
+                licensePlate =
+                    '${licensePlateNumberController.text.trim()} / ${licensePlateLetterController.text.trim()}';
+              }
+              // Use the passed cubit instance
+              final carData = {
+                'type': carTypeController.text,
+                'model': carModelController.text.isEmpty
+                    ? null
+                    : carModelController.text,
+                'licensePlate': licensePlate.isEmpty ? null : licensePlate,
+              };
+              invoiceManagementCubit.addCarToClient(clientId, carData);
+              Navigator.pop(addCarContext, carData);
+            },
+            child: const Text('إضافة'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -482,7 +851,6 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
           ..._items.asMap().entries.map((entry) {
             final index = entry.key;
             final item = entry.value;
-            // Determine quantity status and color
             final inventoryItem = (() {
               try {
                 return _inventory?.items.firstWhere((i) => i.name == item.name);
@@ -500,7 +868,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                 : Colors.green;
 
             return Dismissible(
-              key: Key(item.id), // Unique key for each item
+              key: Key(item.id),
               direction: DismissDirection.endToStart,
               confirmDismiss: (direction) async {
                 return await showDialog(
@@ -576,7 +944,6 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Item name and price
                     Expanded(
                       flex: 3,
                       child: Column(
@@ -600,7 +967,6 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                         ],
                       ),
                     ),
-                    // Quantity display
                     Expanded(
                       flex: 3,
                       child: Container(
@@ -648,11 +1014,9 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                         ),
                       ),
                     ),
-                    // Quantity controls
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // remove
                         IconButton(
                           icon: const Icon(
                             Icons.remove_circle_outline,
@@ -670,7 +1034,6 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                             }
                           },
                         ),
-                        // add
                         IconButton(
                           icon: const Icon(
                             Icons.add_circle_outline,
@@ -759,7 +1122,6 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                         (i) => i.id == value,
                       );
                       nameController.text = item.name;
-                      // Do not pre-fill price, as it's set by user
                     }
                   },
                 )
@@ -773,9 +1135,6 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                 controller: priceController,
                 decoration: const InputDecoration(labelText: 'سعر البيع *'),
                 keyboardType: TextInputType.number,
-
-                // validator: (value) =>
-                //     value!.isEmpty ? 'سعر البيع مطلوب' : null,
               ),
             ],
           ),
@@ -810,10 +1169,8 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                       name: nameController.text,
                       quantity: 1,
                       code: inventoryItem?.code,
-                      price: price, // Set price from user input
-                      cost:
-                          inventoryItem?.cost ??
-                          0.0, // Set cost for inventory item or default
+                      price: price,
+                      cost: inventoryItem?.cost ?? 0.0,
                       timeAdded: DateTime.now(),
                       description: inventoryItem?.description,
                     );

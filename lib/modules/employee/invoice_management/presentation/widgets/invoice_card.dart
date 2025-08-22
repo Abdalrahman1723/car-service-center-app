@@ -47,7 +47,9 @@ class InvoiceCard extends StatelessWidget {
           children: [
             Text('Client: $clientName'),
             Text('Amount: \$${invoice.amount.toStringAsFixed(2)}'),
-            Text('Issue Date: ${DateFormat.yMMMd().format(invoice.issueDate)}'),
+            Text(
+              'Issue Date: ${DateFormat.yMMMd().format(invoice.issueDate).toString()}',
+            ),
             Text('Paid: ${invoice.isPaid ? 'Yes' : 'No'}'),
           ],
         ),

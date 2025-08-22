@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:m_world/modules/manager/features/manage_clients/data/datasources/client_datasource.dart';
 
@@ -18,19 +17,21 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   @override
   Future<void> addInvoice(entity.Invoice invoice) async {
     // Map domain entity to data model and add to Firestore
-    await invoiceDataSource.addInvoice(model.Invoice(
-      id: invoice.id,
-      clientId: invoice.clientId,
-      amount: invoice.amount,
-      maintenanceBy: invoice.maintenanceBy,
-      creatDate: invoice.creatDate,
-      issueDate: invoice.issueDate,
-      items: invoice.items,
-      notes: invoice.notes,
-      isPaid: invoice.isPaid,
-      paymentMethod: invoice.paymentMethod,
-      discount: invoice.discount,
-    ));
+    await invoiceDataSource.addInvoice(
+      model.Invoice(
+        id: invoice.id,
+        clientId: invoice.clientId,
+        amount: invoice.amount,
+        maintenanceBy: invoice.maintenanceBy,
+        createdAt: invoice.createdAt,
+        issueDate: invoice.issueDate,
+        items: invoice.items,
+        notes: invoice.notes,
+        isPaid: invoice.isPaid,
+        paymentMethod: invoice.paymentMethod,
+        discount: invoice.discount,
+      ),
+    );
 
     // Update client's invoices list
     final clientSnapshot = await FirebaseFirestore.instance
@@ -39,18 +40,19 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
         .get();
     if (clientSnapshot.docs.isNotEmpty) {
       final clientDoc = clientSnapshot.docs.first;
-      final client = client_model.Client.fromMap(clientDoc.id, clientDoc.data());
+      final client = client_model.Client.fromMap(
+        clientDoc.id,
+        clientDoc.data(),
+      );
       final updatedInvoices = [...client.invoices, invoice.id];
       await clientDataSource.updateClient(
         client_model.Client(
           id: client.id,
           name: client.name,
           phoneNumber: client.phoneNumber,
-          carType: client.carType,
-          model: client.model,
+          cars: client.cars,
           balance: client.balance,
           email: client.email,
-          licensePlate: client.licensePlate,
           notes: client.notes,
           history: client.history,
           invoices: updatedInvoices,
@@ -63,19 +65,21 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   Future<List<entity.Invoice>> getAllInvoices() async {
     final invoiceModels = await invoiceDataSource.getAllInvoices();
     return invoiceModels
-        .map((model) => entity.Invoice(
-              id: model.id,
-              clientId: model.clientId,
-              amount: model.amount,
-              maintenanceBy: model.maintenanceBy,
-              creatDate: model.creatDate,
-              issueDate: model.issueDate,
-              items: model.items,
-              notes: model.notes,
-              isPaid: model.isPaid,
-              paymentMethod: model.paymentMethod,
-              discount: model.discount,
-            ))
+        .map(
+          (model) => entity.Invoice(
+            id: model.id,
+            clientId: model.clientId,
+            amount: model.amount,
+            maintenanceBy: model.maintenanceBy,
+            createdAt: model.createdAt,
+            issueDate: model.issueDate,
+            items: model.items,
+            notes: model.notes,
+            isPaid: model.isPaid,
+            paymentMethod: model.paymentMethod,
+            discount: model.discount,
+          ),
+        )
         .toList();
   }
 }
