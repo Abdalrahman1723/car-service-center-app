@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/core/constants/app_strings.dart';
+import 'package:m_world/core/utils/app_transactions.dart';
 import '../../domain/entities/vault_transaction.dart';
 import '../cubit/vault_cubit.dart';
 import '../cubit/vault_state.dart';
@@ -20,15 +21,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   double _amount = 0;
   String? _notes;
   String? _sourceId;
-
-  // List of valid categories for the dropdown
-  final List<String> categories = [
-    'شحنة',
-    'Job order',
-    'راتب',
-    'مصروفات مكتبية',
-    'أخرى',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +59,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _category,
-                  items: categories
+                  items: AppTransactions.transactionCategories
                       .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                       .toList(),
                   onChanged: (val) => setState(() => _category = val),
@@ -94,13 +86,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     labelText: 'ملاحظات (اختياري)',
                   ),
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  onChanged: (val) => _sourceId = val,
-                  decoration: const InputDecoration(
-                    labelText: 'معرف المصدر (اختياري)',
-                  ),
-                ),
+
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
