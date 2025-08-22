@@ -18,6 +18,7 @@ class ClientListScreen extends StatefulWidget {
 class _ClientListScreenState extends State<ClientListScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
+  bool _showOnlyDebtors = false;
 
   @override
   void initState() {
@@ -43,6 +44,17 @@ class _ClientListScreenState extends State<ClientListScreen> {
       return name.contains(lowercaseQuery) ||
           phoneNumber.contains(lowercaseQuery);
     }).toList();
+  }
+
+  List<Client> _filterDebtors(List<Client> clients) {
+    if (!_showOnlyDebtors) return clients;
+    return clients.where((client) => client.balance != 0).toList();
+  }
+
+  double _calculateTotalDebt(List<Client> clients) {
+    return clients
+        .where((client) => client.balance != 0)
+        .fold(0.0, (sum, client) => sum + client.balance);
   }
 
   @override
@@ -81,10 +93,25 @@ class _ClientListScreenState extends State<ClientListScreen> {
               return const Center(child: Text('لا توجد عملاء'));
             }
 
-            // Filter clients based on search query
-            final clientsToDisplay = _isSearching
-                ? _filterClients(state.clients, _searchController.text)
-                : state.clients;
+            // Apply filters
+            List<Client> filteredClients = state.clients;
+
+            // Apply debt filter first
+            filteredClients = _filterDebtors(filteredClients);
+
+            // Then apply search filter
+            if (_isSearching) {
+              filteredClients = _filterClients(
+                filteredClients,
+                _searchController.text,
+              );
+            }
+
+            // Calculate total debt for debtors
+            final totalDebt = _calculateTotalDebt(state.clients);
+            final debtorsCount = state.clients
+                .where((client) => client.balance != 0)
+                .length;
 
             return Column(
               children: [
@@ -93,15 +120,24 @@ class _ClientListScreenState extends State<ClientListScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: _buildSearchBar(context),
                 ),
+                // Debt Filter and Summary
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: _buildDebtFilterAndSummary(
+                    context,
+                    totalDebt,
+                    debtorsCount,
+                  ),
+                ),
                 // Client List
                 Expanded(
-                  child: clientsToDisplay.isEmpty
+                  child: filteredClients.isEmpty
                       ? _buildEmptySearchState(context)
                       : ListView.builder(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          itemCount: clientsToDisplay.length,
+                          itemCount: filteredClients.length,
                           itemBuilder: (context, index) {
-                            final client = clientsToDisplay[index];
+                            final client = filteredClients[index];
                             // Use ClientCard widget with correct context for actions
                             return ClientCard(
                               client: client,
@@ -194,6 +230,92 @@ class _ClientListScreenState extends State<ClientListScreen> {
         ),
       ),
       style: Theme.of(context).textTheme.bodyMedium,
+    );
+  }
+
+  Widget _buildDebtFilterAndSummary(
+    BuildContext context,
+    double totalDebt,
+    int debtorsCount,
+  ) {
+    return Card(
+      color: Colors.orange.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Debt Filter Toggle
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: _showOnlyDebtors,
+                        onChanged: (value) {
+                          setState(() {
+                            _showOnlyDebtors = value ?? false;
+                          });
+                        },
+                      ),
+                      const Text('عرض المدينين فقط'),
+                    ],
+                  ),
+                ),
+                if (_showOnlyDebtors || _isSearching)
+                  TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _showOnlyDebtors = false;
+                        _searchController.clear();
+                      });
+                    },
+                    icon: const Icon(Icons.clear),
+                    label: const Text('مسح الفلاتر'),
+                  ),
+              ],
+            ),
+            // Debt Summary
+            if (debtorsCount > 0) ...[
+              const Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'إجمالي الدين:',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '${totalDebt.toStringAsFixed(2)} ${AppStrings.currency}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'عدد المدينين:',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  Text(
+                    '$debtorsCount عميل',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.red),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
