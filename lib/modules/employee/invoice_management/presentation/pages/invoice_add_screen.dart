@@ -73,22 +73,30 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
       totalAmount = draft['amount']?.toDouble() ?? 0.0;
       _items.clear();
       if (draft['items'] != null) {
+        log("Loading items from draft: ${draft['items']}");
         _items.addAll(
-          (draft['items'] as List)
-              .map(
-                (item) => Item(
-                  id: item['id'],
-                  name: item['name'],
-                  quantity: item['quantity'],
-                  code: item['code'],
-                  price: item['price']?.toDouble(),
-                  cost: item['cost']?.toDouble() ?? 0.0,
-                  timeAdded: DateTime.parse(item['timeAdded']),
-                  description: item['description'],
-                ),
-              )
-              .toList(),
+          (draft['items'] as List).asMap().entries.map((entry) {
+            final index = entry.key;
+            final item = entry.value;
+            final loadedItem = Item(
+              id: item['id'] ?? 'draft_item_$index',
+              name: item['name'] ?? '',
+              quantity: item['quantity'] ?? 1,
+              code: item['code'],
+              price: item['price']?.toDouble(),
+              cost: item['cost']?.toDouble() ?? 0.0,
+              timeAdded: item['timeAdded'] != null
+                  ? DateTime.parse(item['timeAdded'])
+                  : DateTime.now(),
+              description: item['description'],
+            );
+            log(
+              "Loaded item: ${loadedItem.name} - Quantity: ${loadedItem.quantity}",
+            );
+            return loadedItem;
+          }).toList(),
         );
+        log("Total items loaded: ${_items.length}");
       }
       _draftLoaded = true;
     });
