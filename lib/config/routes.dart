@@ -128,31 +128,33 @@ final routes = {
     child: const ClientListScreen(),
   ),
   //-------------------
-  Routes.invoiceAdd: (context) => BlocProvider(
-    create: (context) => InvoiceManagementCubit(
-      addInvoiceUseCase: AddInvoice(
-        InvoiceRepositoryImpl(
-          FirebaseInvoiceDataSource(),
-          FirebaseClientDataSource(),
+  Routes.invoiceAdd: (context) {
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+        {};
+    return BlocProvider(
+      create: (context) => InvoiceManagementCubit(
+        addInvoiceUseCase: AddInvoice(
+          InvoiceRepositoryImpl(
+            FirebaseInvoiceDataSource(),
+            FirebaseClientDataSource(),
+          ),
         ),
-      ),
-      getAllInvoicesUseCase: GetAllInvoices(
-        InvoiceRepositoryImpl(
-          FirebaseInvoiceDataSource(),
-          FirebaseClientDataSource(),
+        getAllInvoicesUseCase: GetAllInvoices(
+          InvoiceRepositoryImpl(
+            FirebaseInvoiceDataSource(),
+            FirebaseClientDataSource(),
+          ),
         ),
+        getAllClientsUseCase: GetAllClients(
+          ClientRepositoryImpl(FirebaseClientDataSource()),
+        ),
+        inventoryRepository: InventoryModule.provideInventoryRepository(),
+        addTransaction: AddVaultTransaction(VaultRepositoryImpl()), //!
       ),
-      getAllClientsUseCase: GetAllClients(
-        ClientRepositoryImpl(FirebaseClientDataSource()),
-      ),
-      inventoryRepository: InventoryModule.provideInventoryRepository(),
-      addTransaction: AddVaultTransaction(VaultRepositoryImpl()), //!
-    ),
-    child: InvoiceAddScreen(
-      draftData:
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?,
-    ),
-  ),
+      child: InvoiceAddScreen(draftData: args['draftData']),
+    );
+  },
   //-------------------
   Routes.invoiceList: (context) => BlocProvider(
     create: (context) => InvoiceManagementCubit(
@@ -176,7 +178,29 @@ final routes = {
     ),
     child: const InvoiceListScreen(),
   ),
-  Routes.invoiceDraftList: (context) => const InvoiceDraftListScreen(),
+  //------------------- draft
+  Routes.invoiceDraftList: (context) => BlocProvider(
+    create: (context) => InvoiceManagementCubit(
+      addInvoiceUseCase: AddInvoice(
+        InvoiceRepositoryImpl(
+          FirebaseInvoiceDataSource(),
+          FirebaseClientDataSource(),
+        ),
+      ),
+      getAllInvoicesUseCase: GetAllInvoices(
+        InvoiceRepositoryImpl(
+          FirebaseInvoiceDataSource(),
+          FirebaseClientDataSource(),
+        ),
+      ),
+      getAllClientsUseCase: GetAllClients(
+        ClientRepositoryImpl(FirebaseClientDataSource()),
+      ),
+      inventoryRepository: InventoryModule.provideInventoryRepository(),
+      addTransaction: AddVaultTransaction(VaultRepositoryImpl()),
+    )..loadDrafts(),
+    child: const InvoiceDraftListScreen(),
+  ),
   //-------------------
   Routes.suppliers: (context) => BlocProvider(
     create: (context) => SuppliersCubit(

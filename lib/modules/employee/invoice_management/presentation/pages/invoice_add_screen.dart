@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -37,12 +38,60 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   double totalAmount = 0;
   DateTime? _issueDate;
   List<Client> clients = [];
+  String? _draftId;
+  bool _draftLoaded = false;
 
   @override
   void initState() {
     super.initState();
     context.read<InvoiceManagementCubit>().loadClients();
     context.read<InvoiceManagementCubit>().loadInventory();
+    log("the draft data \n ${widget.draftData}");
+  }
+
+  //-------------------------load draft
+  void loadDraftData() {
+    if (_draftLoaded) return; // Prevent loading multiple times
+
+    final draft = widget.draftData!;
+    log("Loading draft data: $draft");
+
+    setState(() {
+      _draftId = draft['id'];
+
+      _selectedClientId = draft['clientId'] ?? "";
+      _amountController.text = draft['amount']?.toString() ?? '0.0';
+      _maintenanceByController.text = draft['maintenanceBy'] as String? ?? '';
+      _notesController.text = draft['notes'] as String? ?? '';
+      _isPaid = draft['isPaid'] ?? false;
+      _paymentMethod = draft['paymentMethod'] as String?;
+      _discountController.text = draft['discount']?.toString() ?? '';
+      _issueDate = draft['issueDate'] != null
+          ? DateTime.parse(draft['issueDate'])
+          : null;
+      _selectedCar = draft['selectedCar'] as String? ?? '';
+      totalAmount = draft['amount']?.toDouble() ?? 0.0;
+      _items.clear();
+      if (draft['items'] != null) {
+        _items.addAll(
+          (draft['items'] as List)
+              .map(
+                (item) => Item(
+                  id: item['id'],
+                  name: item['name'],
+                  quantity: item['quantity'],
+                  code: item['code'],
+                  price: item['price']?.toDouble(),
+                  cost: item['cost']?.toDouble() ?? 0.0,
+                  timeAdded: DateTime.parse(item['timeAdded']),
+                  description: item['description'],
+                ),
+              )
+              .toList(),
+        );
+      }
+      _draftLoaded = true;
+    });
   }
 
   @override
@@ -62,7 +111,58 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
             onPressed: () =>
                 Navigator.pushNamed(context, Routes.invoiceDraftList),
           ),
-          ElevatedButton(onPressed: () {}, child: const Text('حفظ كمسودة')),
+          ElevatedButton(
+            onPressed: () async {
+              final String currentDraftId =
+                  _draftId ?? DateTime.now().toIso8601String();
+              final draft = {
+                'id': currentDraftId,
+                'clientId': _selectedClientId,
+                'amount': double.tryParse(_amountController.text),
+                'maintenanceBy': _maintenanceByController.text,
+                'items': _items.map((item) => item.toMap()).toList(),
+                'notes': _notesController.text.isEmpty
+                    ? null
+                    : _notesController.text,
+                'isPaid': _isPaid,
+                'paymentMethod': _paymentMethod,
+                'discount': double.tryParse(_discountController.text),
+                'issueDate': _issueDate?.toIso8601String(),
+                'createdAt': widget.draftData != null
+                    ? widget.draftData!['createdAt']
+                    : DateTime.now().toIso8601String(),
+                'selectedCar': _selectedCar, // Use selectedCar from UI
+              };
+              try {
+                await FirebaseFirestore.instance
+                    .collection('invoice_drafts')
+                    .doc(currentDraftId)
+                    .set(draft);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      widget.draftData != null
+                          ? 'تم تحديث المسودة بنجاح!'
+                          : 'تم حفظ الفاتورة كمسودة!',
+                    ),
+                  ),
+                );
+                if (_draftId == null) {
+                  setState(() {
+                    _draftId = currentDraftId;
+                  });
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('خطأ في حفظ المسودة: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text('حفظ كمسودة'),
+          ),
         ],
       ),
       body: BlocConsumer<InvoiceManagementCubit, InvoiceManagementState>(
@@ -88,6 +188,12 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
             setState(() {
               clients = state.clients;
             });
+            // Load draft data after both clients and inventory are loaded
+            if (widget.draftData != null &&
+                widget.draftData!.isNotEmpty &&
+                _inventory != null) {
+              loadDraftData();
+            }
           }
         },
         builder: (context, state) {

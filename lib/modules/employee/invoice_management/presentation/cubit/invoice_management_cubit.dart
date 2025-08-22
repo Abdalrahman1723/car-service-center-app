@@ -224,4 +224,18 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
       emit(InvoiceManagementError('فشل في إضافة السيارة: $e'));
     }
   }
+
+  void loadDrafts() async {
+    try {
+      emit(InvoiceManagementLoading());
+      final snapshot = await FirebaseFirestore.instance
+          .collection('invoice_drafts')
+          .orderBy('createdAt', descending: true)
+          .get();
+      final drafts = snapshot.docs.map((doc) => doc.data()).toList();
+      emit(InvoiceManagementDraftsLoaded(drafts));
+    } catch (e) {
+      emit(InvoiceManagementError('Failed to load drafts: $e'));
+    }
+  }
 }

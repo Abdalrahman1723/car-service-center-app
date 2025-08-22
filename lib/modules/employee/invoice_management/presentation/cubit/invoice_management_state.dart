@@ -36,3 +36,9 @@ class InvoiceManagementDataLoaded extends InvoiceManagementState {
   final List<Client> clients;
   InvoiceManagementDataLoaded(this.invoices, this.clients);
 }
+
+class InvoiceManagementDraftsLoaded extends InvoiceManagementState {
+  final List<Map<String, dynamic>> drafts;
+
+  InvoiceManagementDraftsLoaded(this.drafts);
+}
