@@ -2,4 +2,8 @@
 
 # the compensation for employees
 
-# change client id to phone number id 
+# handle the charts 
+ 
+# handle search bars in the dashboard
+
+# notifications
