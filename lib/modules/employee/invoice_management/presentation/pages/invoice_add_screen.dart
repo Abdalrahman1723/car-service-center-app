@@ -45,48 +45,10 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
     context.read<InvoiceManagementCubit>().loadClients();
     context.read<InvoiceManagementCubit>().loadInventory();
     if (widget.draftData != null) {
-      _loadDraftData();
     }
   }
 
-  void _loadDraftData() {
-    final draft = widget.draftData!;
-    setState(() {
-      _draftId = draft['id'];
-      _selectedClientId = draft['clientId'];
-      _selectedCar = draft['selectedCar'];
-      _amountController.text = draft['amount']?.toString() ?? '0.0';
-      _maintenanceByController.text = draft['maintenanceBy'] as String? ?? '';
-      _notesController.text = draft['notes'] as String? ?? '';
-      _isPaid = draft['isPaid'] ?? false;
-      _paymentMethod = draft['paymentMethod'];
-      _discountController.text = draft['discount']?.toString() ?? '';
-      _issueDate = draft['issueDate'] != null
-          ? DateTime.parse(draft['issueDate'])
-          : null;
-      totalAmount = draft['amount']?.toDouble() ?? 0.0;
-      _items.clear();
-      if (draft['items'] != null) {
-        _items.addAll(
-          (draft['items'] as List)
-              .map(
-                (item) => Item(
-                  id: item['id'],
-                  name: item['name'],
-                  quantity: item['quantity'],
-                  code: item['code'],
-                  price: item['price']?.toDouble(),
-                  cost: item['cost']?.toDouble() ?? 0.0,
-                  timeAdded: DateTime.parse(item['timeAdded']),
-                  description: item['description'],
-                ),
-              )
-              .toList(),
-        );
-      }
-    });
-  }
-
+ 
   @override
   Widget build(BuildContext context) {
     bool isFormValid =

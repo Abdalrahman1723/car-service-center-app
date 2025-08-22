@@ -16,7 +16,10 @@ class FirebaseClientDataSource implements ClientDataSource {
   @override
   Future<void> addClient(Client client) async {
     // Store client data in Firestore 'clients' collection
-    await _firestore.collection('clients').doc(client.id).set(client.toMap());
+    await _firestore
+        .collection('clients')
+        .doc(DateTime.now().toString())
+        .set(client.toMap());
   }
 
   @override
@@ -37,7 +40,7 @@ class FirebaseClientDataSource implements ClientDataSource {
   @override
   Future<List<Client>> getAllClients() async {
     // Retrieve all clients from Firestore
-    
+
     final snapshot = await _firestore.collection('clients').get();
     return snapshot.docs
         .map((doc) => Client.fromMap(doc.id, doc.data()))

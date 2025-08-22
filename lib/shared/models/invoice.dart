@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:m_world/shared/models/item.dart';
 
 class Invoice {
@@ -37,7 +36,7 @@ class Invoice {
       maintenanceBy: data['maintenanceBy'] ?? '',
       createdAt: DateTime.now(),
       issueDate: data['issueDate'] != null
-          ? (data['issueDate'] as Timestamp).toDate()
+          ? (data['issueDate']).toDate()
           : DateTime.now(),
       amount: (data['amount'] as num?)?.toDouble() ?? 0.0,
       items:
@@ -57,7 +56,7 @@ class Invoice {
     return {
       'clientId': clientId,
       'maintenanceBy': maintenanceBy,
-      'issueDate': Timestamp.fromDate(issueDate),
+      'issueDate': issueDate.toIso8601String(),
       'amount': amount,
       'items': items.map((item) => item.toMap()).toList(),
       'notes': notes,

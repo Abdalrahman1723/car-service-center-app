@@ -24,7 +24,7 @@ class ClientManagementCubit extends Cubit<ClientManagementState> {
   // Add a new client
   Future<void> addClient({
     required String name,
-    String? phoneNumber,
+    required String phoneNumber,
     required List<Map<String, String?>> cars,
     String? model,
     required double balance,
@@ -35,7 +35,7 @@ class ClientManagementCubit extends Cubit<ClientManagementState> {
     emit(ClientManagementLoading());
     try {
       final client = Client(
-        id: DateTime.now().toString(),
+        id: phoneNumber,
         name: name,
         phoneNumber: phoneNumber,
         cars: cars,

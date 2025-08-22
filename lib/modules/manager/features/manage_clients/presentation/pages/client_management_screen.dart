@@ -62,7 +62,9 @@ class ClientManagementScreenState extends State<ClientManagementScreen> {
     notesController.dispose();
     // Dispose car controllers
     for (var car in carControllers) {
-      car.values.forEach((controller) => controller.dispose());
+      for (var controller in car.values) {
+        controller.dispose();
+      }
     }
     super.dispose();
   }
@@ -234,7 +236,7 @@ class ClientManagementScreenState extends State<ClientManagementScreen> {
           controller: typeController,
           decoration: const InputDecoration(
             labelText: 'نوع السيارة *',
-            hintText: 'مثال: سيدان، دفع رباعي، شاحنة',
+            hintText: 'مثال: BMW X6',
           ),
         ),
         const SizedBox(height: 16),
@@ -242,7 +244,7 @@ class ClientManagementScreenState extends State<ClientManagementScreen> {
           controller: modelController,
           decoration: const InputDecoration(
             labelText: 'الموديل',
-            hintText: 'مثال: تويوتا كامري 2020',
+            hintText: 'مثال: 2025 - فئة اولى',
           ),
         ),
         const SizedBox(height: 16),
@@ -368,7 +370,7 @@ class ClientManagementScreenState extends State<ClientManagementScreen> {
     // Submit to cubit
     context.read<ClientManagementCubit>().addClient(
       name: nameController.text,
-      phoneNumber: phoneController.text.isEmpty ? null : phoneController.text,
+      phoneNumber:phoneController.text,
       cars: cars,
       balance: balance,
       email: emailController.text.isEmpty ? null : emailController.text,
