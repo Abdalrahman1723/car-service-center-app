@@ -215,101 +215,105 @@ class _VaultTransactionsScreenState extends State<VaultTransactionsScreen> {
   }
 
   Widget _buildEnhancedFilterBar(BuildContext context) {
-    return Card(
-      color: Theme.of(context).colorScheme.surfaceVariant,
-      margin: const EdgeInsets.all(8.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Search Bar
-            SearchFilterBar(
-              onSearch: (query) =>
-                  context.read<VaultCubit>().searchTransactions(query),
-              onFilter: (from, to) => context
-                  .read<VaultCubit>()
-                  .getTransactions(fromDate: from, toDate: to),
-            ),
-            const SizedBox(height: 16),
-            // Type and Category Filters
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedType,
-                    decoration: const InputDecoration(
-                      labelText: 'نوع الحركة',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: [
-                      const DropdownMenuItem<String>(
-                        value: null,
-                        child: Text('جميع الأنواع'),
-                      ),
-                      ..._transactionTypes.map(
-                        (type) => DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(type == 'income' ? 'دخل' : 'مصروف'),
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedType = value;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedCategory,
-                    decoration: const InputDecoration(
-                      labelText: 'الفئة',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: [
-                      const DropdownMenuItem<String>(
-                        value: null,
-                        child: Text('جميع الفئات'),
-                      ),
-                      ...AppTransactions.transactionCategories.map(
-                        (category) => DropdownMenuItem<String>(
-                          value: category,
-                          child: Text(category),
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedCategory = value;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Clear Filters Button
-            if (_selectedType != null || _selectedCategory != null)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _selectedType = null;
-                      _selectedCategory = null;
-                    });
-                  },
-                  icon: const Icon(Icons.clear),
-                  label: const Text('مسح الفلاتر'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Card(
+        color: Theme.of(context).colorScheme.surfaceVariant,
+        margin: const EdgeInsets.all(8.0),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // Search Bar
+              SearchFilterBar(
+                onSearch: (query) =>
+                    context.read<VaultCubit>().searchTransactions(query),
+                onFilter: (from, to) => context
+                    .read<VaultCubit>()
+                    .getTransactions(fromDate: from, toDate: to),
               ),
-          ],
+              const SizedBox(height: 16),
+              // Type and Category Filters
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedType,
+                      decoration: const InputDecoration(
+                        labelText: 'نوع الحركة',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: null,
+                          alignment: Alignment.center,
+                          child: Text('جميع الأنواع'),
+                        ),
+                        ..._transactionTypes.map(
+                          (type) => DropdownMenuItem<String>(
+                            value: type,
+                            child: Text(type == 'income' ? 'دخل' : 'مصروف'),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedType = value;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedCategory,
+                      decoration: const InputDecoration(
+                        labelText: 'الفئة',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: null,
+                          child: Text('جميع الفئات'),
+                        ),
+                        ...AppTransactions.transactionCategories.map(
+                          (category) => DropdownMenuItem<String>(
+                            value: category,
+                            child: Text(category),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedCategory = value;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Clear Filters Button
+              if (_selectedType != null || _selectedCategory != null)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _selectedType = null;
+                        _selectedCategory = null;
+                      });
+                    },
+                    icon: const Icon(Icons.clear),
+                    label: const Text('مسح الفلاتر'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

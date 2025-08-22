@@ -45,9 +45,9 @@ class ClientManagementScreenState extends State<ClientManagementScreen> {
   // Remove a car entry
   void _removeCar(int index) {
     setState(() {
-      carControllers[index].values.forEach(
-        (controller) => controller.dispose(),
-      );
+      for (var controller in carControllers[index].values) {
+        controller.dispose();
+      }
       carControllers.removeAt(index);
     });
   }

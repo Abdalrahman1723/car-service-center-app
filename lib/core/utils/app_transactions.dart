@@ -1,6 +1,6 @@
 class AppTransactions {
   static final List<String> transactionCategories = [
-    'job order'
+    'job order',
     'دفعات موردين',
     'مشتريات',
     'المرتبات',
