@@ -15,6 +15,7 @@ class SuppliersScreen extends StatefulWidget {
 class _SuppliersScreenState extends State<SuppliersScreen> {
   final _searchController = TextEditingController();
   List<dynamic> _filteredSuppliers = [];
+  bool _showOnlyDebtors = false;
 
   @override
   void initState() {
@@ -29,13 +30,37 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final state = context.read<SuppliersCubit>().state;
     if (state is SuppliersLoaded) {
       setState(() {
-        _filteredSuppliers = state.suppliers.where((supplier) {
-          final name = supplier.name.toLowerCase();
-          final phone = supplier.phoneNumber.toLowerCase();
-          return name.contains(query) || phone.contains(query);
-        }).toList();
+        List<dynamic> suppliers = state.suppliers;
+
+        // Apply debt filter first
+        if (_showOnlyDebtors) {
+          suppliers = suppliers
+              .where((supplier) => supplier.balance != 0)
+              .toList();
+        }
+
+        // Then apply search filter
+        if (query.isNotEmpty) {
+          suppliers = suppliers.where((supplier) {
+            final name = supplier.name.toLowerCase();
+            final phone = supplier.phoneNumber.toLowerCase();
+            return name.contains(query) || phone.contains(query);
+          }).toList();
+        }
+
+        _filteredSuppliers = suppliers;
       });
     }
+  }
+
+  double _calculateTotalDebt(List<dynamic> suppliers) {
+    return suppliers
+        .where((supplier) => supplier.balance != 0)
+        .fold(0.0, (sum, supplier) => sum + supplier.balance);
+  }
+
+  int _getDebtorsCount(List<dynamic> suppliers) {
+    return suppliers.where((supplier) => supplier.balance != 0).length;
   }
 
   @override
@@ -72,6 +97,25 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               keyboardType: TextInputType.text,
             ),
           ),
+          // Debt Filter and Summary
+          BlocBuilder<SuppliersCubit, SuppliersState>(
+            builder: (context, state) {
+              if (state is SuppliersLoaded) {
+                final totalDebt = _calculateTotalDebt(state.suppliers);
+                final debtorsCount = _getDebtorsCount(state.suppliers);
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: _buildDebtFilterAndSummary(
+                    context,
+                    totalDebt,
+                    debtorsCount,
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
           Expanded(
             child: BlocConsumer<SuppliersCubit, SuppliersState>(
               listener: (context, state) {
@@ -92,7 +136,26 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 }
                 if (state is SuppliersLoaded) {
                   setState(() {
-                    _filteredSuppliers = state.suppliers;
+                    List<dynamic> suppliers = state.suppliers;
+
+                    // Apply debt filter first
+                    if (_showOnlyDebtors) {
+                      suppliers = suppliers
+                          .where((supplier) => supplier.balance != 0)
+                          .toList();
+                    }
+
+                    // Then apply search filter
+                    if (_searchController.text.isNotEmpty) {
+                      suppliers = suppliers.where((supplier) {
+                        final name = supplier.name.toLowerCase();
+                        final phone = supplier.phoneNumber.toLowerCase();
+                        final query = _searchController.text.toLowerCase();
+                        return name.contains(query) || phone.contains(query);
+                      }).toList();
+                    }
+
+                    _filteredSuppliers = suppliers;
                   });
                 }
               },
@@ -100,7 +163,9 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 if (state is SuppliersLoading) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is SuppliersLoaded) {
-                  if (_filteredSuppliers.isEmpty && _searchController.text.isEmpty) {
+                  if (_filteredSuppliers.isEmpty &&
+                      _searchController.text.isEmpty &&
+                      !_showOnlyDebtors) {
                     _filteredSuppliers = state.suppliers;
                   }
                   if (_filteredSuppliers.isEmpty) {
@@ -161,6 +226,94 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pushNamed(context, Routes.addSupplier),
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildDebtFilterAndSummary(
+    BuildContext context,
+    double totalDebt,
+    int debtorsCount,
+  ) {
+    return Card(
+      color: Colors.red.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Debt Filter Toggle
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: _showOnlyDebtors,
+                        onChanged: (value) {
+                          setState(() {
+                            _showOnlyDebtors = value ?? false;
+                          });
+                          _filterSuppliers();
+                        },
+                      ),
+                      const Text('Show suppliers we owe money to'),
+                    ],
+                  ),
+                ),
+                if (_showOnlyDebtors || _searchController.text.isNotEmpty)
+                  TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _showOnlyDebtors = false;
+                        _searchController.clear();
+                      });
+                      _filterSuppliers();
+                    },
+                    icon: const Icon(Icons.clear),
+                    label: const Text('Clear Filters'),
+                  ),
+              ],
+            ),
+            // Debt Summary
+            if (debtorsCount > 0) ...[
+              const Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total Amount Owed:',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '\$${totalDebt.toStringAsFixed(2)}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Number of suppliers:',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  Text(
+                    '$debtorsCount suppliers',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.red),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
