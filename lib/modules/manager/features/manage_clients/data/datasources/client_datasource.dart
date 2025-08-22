@@ -18,7 +18,7 @@ class FirebaseClientDataSource implements ClientDataSource {
     // Store client data in Firestore 'clients' collection
     await _firestore
         .collection('clients')
-        .doc(DateTime.now().toString())
+        .doc(client.phoneNumber)
         .set(client.toMap());
   }
 
