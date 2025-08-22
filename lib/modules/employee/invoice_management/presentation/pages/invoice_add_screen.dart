@@ -1,4 +1,5 @@
-import 'dart:convert';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -8,7 +9,6 @@ import 'package:m_world/shared/models/invoice.dart';
 import 'package:m_world/shared/models/item.dart';
 import 'package:m_world/shared/models/client.dart';
 import 'package:m_world/modules/manager/features/inventory/domain/entities/inventory_entity.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../config/routes.dart';
 import 'package:flutter/services.dart';
 
@@ -36,7 +36,6 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   InventoryEntity? _inventory;
   double totalAmount = 0;
   DateTime? _issueDate;
-  String? _draftId;
   List<Client> clients = [];
 
   @override
@@ -44,11 +43,8 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
     super.initState();
     context.read<InvoiceManagementCubit>().loadClients();
     context.read<InvoiceManagementCubit>().loadInventory();
-    if (widget.draftData != null) {
-    }
   }
 
- 
   @override
   Widget build(BuildContext context) {
     bool isFormValid =
@@ -59,13 +55,14 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('إضافة فاتورة جديدة'),
+        title: const Text("New job order"),
         actions: [
           IconButton(
             icon: const Icon(Icons.drafts),
             onPressed: () =>
                 Navigator.pushNamed(context, Routes.invoiceDraftList),
           ),
+          ElevatedButton(onPressed: () {}, child: const Text('حفظ كمسودة')),
         ],
       ),
       body: BlocConsumer<InvoiceManagementCubit, InvoiceManagementState>(
@@ -108,6 +105,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                   const SizedBox(height: 16),
                   // Maintenance by field
                   TextFormField(
+                    keyboardType: TextInputType.text,
                     controller: _maintenanceByController,
                     decoration: const InputDecoration(
                       labelText: 'الصيانة بواسطة *',
@@ -159,7 +157,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                   const SizedBox(height: 16),
                   // Is Paid checkbox
                   CheckboxListTile(
-                    title: const Text('تم الدفع'),
+                    title: const Text('آجل؟'),
                     value: _isPaid,
                     onChanged: (value) => setState(() => _isPaid = value!),
                   ),
@@ -253,9 +251,13 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                                         paymentMethod: _paymentMethod,
                                         discount: discount,
                                         issueDate: _issueDate ?? DateTime.now(),
-                                        selectedCar: _selectedCar,
+                                        selectedCar:
+                                            _getSelectedCarDisplayText(),
                                       );
                                 }
+                                log(
+                                  "the selected car is: ${_getSelectedCarDisplayText()}",
+                                );
                               },
                         child: state is InvoiceManagementLoading
                             ? const SizedBox(
@@ -265,92 +267,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Text('إضافة الفاتورة'),
-                      ),
-                      ElevatedButton(
-                        onPressed: state is InvoiceManagementLoading
-                            ? null
-                            : () async {
-                                final String currentDraftId =
-                                    _draftId ??
-                                    DateTime.now().toIso8601String();
-                                final draft = {
-                                  'id': currentDraftId,
-                                  'clientId': _selectedClientId,
-                                  'selectedCar': _selectedCar,
-                                  'amount': double.tryParse(
-                                    _amountController.text,
-                                  ),
-                                  'maintenanceBy':
-                                      _maintenanceByController.text,
-                                  'items': _items
-                                      .map((item) => item.toMap())
-                                      .toList(),
-                                  'notes': _notesController.text.isEmpty
-                                      ? null
-                                      : _notesController.text,
-                                  'isPaid': _isPaid,
-                                  'clientName': _selectedClientId != null
-                                      ? clients
-                                            .firstWhere(
-                                              (element) =>
-                                                  element.id ==
-                                                  _selectedClientId,
-                                              orElse: () => Client(
-                                                id: '',
-                                                name: 'غير معروف',
-                                                cars: [],
-                                                balance: 0.0,
-                                              ),
-                                            )
-                                            .name
-                                      : null,
-                                  'paymentMethod': _paymentMethod,
-                                  'discount': double.tryParse(
-                                    _discountController.text,
-                                  ),
-                                  'issueDate': _issueDate?.toIso8601String(),
-                                  'createdAt': widget.draftData != null
-                                      ? widget.draftData!['createdAt']
-                                      : DateTime.now().toIso8601String(),
-                                };
-                                final prefs =
-                                    await SharedPreferences.getInstance();
-                                final drafts =
-                                    prefs.getStringList('invoice_drafts') ?? [];
-                                final existingDraftIndex = drafts.indexWhere((
-                                  draftString,
-                                ) {
-                                  final draftMap = jsonDecode(draftString);
-                                  return draftMap['id'] == currentDraftId;
-                                });
-                                if (existingDraftIndex != -1) {
-                                  drafts[existingDraftIndex] = jsonEncode(
-                                    draft,
-                                  );
-                                } else {
-                                  drafts.add(jsonEncode(draft));
-                                }
-                                await prefs.setStringList(
-                                  'invoice_drafts',
-                                  drafts,
-                                );
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      existingDraftIndex != -1
-                                          ? 'تم تحديث المسودة بنجاح!'
-                                          : 'تم حفظ الفاتورة كمسودة!',
-                                    ),
-                                  ),
-                                );
-                                if (_draftId == null) {
-                                  setState(() {
-                                    _draftId = currentDraftId;
-                                  });
-                                }
-                              },
-                        child: const Text('حفظ كمسودة'),
+                            : const Text('Add job order'),
                       ),
                       InvoiceExportButton(
                         clientName: _selectedClientId != null
@@ -382,7 +299,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                           paymentMethod: _paymentMethod,
                           discount: double.tryParse(_discountController.text),
                           issueDate: _issueDate ?? DateTime.now(),
-                          selectedCar: _selectedCar,
+                          selectedCar: _getSelectedCarDisplayText(),
                         ),
                       ),
                     ],
@@ -458,7 +375,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
     final selectedCar = _selectedCar != null && cars.isNotEmpty
         ? cars.firstWhere(
             (c) =>
-                c['licensePlate'] == _selectedCar || c['type'] == _selectedCar,
+                '${c['type'] ?? ''}_${c['licensePlate'] ?? ''}' == _selectedCar,
             orElse: () => {'type': 'غير معروف', 'licensePlate': 'غير معروف'},
           )
         : null;
@@ -477,7 +394,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
           items: cars
               .map(
                 (car) => DropdownMenuItem<String>(
-                  value: car['licensePlate'] ?? car['type'],
+                  value: '${car['type'] ?? ''}_${car['licensePlate'] ?? ''}',
                   child: Text(
                     '${car['type'] ?? 'غير محدد'} (${car['licensePlate'] ?? 'بدون لوحة'})',
                   ),
@@ -643,8 +560,9 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                               ),
                               onTap: () {
                                 setState(() {
+                                  // Use a unique identifier for the car
                                   _selectedCar =
-                                      car['licensePlate'] ?? car['type'];
+                                      '${car['type'] ?? ''}_${car['licensePlate'] ?? ''}';
                                 });
                                 Navigator.pop(dialogContext);
                               },
@@ -1150,5 +1068,22 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
         ),
       ),
     );
+  }
+
+  // Helper method to get the display text for the selected car
+  String _getSelectedCarDisplayText() {
+    if (_selectedCar == null || clients.isEmpty) return '';
+
+    final selectedClient = clients.firstWhere(
+      (c) => c.id == _selectedClientId,
+      orElse: () => Client(id: '', name: 'غير معروف', cars: [], balance: 0.0),
+    );
+
+    final selectedCarData = selectedClient.cars.firstWhere(
+      (c) => '${c['type'] ?? ''}_${c['licensePlate'] ?? ''}' == _selectedCar,
+      orElse: () => {'type': 'غير معروف', 'licensePlate': 'غير معروف'},
+    );
+
+    return '${selectedCarData['type'] ?? 'غير محدد'} (${selectedCarData['licensePlate'] ?? 'بدون لوحة'})';
   }
 }

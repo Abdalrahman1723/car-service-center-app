@@ -331,7 +331,7 @@ class DashboardScreen extends StatelessWidget {
                     //add new invoice
                     buildCard(
                       context,
-                      'إضافة فاتورة جديدة',
+                      'إضافة  Job order',
                       Icons.add_circle,
                       () => Navigator.of(context).pushNamed(Routes.invoiceAdd),
                     ),

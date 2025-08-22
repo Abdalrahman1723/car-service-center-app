@@ -30,6 +30,7 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
         isPaid: invoice.isPaid,
         paymentMethod: invoice.paymentMethod,
         discount: invoice.discount,
+        selectedCar: invoice.selectedCar,
       ),
     );
 
@@ -78,6 +79,7 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
             isPaid: model.isPaid,
             paymentMethod: model.paymentMethod,
             discount: model.discount,
+            selectedCar: model.selectedCar
           ),
         )
         .toList();

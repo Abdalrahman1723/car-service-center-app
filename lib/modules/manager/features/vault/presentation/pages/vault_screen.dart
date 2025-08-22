@@ -186,7 +186,7 @@ class _VaultTransactionsScreenState extends State<VaultTransactionsScreen> {
                   value: selectedCategory,
                   items: const [
                     DropdownMenuItem(value: 'Shipment', child: Text('شحنة')),
-                    DropdownMenuItem(value: 'Invoice', child: Text('فاتورة')),
+                    DropdownMenuItem(value: 'Invoice', child: Text('Job order')),
                     DropdownMenuItem(value: 'Salary', child: Text('راتب')),
                     DropdownMenuItem(
                       value: 'Office Expense',

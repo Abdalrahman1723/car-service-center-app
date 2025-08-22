@@ -41,7 +41,7 @@ class InvoiceCard extends StatelessWidget {
             ),
           );
         },
-        title: Text('Invoice #${invoice.id}'),
+        title: Text('Invoice #${invoice.clientId}'),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

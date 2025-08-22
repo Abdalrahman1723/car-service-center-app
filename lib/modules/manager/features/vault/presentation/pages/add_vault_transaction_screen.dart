@@ -24,7 +24,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   // List of valid categories for the dropdown
   final List<String> categories = [
     'شحنة',
-    'فاتورة',
+    'Job order',
     'راتب',
     'مصروفات مكتبية',
     'أخرى',

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -36,16 +38,16 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
     required String maintenanceBy,
     required List<Item> items,
     required DateTime issueDate,
+    required String selectedCar, // selected car
     String? notes,
     bool isPaid = false,
     String? paymentMethod,
     double? discount,
-    String? selectedCar, // selected car
   }) async {
     emit(InvoiceManagementLoading());
     try {
       final invoice = Invoice(
-        id: clientId,
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         clientId: clientId,
         amount: amount,
         maintenanceBy: maintenanceBy,
@@ -59,6 +61,7 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
         selectedCar: selectedCar,
       );
       await addInvoiceUseCase(invoice);
+      log("from cubit the invoice is : \n ${invoice.selectedCar}");
       // For each unique item name in the invoice items, count how many times it appears,
       // then update the inventory by decreasing the quantity accordingly.
       final Map<String, int> itemCounts = {};

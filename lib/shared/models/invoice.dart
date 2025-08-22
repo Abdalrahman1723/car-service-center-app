@@ -12,7 +12,7 @@ class Invoice {
   final bool isPaid;
   final String? paymentMethod;
   final double? discount;
-  final String? selectedCar; // Added
+  final String selectedCar; // Added
 
   Invoice({
     required this.id,
@@ -22,11 +22,11 @@ class Invoice {
     required this.createdAt,
     required this.amount,
     required this.items,
+    required this.selectedCar,
     this.notes,
     required this.isPaid,
     this.paymentMethod,
     this.discount,
-    this.selectedCar,
   });
 
   factory Invoice.fromFirestore(Map<String, dynamic> data, String id) {
@@ -95,6 +95,7 @@ class Invoice {
     paymentMethod: map['paymentMethod'],
     discount: (map['discount'] is int)
         ? (map['discount'] as int).toDouble()
-        : map['discount'],
+        : map['discount'], 
+        selectedCar: map['selectedCar'] ?? '',
   );
 }
