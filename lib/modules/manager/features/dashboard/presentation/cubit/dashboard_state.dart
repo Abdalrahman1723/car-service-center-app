@@ -27,3 +27,34 @@ class DashboardError extends DashboardState {
 }
 
 class DashboardLoggedOut extends DashboardState {}
+
+// New states for charts and timeline
+class DashboardDataLoaded extends DashboardState {
+  final List<Client> clients;
+  final List<Invoice> invoices;
+  final List<VaultTransaction> vaultTransactions;
+  final List<TimelineEvent> timelineEvents;
+  final Map<String, double> salesData;
+  final Map<String, double> costData;
+
+  DashboardDataLoaded({
+    required this.clients,
+    required this.invoices,
+    required this.vaultTransactions,
+    required this.timelineEvents,
+    required this.salesData,
+    required this.costData,
+  });
+}
+
+class DashboardChartsLoaded extends DashboardState {
+  final Map<String, double> salesData;
+  final Map<String, double> costData;
+  final List<TimelineEvent> timelineEvents;
+
+  DashboardChartsLoaded({
+    required this.salesData,
+    required this.costData,
+    required this.timelineEvents,
+  });
+}

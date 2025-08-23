@@ -7,6 +7,7 @@ import '../cubit/dashboard_cubit.dart';
 import '../widgets/build_card.dart';
 import '../widgets/drawer_item.dart';
 import '../widgets/time_line.dart';
+import '../../domain/entities/timeline_event.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -16,6 +17,11 @@ class DashboardScreen extends StatelessWidget {
     final cubit = context.read<DashboardCubit>();
     final clientController = TextEditingController();
     final invoiceController = TextEditingController();
+
+    // Load dashboard data when the screen is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      cubit.loadDashboardData();
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -29,6 +35,13 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
         actions: [
+          //refresh button
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              cubit.loadDashboardData();
+            },
+          ),
           //notification screen
           IconButton(
             icon: const Icon(Icons.notifications),
@@ -293,7 +306,23 @@ class DashboardScreen extends StatelessWidget {
           }
         },
         builder: (context, state) {
+          if (state is DashboardLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          Map<String, double> salesData = {};
+          List<TimelineEvent> timelineEvents = [];
+
+          if (state is DashboardDataLoaded) {
+            salesData = state.salesData;
+            timelineEvents = state.timelineEvents;
+          } else if (state is DashboardChartsLoaded) {
+            salesData = state.salesData;
+            timelineEvents = state.timelineEvents;
+          }
+
           return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -305,20 +334,44 @@ class DashboardScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 TextField(
                   controller: clientController,
-                  decoration: const InputDecoration( 
+                  decoration: InputDecoration(
                     labelText: 'البحث في العملاء',
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.arrow_forward),
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(Routes.clientList);
+                      },
+                    ),
                   ),
-                  onChanged: (value) => cubit.searchClients(value),
+                  onTap: () {
+                    Navigator.of(context).pushNamed(Routes.clientList);
+                  },
+                  readOnly: true,
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: invoiceController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'البحث في الفواتير',
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.arrow_forward),
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(Routes.invoiceList);
+                      },
+                    ),
                   ),
-                  onChanged: (value) => cubit.searchInvoices(value),
+                  onTap: () {
+                    Navigator.of(context).pushNamed(Routes.invoiceList);
+                  },
+                  readOnly: true,
                 ),
                 const SizedBox(height: 16),
                 GridView.count(
@@ -362,86 +415,236 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 //----------sales chart
-                const Text(
-                  'رسم بياني للمبيعات',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(
-                  height: 200,
-                  child: LineChart(
-                    LineChartData(
-                      titlesData: FlTitlesData(show: true),
-                      borderData: FlBorderData(show: true),
-                      lineBarsData: [
-                        LineChartBarData(
-                          spots: [
-                            const FlSpot(0, 1000),
-                            const FlSpot(1, 1500),
-                            const FlSpot(2, 1200),
-                            const FlSpot(3, 1800),
-                            const FlSpot(4, 2000),
-                          ],
-                          isCurved: true,
-                        ),
-                      ],
-                    ),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.trending_up,
+                              color: Colors.blue[600],
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'رسم بياني للمبيعات',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildSalesChart(salesData),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                Divider(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 //----------cost chart
-                const Text(
-                  'رسم بياني للتكاليف والمدفوعات',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(
-                  height: 200,
-                  child: BarChart(
-                    BarChartData(
-                      titlesData: FlTitlesData(show: true),
-                      borderData: FlBorderData(show: true),
-                      barGroups: [
-                        BarChartGroupData(
-                          x: 0,
-                          barRods: [
-                            BarChartRodData(toY: 500, color: Colors.red),
-                          ],
-                        ),
-                        BarChartGroupData(
-                          x: 1,
-                          barRods: [
-                            BarChartRodData(toY: 700, color: Colors.blue),
-                          ],
-                        ),
-                        BarChartGroupData(
-                          x: 2,
-                          barRods: [
-                            BarChartRodData(toY: 600, color: Colors.red),
-                          ],
-                        ),
-                        BarChartGroupData(
-                          x: 3,
-                          barRods: [
-                            BarChartRodData(toY: 800, color: Colors.blue),
-                          ],
-                        ),
-                      ],
-                    ),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 //----------timeline
-                const Text(
-                  'خط الزمن للنشاطات',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.purple[50],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.timeline,
+                              color: Colors.purple[600],
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'خط الزمن للنشاطات',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      TimeLine(events: timelineEvents),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 20),
-                TimeLine(),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildSalesChart(Map<String, double> salesData) {
+    if (salesData.isEmpty) {
+      return const Center(
+        child: Text(
+          'لا توجد بيانات مبيعات',
+          style: TextStyle(fontSize: 16, color: Colors.grey),
+        ),
+      );
+    }
+
+    final entries = salesData.entries.toList();
+    final spots = entries.asMap().entries.map((entry) {
+      return FlSpot(entry.key.toDouble(), entry.value.value);
+    }).toList();
+
+    // Calculate max value for better Y-axis scaling
+    final maxValue = spots.isNotEmpty
+        ? spots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b) * 1.2
+        : 100.0;
+
+    return SizedBox(
+      height: 250, // Increased height for better readability
+      child: LineChart(
+        LineChartData(
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false, // Only horizontal grid lines
+            horizontalInterval: maxValue / 5, // 5 horizontal lines
+            getDrawingHorizontalLine: (value) {
+              return FlLine(
+                color: Colors.grey.withOpacity(0.3),
+                strokeWidth: 1,
+              );
+            },
+          ),
+          titlesData: FlTitlesData(
+            show: true,
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 35,
+                getTitlesWidget: (value, meta) {
+                  if (value.toInt() < entries.length) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        entries[value.toInt()].key,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    );
+                  }
+                  return const Text('');
+                },
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 50,
+                interval: maxValue / 5,
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    value.toInt().toString(),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  );
+                },
+              ),
+            ),
+            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          ),
+          borderData: FlBorderData(
+            show: true,
+            border: Border.all(color: Colors.grey.withOpacity(0.5)),
+          ),
+          minX: 0,
+          maxX: (entries.length - 1).toDouble(),
+          minY: 0,
+          maxY: maxValue,
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              isCurved: true,
+              color: Colors.blue,
+              barWidth: 3,
+              dotData: FlDotData(
+                show: true,
+                getDotPainter: (spot, percent, barData, index) {
+                  return FlDotCirclePainter(
+                    radius: 4,
+                    color: Colors.white,
+                    strokeWidth: 2,
+                    strokeColor: Colors.blue,
+                  );
+                },
+              ),
+              belowBarData: BarAreaData(
+                show: true,
+                color: Colors.blue.withOpacity(0.1),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
