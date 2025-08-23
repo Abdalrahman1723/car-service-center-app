@@ -73,7 +73,6 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
       totalAmount = draft['amount']?.toDouble() ?? 0.0;
       _items.clear();
       if (draft['items'] != null) {
-        log("Loading items from draft: ${draft['items']}");
         _items.addAll(
           (draft['items'] as List).asMap().entries.map((entry) {
             final index = entry.key;

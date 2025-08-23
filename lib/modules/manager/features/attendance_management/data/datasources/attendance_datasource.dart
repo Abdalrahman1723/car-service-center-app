@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 import 'package:m_world/modules/manager/features/attendance_management/domain/entities/attendance.dart';
 
 class AttendanceDataSource {
@@ -20,8 +21,9 @@ class AttendanceDataSource {
           .collection(_attendanceCollection)
           .where('employeeId', isEqualTo: employeeId)
           .orderBy('date', descending: true);
-      if (status != null)
+      if (status != null) {
         query = query.where('compensationStatus', isEqualTo: status);
+      }
       if (startDate != null && endDate != null) {
         query = query
             .where('date', isGreaterThanOrEqualTo: startDate.toIso8601String())
@@ -83,7 +85,9 @@ class AttendanceDataSource {
       final lateMinutes = isLate
           ? checkInTime.difference(standardStart).inMinutes
           : 0;
-      final compensationStatus = isLate ? 'Late – Not Compensated' : 'On Time';
+      final compensationStatus = isLate
+          ? AppStrings.notCompensated
+          : AppStrings.onTime;
 
       final attendance = Attendance(
         id: '',
@@ -125,15 +129,24 @@ class AttendanceDataSource {
           ? standardEnd.difference(checkOutTime).inMinutes
           : 0;
       final hoursWorked = attendance.checkInTime != null
-          ? checkOutTime.difference(attendance.checkInTime!).inHours.toDouble()
+          ? checkOutTime.difference(attendance.checkInTime!).inMinutes / 60.0
           : 0.0;
-      final extraHours = hoursWorked > 8.0 ? hoursWorked - 8.0 : 0.0;
+      final extraHours = hoursWorked > 10.0 ? hoursWorked - 10.0 : 0.0;
+      log(
+        'Checked out employee: ${attendance.employeeId} at $checkOutTime | Working hours: $hoursWorked | Extra hours: $extraHours',
+      );
+      // Determine compensationStatus
+      String compensationStatus = attendance.compensationStatus;
+      if (hoursWorked == 10.0 && (attendance.isLate)) {
+        compensationStatus = AppStrings.compensated;
+      }
 
       await docRef.update({
         'checkOutTime': checkOutTime.toIso8601String(),
         'leftEarly': isEarly,
         'earlyMinutes': earlyMinutes,
         'extraHours': extraHours,
+        'compensationStatus': compensationStatus,
       });
       log('Checked out employee at $checkOutTime');
     } catch (e) {

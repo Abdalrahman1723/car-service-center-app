@@ -69,16 +69,16 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Employees'),
+        title: const Text('الموظفين'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'Add Employee',
+            tooltip: 'اضافة موظف',
             onPressed: () => Navigator.pushNamed(context, Routes.addEmployee),
           ),
           IconButton(
             icon: const Icon(Icons.filter_list),
-            tooltip: 'Filter',
+            tooltip: 'فلاتر',
             onPressed: () => _showFilterDialog(context),
           ),
         ],
@@ -90,14 +90,13 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search by name',
+                hintText: 'ابحث بالاسم',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
                         onPressed: () {
                           _searchController.clear();
-                          // The listener will handle calling _applyFilters()
                         },
                       )
                     : null,
@@ -150,7 +149,7 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
                   if (filteredEmployees.isEmpty) {
                     return const Center(
                       child: Text(
-                        'No employees found. Try adding one or adjusting filters.',
+                        'لم يتم العثور على موظفين. حاول إضافة موظف أو تعديل عوامل التصفية.',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 16.0, color: Colors.grey),
                       ),
@@ -167,7 +166,7 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
                 }
                 return const Center(
                   child: Text(
-                    'No employees loaded. Tap refresh to try again.',
+                    'لم يتم تحميل الموظفين. اضغط على زر التحديث لإعادة المحاولة.',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16.0, color: Colors.grey),
                   ),
@@ -177,10 +176,11 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
+        label: Text("الحضور"),
+        icon: Icon(Icons.add),
         onPressed: () =>
             Navigator.of(context).pushNamed(Routes.manageAttendance),
-        child: const Icon(Icons.add),
       ),
     );
   }
@@ -200,12 +200,12 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
-          '${employee.role} • ${employee.isActive ? 'Active' : 'Inactive'}',
+          '${employee.role} • ${employee.isActive ? 'نشط' : 'غير نشط'}',
         ),
         trailing: userRole == 'manager'
             ? IconButton(
                 icon: const Icon(Icons.delete, color: Colors.red),
-                tooltip: 'Delete Employee',
+                tooltip: 'حذف موظف',
                 onPressed: () => _confirmDelete(context, employee),
               )
             : null,
@@ -225,7 +225,7 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Filter Employees'),
+        title: const Text('تصفية الموظفين'),
         content: StatefulBuilder(
           builder: (context, setDialogState) => SingleChildScrollView(
             child: Column(
@@ -233,17 +233,17 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
               children: [
                 DropdownButtonFormField<String>(
                   decoration: const InputDecoration(
-                    labelText: 'Role',
+                    labelText: 'الدور',
                     border: OutlineInputBorder(),
                   ),
                   value: tempRole,
                   items: [
-                    const DropdownMenuItem(value: null, child: Text('All')),
+                    const DropdownMenuItem(value: null, child: Text('الكل')),
                     ...[
-                      'Manager',
-                      'Supervisor',
-                      'Inventory Worker',
-                      'Other',
+                      'مدير',
+                      'مشرف',
+                      'عامل مخزن',
+                      'أخرى',
                     ].map((r) => DropdownMenuItem(value: r, child: Text(r))),
                   ],
                   onChanged: (value) => setDialogState(() => tempRole = value),
@@ -251,14 +251,14 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<bool>(
                   decoration: const InputDecoration(
-                    labelText: 'Status',
+                    labelText: 'الحالة',
                     border: OutlineInputBorder(),
                   ),
                   value: tempStatus,
                   items: const [
-                    DropdownMenuItem(value: null, child: Text('All')),
-                    DropdownMenuItem(value: true, child: Text('Active')),
-                    DropdownMenuItem(value: false, child: Text('Inactive')),
+                    DropdownMenuItem(value: null, child: Text('الكل')),
+                    DropdownMenuItem(value: true, child: Text('نشط')),
+                    DropdownMenuItem(value: false, child: Text('غير نشط')),
                   ],
                   onChanged: (value) =>
                       setDialogState(() => tempStatus = value),
@@ -277,7 +277,7 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
               _applyFilters();
               Navigator.pop(dialogContext);
             },
-            child: const Text('Clear'),
+            child: const Text('إلفاء'),
           ),
           TextButton(
             onPressed: () {
@@ -288,7 +288,7 @@ class EmployeeListScreenState extends State<EmployeeListScreen> {
               _applyFilters();
               Navigator.pop(dialogContext);
             },
-            child: const Text('Apply'),
+            child: const Text('تطبيق'),
           ),
         ],
       ),

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 import 'package:m_world/modules/manager/features/attendance_management/domain/entities/attendance.dart';
 import 'package:m_world/modules/manager/features/attendance_management/presentation/cubit/attendance_cubit.dart';
 import 'package:m_world/modules/manager/features/employee_management/domain/entities/employee.dart';
@@ -42,8 +43,6 @@ class WeeklyAttendanceTableScreenState
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Weekly Attendance'),
@@ -138,11 +137,13 @@ class WeeklyAttendanceTableScreenState
                               children: [
                                 CircleAvatar(
                                   radius: 8,
-                                  backgroundColor: latestStatus == 'On Time'
+                                  backgroundColor:
+                                      latestStatus == AppStrings.onTime
                                       ? Colors.green
-                                      : latestStatus == 'Late – Compensated'
+                                      : latestStatus == AppStrings.compensated
                                       ? Colors.yellow
-                                      : latestStatus == 'Late – Not Compensated'
+                                      : latestStatus ==
+                                            AppStrings.notCompensated
                                       ? Colors.red
                                       : Colors.grey,
                                 ),

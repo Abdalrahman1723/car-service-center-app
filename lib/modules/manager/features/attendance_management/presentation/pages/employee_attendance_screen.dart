@@ -43,7 +43,7 @@ class EmployeeAttendanceScreenState extends State<EmployeeAttendanceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.employee.fullName}\'s Attendance'),
+        title: Text('حضور: ${widget.employee.fullName}'),
         actions: [
           if (userRole == 'manager')
             IconButton(
@@ -109,7 +109,7 @@ class EmployeeAttendanceScreenState extends State<EmployeeAttendanceScreen> {
                   if (state.groupedAttendance.isEmpty) {
                     return const Center(
                       child: Text(
-                        'No attendance records found.',
+                        'لا توجد سجلات حضور.',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 16.0, color: Colors.grey),
                       ),
@@ -141,7 +141,7 @@ class EmployeeAttendanceScreenState extends State<EmployeeAttendanceScreen> {
                 }
                 return const Center(
                   child: Text(
-                    'No attendance records loaded.',
+                    'لا توجد سجلات حضور.',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16.0, color: Colors.grey),
                   ),
@@ -266,9 +266,9 @@ class EmployeeAttendanceScreenState extends State<EmployeeAttendanceScreen> {
     final statusColor = record.compensationStatus == AppStrings.onTime
         ? Colors.green
         : record.compensationStatus == AppStrings.compensated
-        ? Colors.orange
+        ? Colors.blue.shade500
         : record.compensationStatus == AppStrings.notCompensated
-        ? Colors.amber
+        ? Colors.orange
         : Colors.red;
 
     return Card(
@@ -417,9 +417,11 @@ class EmployeeAttendanceScreenState extends State<EmployeeAttendanceScreen> {
                   value: tempStatus,
                   items: [
                     const DropdownMenuItem(value: null, child: Text('All')),
-                    ...'On Time,Late – Compensated,Late – Not Compensated'
-                        .split(',')
-                        .map((s) => DropdownMenuItem(value: s, child: Text(s))),
+                    ...[
+                      AppStrings.onTime,
+                      AppStrings.compensated,
+                      AppStrings.notCompensated,
+                    ].map((s) => DropdownMenuItem(value: s, child: Text(s))),
                   ],
                   onChanged: (value) =>
                       setDialogState(() => tempStatus = value),

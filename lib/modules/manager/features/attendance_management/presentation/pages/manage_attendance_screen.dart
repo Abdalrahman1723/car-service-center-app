@@ -5,6 +5,7 @@ import 'package:m_world/modules/manager/features/attendance_management/domain/en
 import 'package:m_world/modules/manager/features/attendance_management/presentation/cubit/attendance_cubit.dart';
 import 'package:m_world/modules/manager/features/employee_management/domain/entities/employee.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class SupervisorAttendanceScreen extends StatefulWidget {
   const SupervisorAttendanceScreen({super.key});
@@ -129,10 +130,10 @@ class SupervisorAttendanceScreenState
     final cardColor = todayRecord?.absenceReason != null
         ? Colors.grey.shade300
         : isDayComplete
-            ? Colors.green.shade100
-            : todayRecord != null
-                ? Colors.orange.shade100
-                : Colors.blueAccent.shade100;
+        ? Colors.green.shade100
+        : todayRecord != null
+        ? Colors.orange.shade100
+        : Colors.blueAccent.shade100;
 
     return Card(
       color: cardColor,
@@ -227,10 +228,18 @@ class SupervisorAttendanceScreenState
         IconButton(
           icon: Icon(
             Icons.logout,
-            color: !isDayComplete && !canCheckIn && (todayRecord?.absenceReason == null) ? Colors.red : Colors.grey,
+            color:
+                !isDayComplete &&
+                    !canCheckIn &&
+                    (todayRecord?.absenceReason == null)
+                ? Colors.red
+                : Colors.grey,
           ),
           tooltip: 'Check Out',
-          onPressed: (!isDayComplete && !canCheckIn && (todayRecord?.absenceReason == null))
+          onPressed:
+              (!isDayComplete &&
+                  !canCheckIn &&
+                  (todayRecord?.absenceReason == null))
               ? () => _showCheckOutDialog(context, employee, todayRecord!)
               : null,
         ),
@@ -252,6 +261,7 @@ class SupervisorAttendanceScreenState
     BuildContext context,
     Employee employee,
   ) async {
+    DateTime? selectedDate = DateTime.now();
     TimeOfDay? selectedTime = TimeOfDay.now();
 
     await showDialog(
@@ -263,6 +273,13 @@ class SupervisorAttendanceScreenState
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                _buildDatePickerField(
+                  context,
+                  'Check-in Date',
+                  selectedDate!,
+                  (date) => setState(() => selectedDate = date),
+                ),
+                const SizedBox(height: 16),
                 _buildTimePickerField(
                   context,
                   'Check-in Time',
@@ -280,11 +297,14 @@ class SupervisorAttendanceScreenState
           ),
           ElevatedButton(
             onPressed: () {
-              final now = DateTime.now();
+              if (selectedDate == null || selectedTime == null) {
+                // Handle case where date/time is not selected
+                return;
+              }
               final checkInTime = DateTime(
-                now.year,
-                now.month,
-                now.day,
+                selectedDate!.year,
+                selectedDate!.month,
+                selectedDate!.day,
                 selectedTime!.hour,
                 selectedTime!.minute,
               );
@@ -303,6 +323,7 @@ class SupervisorAttendanceScreenState
     Employee employee,
     Attendance record,
   ) async {
+    DateTime? selectedDate = record.checkOutTime ?? DateTime.now();
     TimeOfDay? selectedTime = TimeOfDay.fromDateTime(
       record.checkOutTime ?? DateTime.now(),
     );
@@ -316,6 +337,13 @@ class SupervisorAttendanceScreenState
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                _buildDatePickerField(
+                  context,
+                  'Check-out Date',
+                  selectedDate!,
+                  (date) => setState(() => selectedDate = date),
+                ),
+                const SizedBox(height: 16),
                 _buildTimePickerField(
                   context,
                   'Check-out Time',
@@ -333,11 +361,14 @@ class SupervisorAttendanceScreenState
           ),
           ElevatedButton(
             onPressed: () {
-              final now = DateTime.now();
+              if (selectedDate == null || selectedTime == null) {
+                // Handle case where date/time is not selected
+                return;
+              }
               final checkOutTime = DateTime(
-                now.year,
-                now.month,
-                now.day,
+                selectedDate!.year,
+                selectedDate!.month,
+                selectedDate!.day,
                 selectedTime!.hour,
                 selectedTime!.minute,
               );
@@ -419,6 +450,38 @@ class SupervisorAttendanceScreenState
         ),
         child: Text(
           time.format(context),
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDatePickerField(
+    BuildContext context,
+    String label,
+    DateTime date,
+    ValueChanged<DateTime> onChanged,
+  ) {
+    return InkWell(
+      onTap: () async {
+        final newDate = await showDatePicker(
+          context: context,
+          initialDate: date,
+          firstDate: DateTime.now().subtract(const Duration(days: 2)),
+          lastDate: DateTime.now().add(const Duration(days: 2)),
+        );
+        if (newDate != null) {
+          onChanged(newDate);
+        }
+      },
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          suffixIcon: const Icon(Icons.calendar_today),
+        ),
+        child: Text(
+          DateFormat.yMMMd().format(date),
           style: Theme.of(context).textTheme.titleMedium,
         ),
       ),
