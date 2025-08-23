@@ -1,9 +1,11 @@
-# fix the draft and make a collection for it
+# fix the draft and make a collection for it //
 
-# the compensation for employees
+# the compensation for employees //
 
 # handle the charts 
  
-# handle search bars in the dashboard
+# handle search bars in the dashboard 
 
-# notifications
+# add masna3ya to the job order 
+
+# notifications 
