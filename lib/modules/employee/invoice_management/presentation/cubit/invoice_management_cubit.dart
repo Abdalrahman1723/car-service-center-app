@@ -101,7 +101,7 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
       await addTransaction.execute(
         VaultTransaction(
           type: "income",
-          category: "Invoice",
+          category: "job order",
           amount: amount,
           date: issueDate,
           runningBalance: 0,

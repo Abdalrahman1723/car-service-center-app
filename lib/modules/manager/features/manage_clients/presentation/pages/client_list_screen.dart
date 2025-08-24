@@ -6,6 +6,7 @@ import 'package:m_world/shared/models/client.dart';
 
 import '../cubit/client_management_cubit.dart';
 import '../widgets/update_dialog.dart';
+import '../widgets/debt_settlement_dialog.dart';
 
 // Screen to display all clients in a card-based layout with update and delete options
 class ClientListScreen extends StatefulWidget {
@@ -143,6 +144,13 @@ class _ClientListScreenState extends State<ClientListScreen> {
                               client: client,
                               onUpdate: () =>
                                   ClientUpdateDialog.show(context, client),
+                              onSettleDebt: () => DebtSettlementDialog.show(
+                                context,
+                                client,
+                                () => context
+                                    .read<ClientManagementCubit>()
+                                    .loadClients(),
+                              ),
                               onDelete: () {
                                 // Use context from ListView.builder for dialog
                                 showDialog(

@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/core/constants/app_strings.dart';
+import 'package:m_world/core/utils/notification_service.dart';
 
 import 'package:m_world/shared/models/client.dart';
 import 'package:m_world/shared/models/invoice.dart';
@@ -12,6 +15,7 @@ part 'dashboard_state.dart';
 
 class DashboardCubit extends Cubit<DashboardState> {
   final DashboardRepository repository;
+  final NotificationService _notificationService = NotificationService();
 
   DashboardCubit(this.repository) : super(DashboardInitial());
 
@@ -112,7 +116,7 @@ class DashboardCubit extends Cubit<DashboardState> {
         ),
       );
     } catch (e) {
-      print('Dashboard data loading error: $e');
+      log('Dashboard data loading error: $e');
       emit(DashboardError(e.toString()));
     }
   }
@@ -140,7 +144,7 @@ class DashboardCubit extends Cubit<DashboardState> {
         ),
       );
     } catch (e) {
-      print('Charts data loading error: $e');
+      log('Charts data loading error: $e');
       emit(DashboardError(e.toString()));
     }
   }
@@ -169,7 +173,7 @@ class DashboardCubit extends Cubit<DashboardState> {
 
       return salesData;
     } catch (e) {
-      print('Error processing sales data: $e');
+      log('Error processing sales data: $e');
       return {};
     }
   }
@@ -204,7 +208,7 @@ class DashboardCubit extends Cubit<DashboardState> {
 
       return costData;
     } catch (e) {
-      print('Error processing cost data: $e');
+      log('Error processing cost data: $e');
       return {};
     }
   }
@@ -281,8 +285,76 @@ class DashboardCubit extends Cubit<DashboardState> {
 
       return events.take(15).toList(); // Return last 15 events
     } catch (e) {
-      print('Error generating timeline events: $e');
+      log('Error generating timeline events: $e');
       return [];
+    }
+  }
+
+  // Method to notify about new invoice
+  Future<void> notifyNewInvoice(Invoice invoice, String? clientName) async {
+    try {
+      await _notificationService.notifyNewInvoice(
+        invoiceId: invoice.id,
+        amount: invoice.amount,
+        clientName: clientName,
+      );
+    } catch (e) {
+      log('Error sending invoice notification: $e');
+    }
+  }
+
+  // Method to notify about new vault transaction
+  Future<void> notifyVaultTransaction(VaultTransaction transaction) async {
+    try {
+      await _notificationService.notifyVaultTransaction(
+        transactionId: transaction.id!,
+        type: transaction.type,
+        amount: transaction.amount,
+        category: transaction.category,
+      );
+    } catch (e) {
+      log('Error sending vault transaction notification: $e');
+    }
+  }
+
+  // Method to notify about new client
+  Future<void> notifyNewClient(Client client) async {
+    try {
+      await _notificationService.notifyNewClient(
+        clientId: client.id,
+        clientName: client.name,
+      );
+    } catch (e) {
+      log('Error sending client notification: $e');
+    }
+  }
+
+  // Method to notify about new shipment
+  Future<void> notifyNewShipment(String shipmentId, String supplierName) async {
+    try {
+      await _notificationService.notifyNewShipment(
+        shipmentId: shipmentId,
+        supplierName: supplierName,
+      );
+    } catch (e) {
+      log('Error sending shipment notification: $e');
+    }
+  }
+
+  // Method to notify about inventory update
+  Future<void> notifyInventoryUpdate(
+    String itemId,
+    String itemName,
+    int quantity,
+  ) async {
+    try {
+      await _notificationService.notifyInventoryUpdate(
+        itemId: itemId,
+        itemName: itemName,
+        quantity: quantity,
+      );
+    } catch (e) {
+      log('Error sending inventory notification: $e');
     }
   }
 }

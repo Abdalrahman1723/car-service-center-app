@@ -2,10 +2,10 @@
 
 # the compensation for employees //
 
-# handle the charts 
+# handle the charts //
  
-# handle search bars in the dashboard 
+# handle search bars in the dashboard //
 
 # add masna3ya to the job order 
 
-# notifications 
+# notifications //

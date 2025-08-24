@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../config/routes.dart';
+import '../../../../../core/constants/app_strings.dart';
 import '../cubit/suppliers_cubit.dart';
 import '../widgets/supplier_card.dart';
+import '../widgets/supplier_debt_settlement_dialog.dart';
 
 // Screen to display all suppliers
 class SuppliersScreen extends StatefulWidget {
@@ -73,11 +75,11 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Suppliers'),
+        title: const Text('جميع الموردين'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Reload Suppliers',
+            tooltip: 'إعادة تحميل الموردين',
             onPressed: () {
               context.read<SuppliersCubit>().loadSuppliers();
             },
@@ -86,15 +88,48 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       ),
       body: Column(
         children: [
-          Padding(
+          Container(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                labelText: 'Search by Name or Phone Number',
-                border: OutlineInputBorder(),
+                hintText: 'البحث في الموردين بالاسم أو الهاتف...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                    width: 2,
+                  ),
+                ),
+                filled: true,
+                fillColor: Theme.of(context).cardColor,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
-              keyboardType: TextInputType.text,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
           // Debt Filter and Summary
@@ -169,7 +204,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                     _filteredSuppliers = state.suppliers;
                   }
                   if (_filteredSuppliers.isEmpty) {
-                    return const Center(child: Text('No suppliers found'));
+                    return _buildEmptySearchState(context);
                   }
                   return ListView.builder(
                     padding: const EdgeInsets.all(16.0),
@@ -185,19 +220,26 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                             arguments: {'supplier': supplier, 'isEdit': true},
                           );
                         },
+                        onSettleDebt: () {
+                          SupplierDebtSettlementDialog.show(
+                            context,
+                            supplier,
+                            () =>
+                                context.read<SuppliersCubit>().loadSuppliers(),
+                          );
+                        },
                         onDelete: () => showDialog(
                           context: context,
                           builder: (dialogContext) => AlertDialog(
-                            title: const Text('Delete Supplier'),
+                            title: const Text('حذف المورد'),
                             content: Text(
-                              'Are you sure you want to delete ${supplier.name}?',
+                              'هل أنت متأكد من حذف ${supplier.name}؟',
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(dialogContext),
-                                child: const Text('Cancel'),
+                                child: const Text(AppStrings.cancel),
                               ),
-                              //delete button
                               TextButton(
                                 onPressed: () {
                                   Navigator.pop(dialogContext);
@@ -206,7 +248,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                                   );
                                 },
                                 child: const Text(
-                                  'Delete',
+                                  AppStrings.delete,
                                   style: TextStyle(color: Colors.red),
                                 ),
                               ),
@@ -217,7 +259,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                     },
                   );
                 }
-                return const Center(child: Text('Tap to load suppliers'));
+                return const Center(child: Text('اضغط لتحميل الموردين'));
               },
             ),
           ),
@@ -256,7 +298,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                           _filterSuppliers();
                         },
                       ),
-                      const Text('Show suppliers we owe money to'),
+                      const Text('موردين ندين لهم'),
                     ],
                   ),
                 ),
@@ -270,7 +312,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                       _filterSuppliers();
                     },
                     icon: const Icon(Icons.clear),
-                    label: const Text('Clear Filters'),
+                    label: const Text('مسح الفلاتر'),
                   ),
               ],
             ),
@@ -281,13 +323,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Total Amount Owed:',
+                    'إجمالي الدين:',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    '\$${totalDebt.toStringAsFixed(2)}',
+                    '${totalDebt.toStringAsFixed(2)} ${AppStrings.currency}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Colors.red,
@@ -300,11 +342,11 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Number of suppliers:',
+                    'عدد الموردين:',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Text(
-                    '$debtorsCount suppliers',
+                    '$debtorsCount مورد',
                     style: Theme.of(
                       context,
                     ).textTheme.bodyMedium?.copyWith(color: Colors.red),
@@ -314,6 +356,36 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptySearchState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 64,
+            color: Theme.of(context).disabledColor,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'لا توجد موردين',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Theme.of(context).disabledColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'جرب تعديل مصطلحات البحث',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).disabledColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }

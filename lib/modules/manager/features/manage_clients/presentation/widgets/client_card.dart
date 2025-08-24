@@ -8,12 +8,14 @@ class ClientCard extends StatelessWidget {
   final Client client;
   final VoidCallback onUpdate;
   final VoidCallback onDelete;
+  final VoidCallback? onSettleDebt;
 
   const ClientCard({
     super.key,
     required this.client,
     required this.onUpdate,
     required this.onDelete,
+    this.onSettleDebt,
   });
 
   @override
@@ -53,18 +55,63 @@ class ClientCard extends StatelessWidget {
             ],
 
             const SizedBox(height: 8),
-            SelectableText(
-              'الرصيد: ${client.balance.toStringAsFixed(2)} ${AppStrings.currency}',
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: client.balance > 0
+                    ? Colors.orange.shade100
+                    : Colors.green.shade100,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: client.balance > 0
+                      ? Colors.orange.shade300
+                      : Colors.green.shade300,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    client.balance > 0
+                        ? Icons.account_balance_wallet
+                        : Icons.check_circle,
+                    size: 16,
+                    color: client.balance > 0
+                        ? Colors.orange.shade700
+                        : Colors.green.shade700,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'الرصيد: ${client.balance.toStringAsFixed(2)} ${AppStrings.currency}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: client.balance > 0
+                          ? Colors.orange.shade700
+                          : Colors.green.shade700,
+                    ),
+                  ),
+                ],
+              ),
             ),
             if (client.notes != null) ...[
               const SizedBox(height: 4),
               Text('ملاحظات: ${client.notes}'),
             ],
             const SizedBox(height: 16),
-            // Action buttons for update and delete
+            // Action buttons for update, delete, and debt settlement
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                // Debt settlement button (only show if client has debt)
+                if (client.balance > 0 && onSettleDebt != null)
+                  TextButton.icon(
+                    onPressed: onSettleDebt,
+                    icon: const Icon(Icons.payment, size: 16),
+                    label: const Text('تسوية الدين'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.orange.shade700,
+                    ),
+                  ),
                 // Update button triggers callback
                 TextButton(
                   onPressed: onUpdate,

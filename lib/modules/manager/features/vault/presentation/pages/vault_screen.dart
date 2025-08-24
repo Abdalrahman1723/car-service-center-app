@@ -391,18 +391,21 @@ class _VaultTransactionsScreenState extends State<VaultTransactionsScreen> {
                 ),
                 DropdownButtonFormField<String>(
                   value: selectedCategory,
-                  items: const [
-                    DropdownMenuItem(value: 'Shipment', child: Text('شحنة')),
-                    DropdownMenuItem(
-                      value: 'Invoice',
-                      child: Text('Job order'),
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: 'دفع مورد',
+                      child: Text('دفع مورد'),
                     ),
-                    DropdownMenuItem(value: 'Salary', child: Text('راتب')),
-                    DropdownMenuItem(
-                      value: 'Office Expense',
-                      child: Text('مصروفات مكتبية'),
+                    DropdownMenuItem<String>(
+                      value: 'دفع عميل',
+                      child: Text('دفع عميل'),
                     ),
-                    DropdownMenuItem(value: 'Other', child: Text('أخرى')),
+                    ...AppTransactions.transactionCategories.map(
+                      (category) => DropdownMenuItem(
+                        value: category,
+                        child: Text(category),
+                      ),
+                    ),
                   ],
                   onChanged: (val) {
                     if (val != null) {
