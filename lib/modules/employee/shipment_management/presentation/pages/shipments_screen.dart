@@ -7,7 +7,7 @@ import '../../../supplier_management/data/datasources/supplier_datasource.dart';
 import '../../../supplier_management/domain/entities/supplier.dart';
 import '../widgets/shipment_card.dart';
 
-// Screen to display all shipments
+// شاشة عرض جميع الشحنات
 class ShipmentsScreen extends StatefulWidget {
   const ShipmentsScreen({super.key});
 
@@ -22,11 +22,11 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSuppliers(); // Load all suppliers
-    context.read<ShipmentsCubit>().loadShipments(); // Load shipments
+    _loadSuppliers(); // تحميل جميع الموردين
+    context.read<ShipmentsCubit>().loadShipments(); // تحميل الشحنات
   }
 
-  // Load all suppliers and cache them
+  // تحميل جميع الموردين وتخزينهم
   Future<void> _loadSuppliers() async {
     final supplierDataSource = SupplierDataSource(FirebaseFirestore.instance);
     try {
@@ -37,7 +37,7 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load suppliers: $e'),
+          content: Text('فشل في تحميل الموردين: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -54,11 +54,11 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Shipments'),
+        title: const Text('الشحنات'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Reload Shipments',
+            tooltip: 'إعادة تحميل الشحنات',
             onPressed: () {
               _loadSuppliers();
               context.read<ShipmentsCubit>().loadShipments();
@@ -78,7 +78,7 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                 });
               },
               decoration: InputDecoration(
-                hintText: 'Search by supplier name or phone number',
+                hintText: 'البحث باسم المورد أو رقم الهاتف',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -124,7 +124,7 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                               state.suppliers[shipment.supplierId] ??
                               SupplierEntity(
                                 id: shipment.supplierId,
-                                name: 'Unknown Supplier',
+                                name: 'مورد غير معروف',
                                 phoneNumber: '',
                                 balance: 0.0,
                                 notes: null,
@@ -140,7 +140,7 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                         }).toList()
                       : state.shipments;
                   if (shipments.isEmpty) {
-                    return const Center(child: Text('No shipments found'));
+                    return const Center(child: Text('لا توجد شحنات'));
                   }
                   return ListView.builder(
                     padding: const EdgeInsets.all(16.0),
@@ -151,7 +151,7 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                           state.suppliers[shipment.supplierId] ??
                           SupplierEntity(
                             id: shipment.supplierId,
-                            name: 'Unknown Supplier',
+                            name: 'مورد غير معروف',
                             phoneNumber: '',
                             balance: 0.0,
                             notes: null,
@@ -167,14 +167,14 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                         onDelete: () => showDialog(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: const Text('Delete Shipment'),
-                            content: Text(
-                              'Are you sure you want to delete this shipment?',
+                            title: const Text('حذف الشحنة'),
+                            content: const Text(
+                              'هل أنت متأكد من حذف هذه الشحنة؟',
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: const Text('Cancel'),
+                                child: const Text('إلغاء'),
                               ),
                               TextButton(
                                 onPressed: () {
@@ -184,7 +184,7 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                                   Navigator.pop(context);
                                 },
                                 child: const Text(
-                                  'Delete',
+                                  'حذف',
                                   style: TextStyle(color: Colors.red),
                                 ),
                               ),
@@ -195,7 +195,7 @@ class ShipmentsScreenState extends State<ShipmentsScreen> {
                     },
                   );
                 }
-                return const Center(child: Text('Tap to load shipments'));
+                return const Center(child: Text('اضغط لتحميل الشحنات'));
               },
             ),
           ),

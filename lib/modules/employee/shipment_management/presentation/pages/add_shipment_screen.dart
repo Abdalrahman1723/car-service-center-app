@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 import 'package:m_world/shared/models/item.dart';
 import '../../../../manager/features/inventory/data/datasources/inventory_remote_datasource.dart';
 import '../../../supplier_management/data/datasources/supplier_datasource.dart';
@@ -8,7 +9,7 @@ import '../../../supplier_management/domain/entities/supplier.dart';
 import '../../domain/entities/shipment.dart';
 import '../cubit/shipments_cubit.dart';
 
-// Screen to add or edit a shipment
+// شاشة إضافة أو تعديل الشحنة
 class AddShipmentScreen extends StatefulWidget {
   final ShipmentEntity? shipment;
   final bool isEdit;
@@ -23,7 +24,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _selectedSupplierId;
   final List<Item> _items = [];
-  String _paymentMethod = 'Cash';
+  String _paymentMethod = 'نقداً';
   final _paidAmountController = TextEditingController();
   final _notesController = TextEditingController();
   List<SupplierEntity> _suppliers = [];
@@ -32,19 +33,44 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
 
   @override
   void initState() {
-    // log('args status ${widget.shipment} --- ${widget.isEdit}');
     super.initState();
     _loadSuppliersAndInventory();
     if (widget.isEdit && widget.shipment != null) {
       _selectedSupplierId = widget.shipment!.supplierId;
       _items.addAll(widget.shipment!.items);
-      _paymentMethod = widget.shipment!.paymentMethod;
+      _paymentMethod = _translatePaymentMethod(widget.shipment!.paymentMethod);
       _paidAmountController.text = widget.shipment!.paidAmount.toString();
       _notesController.text = widget.shipment!.notes ?? '';
       _totalAmount = widget.shipment!.items.fold(
         0,
         (summ, item) => summ + item.cost * item.quantity,
       );
+    }
+  }
+
+  String _translatePaymentMethod(String englishMethod) {
+    switch (englishMethod) {
+      case 'Cash':
+        return 'نقداً';
+      case 'Bank Transfer':
+        return 'تحويل بنكي';
+      case 'Credit':
+        return 'آجل';
+      default:
+        return 'نقداً';
+    }
+  }
+
+  String _translatePaymentMethodToEnglish(String arabicMethod) {
+    switch (arabicMethod) {
+      case 'نقداً':
+        return 'Cash';
+      case 'تحويل بنكي':
+        return 'Bank Transfer';
+      case 'آجل':
+        return 'Credit';
+      default:
+        return 'Cash';
     }
   }
 
@@ -66,7 +92,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load data: $e'),
+          content: Text('فشل في تحميل البيانات: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -86,7 +112,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
-          title: const Text('Add Item'),
+          title: const Text('إضافة منتج'),
           content: SingleChildScrollView(
             child: Form(
               key: formKey,
@@ -96,11 +122,8 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                   DropdownButtonFormField<bool>(
                     value: isInventoryItem,
                     items: const [
-                      DropdownMenuItem(
-                        value: true,
-                        child: Text('From Inventory'),
-                      ),
-                      DropdownMenuItem(value: false, child: Text('New Item')),
+                      DropdownMenuItem(value: true, child: Text('من المخزون')),
+                      DropdownMenuItem(value: false, child: Text('منتج جديد')),
                     ],
                     onChanged: (value) => setDialogState(() {
                       isInventoryItem = value!;
@@ -110,7 +133,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                       codeController.clear();
                     }),
                     decoration: const InputDecoration(
-                      labelText: 'Item Source',
+                      labelText: 'مصدر المنتج',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -118,7 +141,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                   if (isInventoryItem)
                     DropdownButtonFormField<String>(
                       decoration: const InputDecoration(
-                        labelText: 'Select Item',
+                        labelText: 'اختر المنتج',
                         border: OutlineInputBorder(),
                       ),
                       items: _inventoryItems
@@ -126,7 +149,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                             (item) => DropdownMenuItem(
                               value: item.id,
                               child: Text(
-                                '${item.name} (\$${item.cost.toStringAsFixed(2)})',
+                                '${item.name} (${item.cost.toStringAsFixed(2)} ${AppStrings.currency})',
                               ),
                             ),
                           )
@@ -141,32 +164,33 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                         codeController.text = item.code ?? '';
                       }),
                       validator: (value) => value == null && isInventoryItem
-                          ? 'Select an item'
+                          ? 'يجب اختيار منتج'
                           : null,
                     )
                   else ...[
                     TextFormField(
                       controller: nameController,
                       decoration: const InputDecoration(
-                        labelText: 'Item Name *',
+                        labelText: 'اسم المنتج *',
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) =>
-                          value!.isEmpty ? 'Item name is required' : null,
+                          value!.isEmpty ? 'اسم المنتج مطلوب' : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: costController,
                       decoration: const InputDecoration(
-                        labelText: 'cost *',
+                        labelText: 'التكلفة *',
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
-                        if (value!.isEmpty) return 'cost is required';
-                        if (double.tryParse(value) == null ||
-                            double.parse(value) <= 0) {
-                          return 'Invalid cost';
+                        if (value == null || value.trim().isEmpty)
+                          return 'التكلفة مطلوبة';
+                        final cost = double.tryParse(value.trim());
+                        if (cost == null || cost <= 0) {
+                          return 'تكلفة غير صحيحة';
                         }
                         return null;
                       },
@@ -176,14 +200,14 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                   TextFormField(
                     controller: quantityController,
                     decoration: const InputDecoration(
-                      labelText: 'Quantity *',
+                      labelText: 'الكمية *',
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
                     validator: (value) {
-                      if (value!.isEmpty) return 'Quantity is required';
+                      if (value!.isEmpty) return 'الكمية مطلوبة';
                       final qty = int.tryParse(value);
-                      if (qty == null || qty <= 0) return 'Invalid quantity';
+                      if (qty == null || qty <= 0) return 'كمية غير صحيحة';
                       return null;
                     },
                   ),
@@ -191,7 +215,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                   TextFormField(
                     controller: codeController,
                     decoration: const InputDecoration(
-                      labelText: 'Code (optional)',
+                      labelText: 'الرمز (اختياري)',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -202,12 +226,22 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
+              child: const Text('إلغاء'),
             ),
             TextButton(
               onPressed: () {
                 if (formKey.currentState!.validate()) {
-                  final quantity = int.parse(quantityController.text);
+                  final quantityText = quantityController.text.trim();
+                  final quantity = int.tryParse(quantityText);
+                  if (quantity == null || quantity <= 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('الكمية يجب أن تكون رقم موجب'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
                   final code = codeController.text.isEmpty
                       ? null
                       : codeController.text;
@@ -225,7 +259,28 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                       code: code,
                     );
                   } else {
-                    final cost = double.parse(costController.text);
+                    final costText = costController.text.trim();
+                    if (costText.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('التكلفة مطلوبة'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    final cost = double.tryParse(costText);
+                    if (cost == null || cost <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('التكلفة يجب أن تكون رقم موجب'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
                     newItem = Item(
                       id: DateTime.now().toString(),
                       name: nameController.text,
@@ -245,7 +300,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                   Navigator.pop(dialogContext);
                 }
               },
-              child: const Text('Add'),
+              child: const Text('إضافة'),
             ),
           ],
         ),
@@ -257,7 +312,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEdit ? 'Update Shipment' : 'Add Shipment'),
+        title: Text(widget.isEdit ? 'تحديث الشحنة' : 'إضافة شحنة جديدة'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -286,7 +341,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                   children: [
                     DropdownButtonFormField<String>(
                       decoration: const InputDecoration(
-                        labelText: 'Supplier *',
+                        labelText: 'المورد *',
                         border: OutlineInputBorder(),
                       ),
                       value: _selectedSupplierId,
@@ -301,7 +356,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                       onChanged: (value) =>
                           setState(() => _selectedSupplierId = value),
                       validator: (value) =>
-                          value == null ? 'Supplier is required' : null,
+                          value == null ? 'المورد مطلوب' : null,
                     ),
                     const SizedBox(height: 16),
                     Container(
@@ -318,7 +373,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Items *',
+                            'المنتجات *',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18.0,
@@ -354,20 +409,20 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
-                                      title: const Text('Confirm Delete'),
+                                      title: const Text('تأكيد الحذف'),
                                       content: Text(
-                                        'Are you sure you want to remove ${item.name}?',
+                                        'هل أنت متأكد من حذف ${item.name}؟',
                                       ),
                                       actions: [
                                         TextButton(
                                           onPressed: () =>
                                               Navigator.pop(context, false),
-                                          child: const Text('Cancel'),
+                                          child: const Text('إلغاء'),
                                         ),
                                         TextButton(
                                           onPressed: () =>
                                               Navigator.pop(context, true),
-                                          child: const Text('Delete'),
+                                          child: const Text('حذف'),
                                         ),
                                       ],
                                     );
@@ -385,9 +440,9 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                 });
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('${item.name} removed'),
+                                    content: Text('تم حذف ${item.name}'),
                                     action: SnackBarAction(
-                                      label: 'Undo',
+                                      label: 'تراجع',
                                       onPressed: () {
                                         setState(() {
                                           _items.insert(index, item);
@@ -446,7 +501,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                           ),
                                           const SizedBox(height: 4.0),
                                           Text(
-                                            'cost: \$${item.cost.toStringAsFixed(2)}',
+                                            'التكلفة: ${item.cost.toStringAsFixed(2)} ${AppStrings.currency}',
                                             style: TextStyle(
                                               color: Colors.grey[600],
                                               fontSize: 14.0,
@@ -486,7 +541,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  'Qty: ${item.quantity}',
+                                                  'الكمية: ${item.quantity}',
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.w600,
                                                     color: statusColor,
@@ -494,7 +549,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                                   ),
                                                 ),
                                                 Text(
-                                                  'In Stock: $totalQuantity',
+                                                  'في المخزون: $totalQuantity',
                                                   style: TextStyle(
                                                     fontSize: 12.0,
                                                     color: statusColor,
@@ -530,8 +585,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                                   0,
                                                   (summ, item) =>
                                                       summ +
-                                                      item.cost *
-                                                          item.quantity,
+                                                      item.cost * item.quantity,
                                                 );
                                               });
                                             }
@@ -573,7 +627,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                             child: TextButton(
                               onPressed: () => _showItemDialog(context),
                               child: const Text(
-                                'Add Item',
+                                'إضافة منتج',
                                 style: TextStyle(
                                   fontSize: 16.0,
                                   fontWeight: FontWeight.w600,
@@ -597,7 +651,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                         ),
                       ),
                       child: Text(
-                        'Total Amount: \$${_totalAmount.toStringAsFixed(2)}',
+                        'المبلغ الإجمالي: ${_totalAmount.toStringAsFixed(2)} ${AppStrings.currency}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18.0,
@@ -608,11 +662,11 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       decoration: const InputDecoration(
-                        labelText: 'Payment Method *',
+                        labelText: 'طريقة الدفع *',
                         border: OutlineInputBorder(),
                       ),
                       value: _paymentMethod,
-                      items: ['Cash', 'Bank Transfer', 'Credit']
+                      items: ['نقداً', 'تحويل بنكي', 'آجل']
                           .map(
                             (method) => DropdownMenuItem(
                               value: method,
@@ -623,25 +677,26 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                       onChanged: (value) =>
                           setState(() => _paymentMethod = value!),
                       validator: (value) =>
-                          value == null ? 'Payment method is required' : null,
+                          value == null ? 'طريقة الدفع مطلوبة' : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _paidAmountController,
                       decoration: const InputDecoration(
-                        labelText: 'Paid Amount *',
+                        labelText: 'المبلغ المدفوع *',
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
-                        if (value == null || value.isEmpty)
-                          return 'Paid amount is required';
-                        final paid = double.tryParse(value);
-                        if (paid == null) {
-                          return 'Invalid amount';
+                        if (value == null || value.trim().isEmpty) {
+                          return 'المبلغ المدفوع مطلوب';
+                        }
+                        final paid = double.tryParse(value.trim());
+                        if (paid == null || paid < 0) {
+                          return 'مبلغ غير صحيح';
                         }
                         if (paid > _totalAmount) {
-                          return 'Paid amount cannot exceed total amount (\$${_totalAmount.toStringAsFixed(2)})';
+                          return 'المبلغ المدفوع لا يمكن أن يتجاوز المبلغ الإجمالي (${_totalAmount.toStringAsFixed(2)} ${AppStrings.currency})';
                         }
                         return null;
                       },
@@ -650,7 +705,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                     TextFormField(
                       controller: _notesController,
                       decoration: const InputDecoration(
-                        labelText: 'Notes',
+                        labelText: 'ملاحظات',
                         border: OutlineInputBorder(),
                       ),
                       maxLines: 3,
@@ -668,7 +723,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
-                                        'At least one item must have quantity > 0',
+                                        'يجب أن يكون هناك منتج واحد على الأقل بكمية أكبر من صفر',
                                       ),
                                     ),
                                   );
@@ -678,11 +733,16 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                                   id: widget.shipment?.id ?? '',
                                   supplierId: _selectedSupplierId!,
                                   items: _items,
-                                  paymentMethod: _paymentMethod,
+                                  paymentMethod:
+                                      _translatePaymentMethodToEnglish(
+                                        _paymentMethod,
+                                      ),
                                   totalAmount: _totalAmount,
-                                  paidAmount: double.parse(
-                                    _paidAmountController.text,
-                                  ),
+                                  paidAmount:
+                                      double.tryParse(
+                                        _paidAmountController.text.trim(),
+                                      ) ??
+                                      0.0,
                                   date: widget.shipment?.date ?? DateTime.now(),
                                   notes: _notesController.text.isEmpty
                                       ? null
@@ -708,9 +768,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : Text(
-                              widget.isEdit
-                                  ? 'Update Shipment'
-                                  : 'Add Shipment',
+                              widget.isEdit ? 'تحديث الشحنة' : 'إضافة الشحنة',
                             ),
                     ),
                   ],

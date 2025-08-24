@@ -35,7 +35,6 @@ class DashboardDataLoaded extends DashboardState {
   final List<VaultTransaction> vaultTransactions;
   final List<TimelineEvent> timelineEvents;
   final Map<String, double> salesData;
-  final Map<String, double> costData;
 
   DashboardDataLoaded({
     required this.clients,
@@ -43,18 +42,15 @@ class DashboardDataLoaded extends DashboardState {
     required this.vaultTransactions,
     required this.timelineEvents,
     required this.salesData,
-    required this.costData,
   });
 }
 
 class DashboardChartsLoaded extends DashboardState {
   final Map<String, double> salesData;
-  final Map<String, double> costData;
   final List<TimelineEvent> timelineEvents;
 
   DashboardChartsLoaded({
     required this.salesData,
-    required this.costData,
     required this.timelineEvents,
   });
 }

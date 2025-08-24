@@ -26,39 +26,43 @@ class ShipmentModel {
 
   // Convert to domain entity
   ShipmentEntity toEntity() => ShipmentEntity(
-        id: id,
-        supplierId: supplierId,
-        items: items,
-        paymentMethod: paymentMethod,
-        totalAmount: totalAmount,
-        paidAmount: paidAmount,
-        date: date,
-        notes: notes,
-      );
+    id: id,
+    supplierId: supplierId,
+    items: items,
+    paymentMethod: paymentMethod,
+    totalAmount: totalAmount,
+    paidAmount: paidAmount,
+    date: date,
+    notes: notes,
+  );
 
   // Convert from domain entity
   factory ShipmentModel.fromEntity(ShipmentEntity entity) => ShipmentModel(
-        id: entity.id,
-        supplierId: entity.supplierId,
-        items: entity.items,
-        paymentMethod: entity.paymentMethod,
-        totalAmount: entity.totalAmount,
-        paidAmount: entity.paidAmount,
-        date: entity.date,
-        notes: entity.notes,
-      );
+    id: entity.id,
+    supplierId: entity.supplierId,
+    items: entity.items,
+    paymentMethod: entity.paymentMethod,
+    totalAmount: entity.totalAmount,
+    paidAmount: entity.paidAmount,
+    date: entity.date,
+    notes: entity.notes,
+  );
 
-  // Convert to Firestore map
+    // Convert to Firestore map
   Map<String, dynamic> toMap() => {
         'id': id,
         'supplierId': supplierId,
-        'items': items.map((item) => {
-              'itemId': item.id,
-              'name': item.name,
-              'quantity': item.quantity,
-              'price': item.price,
-              'code': item.code,
-            }).toList(),
+        'items': items
+            .map(
+              (item) => {
+                'itemId': item.id,
+                'name': item.name,
+                'quantity': item.quantity,
+                'cost': item.cost, // Changed from 'price' to 'cost'
+                'code': item.code,
+              },
+            )
+            .toList(),
         'paymentMethod': paymentMethod,
         'totalAmount': totalAmount,
         'paidAmount': paidAmount,
@@ -70,27 +74,35 @@ class ShipmentModel {
   factory ShipmentModel.fromMap(String id, Map<String, dynamic> map) =>
       ShipmentModel(
         id: id,
-        supplierId: map['supplierId'] as String,
-        items: (map['items'] as List<dynamic>)
-            .map((item) => Item(
-                  id: item['itemId'] as String,
-                  name: item['name'] as String,
-                  quantity: item['quantity'] as int,
-                  cost: (item['price'] is int)
-                      ? (item['price'] as int).toDouble()
-                      : item['price'] as double,
-                  timeAdded: DateTime.now(), // Not stored in shipment
-                  code: item['code'] as String?,
-                ))
+        supplierId: map['supplierId'] as String? ?? '',
+        items: (map['items'] as List<dynamic>? ?? [])
+            .map(
+              (item) => Item(
+                id: item['itemId'] as String? ?? '',
+                name: item['name'] as String? ?? '',
+                quantity: item['quantity'] as int? ?? 0,
+                cost: _parseDouble(item['cost']), // Changed from 'price' to 'cost'
+                timeAdded: DateTime.now(), // Not stored in shipment
+                code: item['code'] as String?,
+              ),
+            )
             .toList(),
-        paymentMethod: map['paymentMethod'] as String,
-        totalAmount: (map['totalAmount'] is int)
-            ? (map['totalAmount'] as int).toDouble()
-            : map['totalAmount'] as double,
-        paidAmount: (map['paidAmount'] is int)
-            ? (map['paidAmount'] as int).toDouble()
-            : map['paidAmount'] as double,
-        date: (map['date'] as Timestamp).toDate(),
+        paymentMethod: map['paymentMethod'] as String? ?? 'Cash',
+        totalAmount: _parseDouble(map['totalAmount']),
+        paidAmount: _parseDouble(map['paidAmount']),
+        date: (map['date'] as Timestamp?)?.toDate() ?? DateTime.now(),
         notes: map['notes'] as String?,
       );
+
+  // Helper method to safely parse double values
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is int) return value.toDouble();
+    if (value is double) return value;
+    if (value is String) {
+      final parsed = double.tryParse(value);
+      return parsed ?? 0.0;
+    }
+    return 0.0;
+  }
 }

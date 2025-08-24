@@ -42,7 +42,7 @@ class LoginScreenState extends State<LoginScreen> {
       );
 
       if (mounted) {
-        // if (_emailController.text.trim() == "mohamed@gmail.com") {
+        // if (_emailController.text.trim() == "admin@gmail.com") {
         //   Navigator.pushReplacementNamed(context, Routes.adminDashboard);
         // }
 
@@ -131,77 +131,82 @@ class LoginScreenState extends State<LoginScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'مرحبًا بك في ${AppStrings.appName}',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-
-            //----enter email
-            TextFormField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: AppStrings.email,
-                hintText: 'أدخل البريد الإلكتروني',
-              ),
-              textDirection: TextDirection.ltr, // Email input in LTR
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
-
-            //----enter password
-            TextFormField(
-              controller: _passwordController,
-              decoration: InputDecoration(
-                labelText: AppStrings.password,
-                hintText: 'أدخل كلمة المرور',
-                suffixIcon: _isPasswordVisible
-                    ? IconButton(
-                        icon: const Icon(Icons.remove_red_eye),
-                        onPressed: _togglePasswordVisibility,
-                      )
-                    : IconButton(
-                        icon: const Icon(Icons.visibility_off),
-                        onPressed: _togglePasswordVisibility,
-                      ),
-              ),
-              textDirection: TextDirection.ltr, // Password input in LTR
-              obscureText: _isPasswordVisible ? false : true,
-            ),
-            const SizedBox(height: 20),
-            if (_errorMessage != null)
-              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-            //forgot password
-            TextButton(
-              onPressed: sendResetEmail,
-              child: const Text("هل نسيت كلمة المرور؟"),
-            ),
-            const SizedBox(height: 20),
-            if (emailSent)
-              const Text(
-                "تحقق من بريدك الإلكتروني للحصول على رابط إعادة التعيين!",
-                style: TextStyle(color: Colors.green),
-              ),
-            if (_errorResetMessage != null)
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                _errorResetMessage!,
-                style: const TextStyle(color: Colors.red),
+                'مرحبًا بك في ${AppStrings.appName}',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            const SizedBox(height: 10),
-            //----login button
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _login,
-                      child: const Text('تسجيل الدخول'),
+              const SizedBox(height: 20),
+
+              //----enter email
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: AppStrings.email,
+                  hintText: 'أدخل البريد الإلكتروني',
+                ),
+                textDirection: TextDirection.ltr, // Email input in LTR
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 16),
+
+              //----enter password
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  labelText: AppStrings.password,
+                  hintText: 'أدخل كلمة المرور',
+                  suffixIcon: _isPasswordVisible
+                      ? IconButton(
+                          icon: const Icon(Icons.remove_red_eye),
+                          onPressed: _togglePasswordVisibility,
+                        )
+                      : IconButton(
+                          icon: const Icon(Icons.visibility_off),
+                          onPressed: _togglePasswordVisibility,
+                        ),
+                ),
+                textDirection: TextDirection.ltr, // Password input in LTR
+                obscureText: _isPasswordVisible ? false : true,
+              ),
+              const SizedBox(height: 20),
+              if (_errorMessage != null)
+                Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+              //forgot password
+              TextButton(
+                onPressed: sendResetEmail,
+                child: const Text("هل نسيت كلمة المرور؟"),
+              ),
+              const SizedBox(height: 20),
+              if (emailSent)
+                const Text(
+                  "تحقق من بريدك الإلكتروني للحصول على رابط إعادة التعيين!",
+                  style: TextStyle(color: Colors.green),
+                ),
+              if (_errorResetMessage != null)
+                Text(
+                  _errorResetMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              const SizedBox(height: 10),
+              //----login button
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _login,
+                        child: const Text('تسجيل الدخول'),
+                      ),
                     ),
-                  ),
-          ],
+            ],
+          ),
         ),
       ),
     );

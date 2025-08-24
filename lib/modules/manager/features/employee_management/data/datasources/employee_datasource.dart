@@ -109,6 +109,9 @@ class EmployeeDataSource {
       //delete from the users collection
       await _firestore.collection(_usersCollection).doc(employeeId).delete();
 
+
+
+
       log('Successfully deleted employee: $employeeId');
     } catch (e) {
       log('Delete employee error: $e');

@@ -23,6 +23,7 @@ class ClientRepositoryImpl implements ClientRepository {
         email: client.email,
         notes: client.notes,
         history: client.history,
+        createdAt: DateTime.now(), // Set creation timestamp
       ),
     );
   }

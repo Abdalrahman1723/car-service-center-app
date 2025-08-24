@@ -47,21 +47,6 @@ class DashboardScreen extends StatelessWidget {
             icon: const Icon(Icons.notifications),
             onPressed: () {
               // Navigate to notifications page
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const Placeholder()),
-              );
-            },
-          ),
-          //settings screen
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              // Navigate to settings page
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const Placeholder()),
-              );
             },
           ),
         ],

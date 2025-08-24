@@ -1,9 +1,7 @@
 import 'dart:developer';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/core/constants/app_strings.dart';
 import 'package:m_world/core/utils/notification_service.dart';
-
 import 'package:m_world/shared/models/client.dart';
 import 'package:m_world/shared/models/invoice.dart';
 import 'package:m_world/modules/manager/features/vault/domain/entities/vault_transaction.dart';
@@ -98,7 +96,6 @@ class DashboardCubit extends Cubit<DashboardState> {
       final vaultTransactions = await repository.getVaultTransactions();
 
       final salesData = _processSalesData(invoices);
-      final costData = _processCostData(vaultTransactions);
       final timelineEvents = await _generateTimelineEvents(
         invoices: invoices,
         vaultTransactions: vaultTransactions,
@@ -112,7 +109,6 @@ class DashboardCubit extends Cubit<DashboardState> {
           vaultTransactions: vaultTransactions,
           timelineEvents: timelineEvents,
           salesData: salesData,
-          costData: costData,
         ),
       );
     } catch (e) {
@@ -129,7 +125,6 @@ class DashboardCubit extends Cubit<DashboardState> {
       final vaultTransactions = await repository.getVaultTransactions();
 
       final salesData = _processSalesData(invoices);
-      final costData = _processCostData(vaultTransactions);
       final timelineEvents = await _generateTimelineEvents(
         invoices: invoices,
         vaultTransactions: vaultTransactions,
@@ -139,7 +134,6 @@ class DashboardCubit extends Cubit<DashboardState> {
       emit(
         DashboardChartsLoaded(
           salesData: salesData,
-          costData: costData,
           timelineEvents: timelineEvents,
         ),
       );
@@ -178,41 +172,6 @@ class DashboardCubit extends Cubit<DashboardState> {
     }
   }
 
-  // Process cost data for charts
-  Map<String, double> _processCostData(List<VaultTransaction> transactions) {
-    try {
-      final now = DateTime.now();
-      final Map<String, double> costData = {};
-
-      // Last 7 days
-      for (int i = 6; i >= 0; i--) {
-        final date = now.subtract(Duration(days: i));
-        final dateKey = '${date.day}/${date.month}';
-        double dailyExpenses = 0;
-        double dailyIncome = 0;
-
-        for (final transaction in transactions) {
-          if (transaction.date.year == date.year &&
-              transaction.date.month == date.month &&
-              transaction.date.day == date.day) {
-            if (transaction.type == 'expense') {
-              dailyExpenses += transaction.amount;
-            } else if (transaction.type == 'income') {
-              dailyIncome += transaction.amount;
-            }
-          }
-        }
-        costData['${dateKey}_expenses'] = dailyExpenses;
-        costData['${dateKey}_income'] = dailyIncome;
-      }
-
-      return costData;
-    } catch (e) {
-      log('Error processing cost data: $e');
-      return {};
-    }
-  }
-
   // Generate timeline events from various modules
   Future<List<TimelineEvent>> _generateTimelineEvents({
     required List<Invoice> invoices,
@@ -221,63 +180,72 @@ class DashboardCubit extends Cubit<DashboardState> {
   }) async {
     try {
       final List<TimelineEvent> events = [];
+      final now = DateTime.now();
+      final sevenDaysAgo = now.subtract(const Duration(days: 7));
 
-      // Add invoice events
-      for (final invoice in invoices.take(10)) {
-        // Last 10 invoices
-        events.add(
-          TimelineEvent(
-            id: 'invoice_${invoice.id}',
-            title: 'فاتورة جديدة',
-            description:
-                'تم إنشاء فاتورة بقيمة ${invoice.amount.toStringAsFixed(2)} ${AppStrings.currency}',
-            timestamp: invoice.issueDate,
-            type: EventType.invoice,
-            relatedId: invoice.id,
-            metadata: {'amount': invoice.amount, 'clientId': invoice.clientId},
-          ),
-        );
+      // Add invoice events (only recent ones)
+      for (final invoice in invoices) {
+        if (invoice.issueDate.isAfter(sevenDaysAgo)) {
+          events.add(
+            TimelineEvent(
+              id: 'invoice_${invoice.id}',
+              title: 'فاتورة جديدة',
+              description:
+                  'تم إنشاء فاتورة بقيمة ${invoice.amount.toStringAsFixed(2)} ${AppStrings.currency}',
+              timestamp: invoice.issueDate,
+              type: EventType.invoice,
+              relatedId: invoice.id,
+              metadata: {
+                'amount': invoice.amount,
+                'clientId': invoice.clientId,
+              },
+            ),
+          );
+        }
       }
 
-      // Add vault transaction events
-      for (final transaction in vaultTransactions.take(10)) {
-        // Last 10 transactions
-        final typeText = transaction.type == 'income' ? 'إيراد' : 'مصروف';
-        events.add(
-          TimelineEvent(
-            id: 'vault_${transaction.id}',
-            title: 'معاملة مالية',
-            description:
-                '$typeText: ${transaction.amount.toStringAsFixed(2)} ${AppStrings.currency} - ${transaction.category}',
-            timestamp: transaction.date,
-            type: EventType.vault,
-            relatedId: transaction.id,
-            metadata: {
-              'amount': transaction.amount,
-              'type': transaction.type,
-              'category': transaction.category,
-            },
-          ),
-        );
+      // Add vault transaction events (only recent ones)
+      for (final transaction in vaultTransactions) {
+        if (transaction.date.isAfter(sevenDaysAgo)) {
+          final typeText = transaction.type == 'income' ? 'إيراد' : 'مصروف';
+          events.add(
+            TimelineEvent(
+              id: 'vault_${transaction.id}',
+              title: 'معاملة مالية',
+              description:
+                  '$typeText: ${transaction.amount.toStringAsFixed(2)} ${AppStrings.currency} - ${transaction.category}',
+              timestamp: transaction.date,
+              type: EventType.vault,
+              relatedId: transaction.id,
+              metadata: {
+                'amount': transaction.amount,
+                'type': transaction.type,
+                'category': transaction.category,
+              },
+            ),
+          );
+        }
       }
 
-      // Add client events (new clients)
-      for (final client in clients.take(5)) {
-        // Last 5 clients
-        events.add(
-          TimelineEvent(
-            id: 'client_${client.id}',
-            title: 'عميل جديد',
-            description: 'تم إضافة عميل جديد: ${client.name}',
-            timestamp: DateTime.now(), // Client model doesn't have createdAt
-            type: EventType.client,
-            relatedId: client.id,
-            metadata: {
-              'clientName': client.name,
-              'phoneNumber': client.phoneNumber,
-            },
-          ),
-        );
+      // Add only truly recent client events (created in last 7 days)
+      for (final client in clients) {
+        if (client.createdAt != null &&
+            client.createdAt!.isAfter(sevenDaysAgo)) {
+          events.add(
+            TimelineEvent(
+              id: 'client_${client.id}',
+              title: 'عميل جديد',
+              description: 'تم إضافة عميل جديد: ${client.name}',
+              timestamp: client.createdAt!,
+              type: EventType.client,
+              relatedId: client.id,
+              metadata: {
+                'clientName': client.name,
+                'phoneNumber': client.phoneNumber,
+              },
+            ),
+          );
+        }
       }
 
       // Sort by timestamp (newest first)
@@ -355,6 +323,29 @@ class DashboardCubit extends Cubit<DashboardState> {
       );
     } catch (e) {
       log('Error sending inventory notification: $e');
+    }
+  }
+
+  // Test method to verify timeline events
+  Future<void> testTimelineEvents() async {
+    try {
+      log('Testing timeline events generation...');
+      final clients = await repository.getAllClients();
+      final invoices = await repository.getAllInvoices();
+      final vaultTransactions = await repository.getVaultTransactions();
+
+      final events = await _generateTimelineEvents(
+        invoices: invoices,
+        vaultTransactions: vaultTransactions,
+        clients: clients,
+      );
+
+      log('Generated ${events.length} timeline events:');
+      for (final event in events) {
+        log('- ${event.title}: ${event.description} (${event.timestamp})');
+      }
+    } catch (e) {
+      log('Error testing timeline events: $e');
     }
   }
 }

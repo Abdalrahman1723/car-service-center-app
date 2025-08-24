@@ -140,7 +140,7 @@ class NotificationService {
       // For local testing, we'll show a local notification
       _showLocalTimelineNotification(title, body, data);
     } catch (e) {
-      print('Error sending FCM notification: $e');
+      log('Error sending FCM notification: $e');
     }
   }
 
@@ -243,7 +243,7 @@ class NotificationService {
         };
       }).toList();
     } catch (e) {
-      print('Error getting notification history: $e');
+      log('Error getting notification history: $e');
       return [];
     }
   }
@@ -256,7 +256,7 @@ class NotificationService {
           .doc(notificationId)
           .update({'read': true});
     } catch (e) {
-      print('Error marking notification as read: $e');
+      log('Error marking notification as read: $e');
     }
   }
 

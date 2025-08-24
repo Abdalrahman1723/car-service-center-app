@@ -11,7 +11,7 @@ import '../../domain/usecases/update_shipment.dart';
 
 part 'shipments_state.dart';
 
-// Cubit for managing shipment operations
+// Cubit لإدارة عمليات الشحن
 class ShipmentsCubit extends Cubit<ShipmentsState> {
   final GetShipments getShipmentsUseCase;
   final AddShipment addShipmentUseCase;
@@ -50,13 +50,13 @@ class ShipmentsCubit extends Cubit<ShipmentsState> {
       await addTransaction.execute(
         VaultTransaction(
           type: "expense",
-          category: "Shipment",
+          category: "مشتريات",
           amount: shipment.paidAmount,
           date: shipment.date,
           runningBalance: 0,
         ),
       );
-      emit(ShipmentsSuccess('Shipment added successfully'));
+      emit(ShipmentsSuccess('تم إضافة الشحنة بنجاح'));
     } catch (e) {
       emit(ShipmentsError(e.toString()));
     }
@@ -71,7 +71,7 @@ class ShipmentsCubit extends Cubit<ShipmentsState> {
     try {
       await updateShipmentUseCase(oldShipment, newShipment);
       await loadShipments();
-      emit(ShipmentsSuccess('Shipment updated successfully'));
+      emit(ShipmentsSuccess('تم تحديث الشحنة بنجاح'));
     } catch (e) {
       emit(ShipmentsError(e.toString()));
     }
@@ -83,7 +83,7 @@ class ShipmentsCubit extends Cubit<ShipmentsState> {
     try {
       await deleteShipmentUseCase(shipment);
       await loadShipments();
-      emit(ShipmentsSuccess('Shipment deleted successfully'));
+      emit(ShipmentsSuccess('تم حذف الشحنة بنجاح'));
     } catch (e) {
       emit(ShipmentsError(e.toString()));
     }

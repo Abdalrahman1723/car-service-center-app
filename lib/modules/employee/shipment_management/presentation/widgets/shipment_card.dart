@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 
 import '../../../supplier_management/domain/entities/supplier.dart';
 import '../../domain/entities/shipment.dart';
 
-// Reusable widget for displaying shipment details
+// Widget قابل لإعادة الاستخدام لعرض تفاصيل الشحنة
 class ShipmentCard extends StatelessWidget {
   final ShipmentEntity shipment;
   final SupplierEntity? supplier;
@@ -19,6 +20,19 @@ class ShipmentCard extends StatelessWidget {
     required this.onDelete,
   });
 
+  String _translatePaymentMethod(String englishMethod) {
+    switch (englishMethod) {
+      case 'Cash':
+        return 'نقداً';
+      case 'Bank Transfer':
+        return 'تحويل بنكي';
+      case 'Credit':
+        return 'آجل';
+      default:
+        return englishMethod;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final remainingAmount = shipment.totalAmount - shipment.paidAmount;
@@ -28,18 +42,24 @@ class ShipmentCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
         title: Text(
-          supplier?.name ?? 'Unknown Supplier',
+          supplier?.name ?? 'مورد غير معروف',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Phone: ${supplier?.phoneNumber ?? 'N/A'}'),
-            Text('Payment: ${shipment.paymentMethod}'),
-            Text('Paid: \$${shipment.paidAmount.toStringAsFixed(2)}'),
-            Text('Remaining: \$${remainingAmount.toStringAsFixed(2)}'),
-            Text('Items: ${shipment.items.length}'),
-            Text('Date: ${DateFormat('yyyy-MM-dd').format(shipment.date)}'),
+            Text('الهاتف: ${supplier?.phoneNumber ?? 'غير متوفر'}'),
+            Text(
+              'طريقة الدفع: ${_translatePaymentMethod(shipment.paymentMethod)}',
+            ),
+            Text(
+              'المدفوع: ${shipment.paidAmount.toStringAsFixed(2)} ${AppStrings.currency}',
+            ),
+            Text(
+              'المتبقي: ${remainingAmount.toStringAsFixed(2)} ${AppStrings.currency}',
+            ),
+            Text('المنتجات: ${shipment.items.length}'),
+            Text('التاريخ: ${DateFormat('yyyy-MM-dd').format(shipment.date)}'),
           ],
         ),
         trailing: Row(

@@ -1,5 +1,8 @@
 class AppStrings {
   static const String appName = "مركز خدمة M World";
+  static const String serviceCenterPhoneNumber = "01000094049";
+  static const String serviceCenterAddress =
+      "العبور المنطقة الصناعية الدولى قطعه 13021 شارع 50 بجوار شركة امون للادوية";
   static const String compensated = "متأخر - معوض";
   static const String notCompensated = "متأخر - غير معوض";
   static const String onTime = "في الموعد";

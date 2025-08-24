@@ -16,10 +16,16 @@ class FirebaseClientDataSource implements ClientDataSource {
   @override
   Future<void> addClient(Client client) async {
     // Store client data in Firestore 'clients' collection
+    final clientData = client.toMap();
+    // Ensure createdAt is set if not already provided
+    if (clientData['createdAt'] == null) {
+      clientData['createdAt'] = FieldValue.serverTimestamp();
+    }
+
     await _firestore
         .collection('clients')
         .doc(client.phoneNumber)
-        .set(client.toMap());
+        .set(clientData);
   }
 
   @override
