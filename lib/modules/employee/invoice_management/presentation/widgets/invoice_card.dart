@@ -15,10 +15,26 @@ class InvoiceCard extends StatelessWidget {
     required this.clientName,
   });
 
+  // Helper method to get payment method display text in Arabic
+  String _getPaymentMethodText(String? paymentMethod) {
+    switch (paymentMethod) {
+      case 'Cash':
+        return 'نقداً';
+      case 'Credit Card':
+        return 'بطاقة ائتمان';
+      case 'Bank Transfer':
+        return 'تحويل بنكي';
+      case 'Instapay':
+        return 'انستاباي';
+      default:
+        return 'غير محدد';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: invoice.isPaid ? Colors.green[50] : Colors.red[50],
+      color: invoice.isPayLater ? Colors.red[50] : Colors.green[50],
       elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
@@ -65,9 +81,9 @@ class InvoiceCard extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
-                      color: invoice.isPaid
-                          ? Colors.green[700]
-                          : Colors.red[700],
+                      color: invoice.isPayLater
+                          ? Colors.red[700]
+                          : Colors.green[700],
                     ),
                   ),
                 ],
@@ -105,7 +121,27 @@ class InvoiceCard extends StatelessWidget {
               const SizedBox(height: 12),
               const Divider(height: 1),
 
-              // Date and Paid Status
+              // Payment Method (if available)
+              if (invoice.paymentMethod != null) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(Icons.payment, color: Colors.grey),
+                    const SizedBox(width: 8),
+                    Text(
+                      'طريقة الدفع: ${_getPaymentMethodText(invoice.paymentMethod)}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Divider(height: 1),
+              ],
+
+              // Date and Payment Status
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -129,13 +165,15 @@ class InvoiceCard extends StatelessWidget {
                   ),
                   Chip(
                     label: Text(
-                      invoice.isPaid ? 'Paid' : 'Unpaid',
+                      invoice.isPayLater ? 'آجل' : 'مدفوع',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    backgroundColor: invoice.isPaid ? Colors.green : Colors.red,
+                    backgroundColor: invoice.isPayLater
+                        ? Colors.red
+                        : Colors.green,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 4,

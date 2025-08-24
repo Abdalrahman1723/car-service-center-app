@@ -9,10 +9,11 @@ class Invoice {
   final double amount;
   final List<Item> items;
   final String? notes;
-  final bool isPaid;
+  final bool isPayLater;
   final String? paymentMethod;
   final double? discount;
   final String selectedCar; // Added
+  final double? downPayment; // Added for partial payments
 
   Invoice({
     required this.id,
@@ -24,9 +25,10 @@ class Invoice {
     required this.items,
     required this.selectedCar,
     this.notes,
-    required this.isPaid,
+    required this.isPayLater,
     this.paymentMethod,
     this.discount,
+    this.downPayment,
   });
 
   factory Invoice.fromFirestore(Map<String, dynamic> data, String id) {
@@ -45,10 +47,11 @@ class Invoice {
               .toList() ??
           [],
       notes: data['notes'],
-      isPaid: data['isPaid'] ?? false,
+      isPayLater: data['isPayLater'] ?? false,
       paymentMethod: data['paymentMethod'],
       discount: (data['discount'] as num?)?.toDouble(),
       selectedCar: data['selectedCar'],
+      downPayment: (data['downPayment'] as num?)?.toDouble(),
     );
   }
 
@@ -60,10 +63,11 @@ class Invoice {
       'amount': amount,
       'items': items.map((item) => item.toMap()).toList(),
       'notes': notes,
-      'isPaid': isPaid,
+      'isPayLater': isPayLater,
       'paymentMethod': paymentMethod,
       'discount': discount,
       'selectedCar': selectedCar,
+      'downPayment': downPayment,
     };
   }
 
@@ -91,11 +95,12 @@ class Invoice {
           )
         : [],
     notes: map['notes'],
-    isPaid: map['isPaid'] ?? false,
+    isPayLater: map['isPayLater'] ?? false,
     paymentMethod: map['paymentMethod'],
     discount: (map['discount'] is int)
         ? (map['discount'] as int).toDouble()
-        : map['discount'], 
-        selectedCar: map['selectedCar'] ?? '',
+        : map['discount'],
+    selectedCar: map['selectedCar'] ?? '',
+    downPayment: (map['downPayment'] as num?)?.toDouble(),
   );
 }

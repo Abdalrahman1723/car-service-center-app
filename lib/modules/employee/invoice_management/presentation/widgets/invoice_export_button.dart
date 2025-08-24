@@ -17,6 +17,22 @@ class InvoiceExportButton extends StatelessWidget {
     required this.clientName,
   });
 
+  // Helper method to get payment method display text in Arabic
+  String _getPaymentMethodText(String paymentMethod) {
+    switch (paymentMethod) {
+      case 'Cash':
+        return 'نقداً';
+      case 'Credit Card':
+        return 'بطاقة ائتمان';
+      case 'Bank Transfer':
+        return 'تحويل بنكي';
+      case 'Instapay':
+        return 'انستاباي';
+      default:
+        return 'غير محدد';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
@@ -214,7 +230,7 @@ class InvoiceExportButton extends StatelessWidget {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(
-            'أمر عمل',
+            'Job order',
             style: pw.TextStyle(
               font: boldFont,
               fontSize: 20,
@@ -289,12 +305,24 @@ class InvoiceExportButton extends StatelessWidget {
           _buildDetailRow('الصيانة بواسطة', invoice.maintenanceBy, font),
           _buildDetailRow(
             'حالة الدفع',
-            invoice.isPaid ? 'مدفوع' : 'غير مدفوع',
+            invoice.isPayLater ? 'آجل' : 'مدفوع',
             font,
-            color: invoice.isPaid ? PdfColors.green700 : PdfColors.red700,
+            color: invoice.isPayLater ? PdfColors.red700 : PdfColors.green700,
           ),
-          if (invoice.isPaid && invoice.paymentMethod != null)
-            _buildDetailRow('طريقة الدفع', invoice.paymentMethod!, font),
+          if (invoice.paymentMethod != null)
+            _buildDetailRow(
+              'طريقة الدفع',
+              _getPaymentMethodText(invoice.paymentMethod!),
+              font,
+            ),
+          if (invoice.isPayLater &&
+              invoice.downPayment != null &&
+              invoice.downPayment! > 0)
+            _buildDetailRow(
+              'الدفعة المقدمة',
+              '${invoice.downPayment!.toStringAsFixed(2)} ${AppStrings.currency}',
+              font,
+            ),
         ],
       ),
     );
@@ -363,6 +391,15 @@ class InvoiceExportButton extends StatelessWidget {
           _buildSummaryRow(
             'الإجمالي',
             total,
+            font,
+            isTotal: true,
+            boldFont: boldFont,
+          ),
+          // Add total overall amount row
+          pw.Divider(color: PdfColors.blue300, height: 20),
+          _buildSummaryRow(
+            'المبلغ الإجمالي للفاتورة',
+            invoice.amount,
             font,
             isTotal: true,
             boldFont: boldFont,

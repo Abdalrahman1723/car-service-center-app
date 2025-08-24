@@ -27,10 +27,11 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
         issueDate: invoice.issueDate,
         items: invoice.items,
         notes: invoice.notes,
-        isPaid: invoice.isPaid,
+        isPayLater: invoice.isPayLater,
         paymentMethod: invoice.paymentMethod,
         discount: invoice.discount,
         selectedCar: invoice.selectedCar,
+        downPayment: invoice.downPayment,
       ),
     );
 
@@ -76,10 +77,11 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
             issueDate: model.issueDate,
             items: model.items,
             notes: model.notes,
-            isPaid: model.isPaid,
+            isPayLater: model.isPayLater,
             paymentMethod: model.paymentMethod,
             discount: model.discount,
-            selectedCar: model.selectedCar
+            selectedCar: model.selectedCar,
+            downPayment: model.downPayment,
           ),
         )
         .toList();

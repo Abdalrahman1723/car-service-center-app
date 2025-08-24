@@ -30,9 +30,10 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   final _amountController = TextEditingController();
   final _maintenanceByController = TextEditingController();
   final _notesController = TextEditingController();
-  bool _isPaid = false;
+  bool _isPayLater = false;
   String? _paymentMethod;
   final _discountController = TextEditingController();
+  final _downPaymentController = TextEditingController();
   final List<Item> _items = [];
   InventoryEntity? _inventory;
   double totalAmount = 0;
@@ -63,14 +64,16 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
       _amountController.text = draft['amount']?.toString() ?? '0.0';
       _maintenanceByController.text = draft['maintenanceBy'] as String? ?? '';
       _notesController.text = draft['notes'] as String? ?? '';
-      _isPaid = draft['isPaid'] ?? false;
+      _isPayLater = draft['isPayLater'] ?? false;
       _paymentMethod = draft['paymentMethod'] as String?;
       _discountController.text = draft['discount']?.toString() ?? '';
+      _downPaymentController.text = draft['downPayment']?.toString() ?? '';
       _issueDate = draft['issueDate'] != null
           ? DateTime.parse(draft['issueDate'])
           : null;
       _selectedCar = draft['selectedCar'] as String? ?? '';
       totalAmount = draft['amount']?.toDouble() ?? 0.0;
+      _downPaymentController.text = draft['downPayment']?.toString() ?? '';
       _items.clear();
       if (draft['items'] != null) {
         _items.addAll(
@@ -107,7 +110,12 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
         _items.isNotEmpty &&
         _selectedClientId != null &&
         _selectedCar != null &&
-        (_isPaid ? _paymentMethod != null : true);
+        (_isPayLater ? _paymentMethod != null : true) &&
+        (!_isPayLater ||
+            (_downPaymentController.text.isNotEmpty &&
+                double.tryParse(_downPaymentController.text) != null &&
+                (double.tryParse(_downPaymentController.text) ?? 0.0) <=
+                    totalAmount));
 
     return Scaffold(
       appBar: AppBar(
@@ -131,9 +139,12 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                 'notes': _notesController.text.isEmpty
                     ? null
                     : _notesController.text,
-                'isPaid': _isPaid,
+                'isPayLater': _isPayLater,
                 'paymentMethod': _paymentMethod,
                 'discount': double.tryParse(_discountController.text),
+                'downPayment': _isPayLater
+                    ? double.tryParse(_downPaymentController.text)
+                    : null,
                 'issueDate': _issueDate?.toIso8601String(),
                 'createdAt': widget.draftData != null
                     ? widget.draftData!['createdAt']
@@ -271,8 +282,8 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                   // Is Paid checkbox
                   CheckboxListTile(
                     title: const Text('آجل؟'),
-                    value: _isPaid,
-                    onChanged: (value) => setState(() => _isPaid = value!),
+                    value: _isPayLater,
+                    onChanged: (value) => setState(() => _isPayLater = value!),
                   ),
                   // Payment method dropdown
                   DropdownButtonFormField<String>(
@@ -287,14 +298,44 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                         value: 'Bank Transfer',
                         child: Text('تحويل بنكي'),
                       ),
+                      DropdownMenuItem(
+                        value: 'Instapay',
+                        child: Text('انستاباي'),
+                      ),
                     ],
                     onChanged: (value) =>
                         setState(() => _paymentMethod = value),
-                    validator: (value) => _isPaid && value == null
+                    validator: (value) => _isPayLater && value == null
                         ? 'طريقة الدفع مطلوبة عند الدفع'
                         : null,
                   ),
                   const SizedBox(height: 16),
+                  // Down payment field (only show when payment is deferred)
+                  if (_isPayLater) ...[
+                    TextFormField(
+                      controller: _downPaymentController,
+                      decoration: const InputDecoration(
+                        labelText: 'الدفعة المقدمة',
+                        hintText: 'أدخل مبلغ الدفعة المقدمة',
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        final downPayment = double.tryParse(value) ?? 0.0;
+                        if (downPayment > totalAmount) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'الدفعة المقدمة لا يمكن أن تكون أكبر من المبلغ الإجمالي',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          _downPaymentController.text = totalAmount.toString();
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   // Discount field
                   TextFormField(
                     controller: _discountController,
@@ -349,6 +390,11 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                                   final discount = double.tryParse(
                                     _discountController.text,
                                   );
+                                  final downPayment = _isPayLater
+                                      ? double.tryParse(
+                                          _downPaymentController.text,
+                                        )
+                                      : null;
                                   context
                                       .read<InvoiceManagementCubit>()
                                       .addInvoice(
@@ -360,9 +406,10 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                                         notes: _notesController.text.isEmpty
                                             ? null
                                             : _notesController.text,
-                                        isPaid: _isPaid,
+                                        isPayLater: _isPayLater,
                                         paymentMethod: _paymentMethod,
                                         discount: discount,
+                                        downPayment: downPayment,
                                         issueDate: _issueDate ?? DateTime.now(),
                                         selectedCar:
                                             _getSelectedCarDisplayText(),
@@ -408,9 +455,12 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                           notes: _notesController.text.isEmpty
                               ? null
                               : _notesController.text,
-                          isPaid: _isPaid,
+                          isPayLater: _isPayLater,
                           paymentMethod: _paymentMethod,
                           discount: double.tryParse(_discountController.text),
+                          downPayment: _isPayLater
+                              ? double.tryParse(_downPaymentController.text)
+                              : null,
                           issueDate: _issueDate ?? DateTime.now(),
                           selectedCar: _getSelectedCarDisplayText(),
                         ),
@@ -1194,7 +1244,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
 
     final selectedCarData = selectedClient.cars.firstWhere(
       (c) => '${c['type'] ?? ''}_${c['licensePlate'] ?? ''}' == _selectedCar,
-      orElse: () => {'type': 'غير معروف', 'licensePlate': 'غير معروف'},
+      orElse: () => {'type': 'غير محدد', 'licensePlate': 'غير معروف'},
     );
 
     return '${selectedCarData['type'] ?? 'غير محدد'} (${selectedCarData['licensePlate'] ?? 'بدون لوحة'})';

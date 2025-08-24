@@ -40,9 +40,10 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
     required DateTime issueDate,
     required String selectedCar, // selected car
     String? notes,
-    bool isPaid = false,
+    bool isPayLater = false,
     String? paymentMethod,
     double? discount,
+    double? downPayment,
   }) async {
     emit(InvoiceManagementLoading());
     try {
@@ -55,13 +56,27 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
         createdAt: DateTime.now(),
         issueDate: issueDate,
         notes: notes,
-        isPaid: isPaid,
+        isPayLater: isPayLater,
         paymentMethod: paymentMethod,
         discount: discount,
         selectedCar: selectedCar,
+        downPayment: downPayment,
       );
       await addInvoiceUseCase(invoice);
       log("from cubit the invoice is : \n ${invoice.selectedCar}");
+
+      // Update client debt if payment is deferred
+      if (isPayLater) {
+        final remainingAmount = amount - (downPayment ?? 0.0);
+        if (remainingAmount > 0) {
+          // Update client balance in Firestore
+          await FirebaseFirestore.instance
+              .collection('clients')
+              .doc(clientId)
+              .update({'balance': FieldValue.increment(remainingAmount)});
+        }
+      }
+
       // For each unique item name in the invoice items, count how many times it appears,
       // then update the inventory by decreasing the quantity accordingly.
       final Map<String, int> itemCounts = {};
@@ -98,15 +113,21 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
         await inventoryRepository.updateItemInInventory(updatedItem);
         //add the amount to the vault
       }
-      await addTransaction.execute(
-        VaultTransaction(
-          type: "income",
-          category: "job order",
-          amount: amount,
-          date: issueDate,
-          runningBalance: 0,
-        ),
-      );
+
+      // Add to vault only the amount that was actually paid
+      final paidAmount = isPayLater ? (downPayment ?? 0.0) : amount;
+      if (paidAmount > 0) {
+        await addTransaction.execute(
+          VaultTransaction(
+            type: "income",
+            category: "job order",
+            amount: paidAmount,
+            date: issueDate,
+            runningBalance: 0,
+          ),
+        );
+      }
+
       emit(InvoiceManagementSuccess('Invoice added successfully'));
     } catch (e) {
       emit(InvoiceManagementError(e.toString()));
