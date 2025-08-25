@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:m_world/shared/models/client.dart';
@@ -86,7 +88,7 @@ class FirebaseDashboardRepository implements DashboardRepository {
             runningBalance: (data['runningBalance'] as num?)?.toDouble() ?? 0.0,
           );
         } catch (e) {
-          print('Error parsing vault transaction ${doc.id}: $e');
+          log('Error parsing vault transaction ${doc.id}: $e');
           // Return a default transaction if parsing fails
           return VaultTransaction(
             id: doc.id,
@@ -101,7 +103,7 @@ class FirebaseDashboardRepository implements DashboardRepository {
         }
       }).toList();
     } catch (e) {
-      print('Error fetching vault transactions: $e');
+      log('Error fetching vault transactions: $e');
       return [];
     }
   }

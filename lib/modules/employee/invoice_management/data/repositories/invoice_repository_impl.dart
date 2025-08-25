@@ -58,6 +58,7 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
           notes: client.notes,
           history: client.history,
           invoices: updatedInvoices,
+          createdAt: client.createdAt, // Preserve the original createdAt
         ),
       );
     }

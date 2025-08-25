@@ -191,17 +191,18 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
   }) async {
     emit(InvoiceManagementLoading());
     try {
-      final docRef = await FirebaseFirestore.instance
-          .collection('clients')
-          .add({
-            'name': name,
-            'cars': cars,
-            'balance': balance,
-            'phoneNumber': phoneNumber,
-            'email': email,
-            'notes': notes,
-            'createdBy': FirebaseAuth.instance.currentUser?.uid,
-          });
+      final docRef = await FirebaseFirestore.instance.collection('clients').add(
+        {
+          'name': name,
+          'cars': cars,
+          'balance': balance,
+          'phoneNumber': phoneNumber,
+          'email': email,
+          'notes': notes,
+          'createdBy': FirebaseAuth.instance.currentUser?.uid,
+          'createdAt': FieldValue.serverTimestamp(), // Add proper createdAt
+        },
+      );
       final List<Client> clients = (state is InvoiceManagementClientsLoaded)
           ? List<Client>.from((state as InvoiceManagementClientsLoaded).clients)
           : [];

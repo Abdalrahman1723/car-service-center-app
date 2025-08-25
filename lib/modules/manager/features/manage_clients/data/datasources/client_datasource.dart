@@ -30,11 +30,13 @@ class FirebaseClientDataSource implements ClientDataSource {
 
   @override
   Future<void> updateClient(Client client) async {
-    // Update client data in Firestore
-    await _firestore
-        .collection('clients')
-        .doc(client.id)
-        .update(client.toMap());
+    // Update client data in Firestore, but preserve createdAt
+    final updateData = client.toMap();
+
+    // Remove createdAt from update data to preserve the original creation date
+    updateData.remove('createdAt');
+
+    await _firestore.collection('clients').doc(client.id).update(updateData);
   }
 
   @override
