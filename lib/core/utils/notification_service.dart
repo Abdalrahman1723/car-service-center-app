@@ -24,14 +24,17 @@ class NotificationService {
 
   Future<void> init() async {
     await _fcm.requestPermission();
+
     const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      'ic_notification', // ✅ just the name, no @drawable/
     );
     const iosSettings = DarwinInitializationSettings();
+
     const initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
+
     await _localNotifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: _handleNotificationTap,
@@ -64,6 +67,7 @@ class NotificationService {
           .doc(FirebaseAuth.instance.currentUser!.uid)
           .set({'fcmToken': token}, SetOptions(merge: true));
     }
+
     _fcm.onTokenRefresh.listen((token) {
       FirebaseFirestore.instance
           .collection('users')

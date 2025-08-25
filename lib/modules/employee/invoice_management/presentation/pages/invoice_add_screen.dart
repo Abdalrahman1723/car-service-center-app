@@ -109,13 +109,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
     bool isFormValid =
         _items.isNotEmpty &&
         _selectedClientId != null &&
-        _selectedCar != null &&
-        (_isPayLater ? _paymentMethod != null : true) &&
-        (!_isPayLater ||
-            (_downPaymentController.text.isNotEmpty &&
-                double.tryParse(_downPaymentController.text) != null &&
-                (double.tryParse(_downPaymentController.text) ?? 0.0) <=
-                    totalAmount));
+        _selectedCar != null;
 
     return Scaffold(
       appBar: AppBar(
