@@ -6,6 +6,7 @@ import 'package:device_preview/device_preview.dart';
 import 'package:m_world/app.dart';
 import 'package:m_world/core/utils/notification_service.dart';
 import 'package:m_world/firebase_options.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,12 +15,12 @@ Future<void> main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize Notification Service
   // await NotificationService().init();
+
+  await initializeDateFormatting();
 
   // Run app
   runApp(
