@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:m_world/shared/models/invoice.dart';
@@ -59,9 +61,9 @@ class InvoiceExportButton extends StatelessWidget {
     try {
       final imageData = await rootBundle.load('assets/icon.png');
       logoImage = pw.MemoryImage(imageData.buffer.asUint8List());
-      print('Logo loaded successfully');
+      log('Logo loaded successfully');
     } catch (e) {
-      print('Error loading logo: $e');
+      log('Error loading logo: $e');
       // Continue without logo if loading fails
     }
 
@@ -101,6 +103,10 @@ class InvoiceExportButton extends StatelessWidget {
 
               // Items table
               _buildItemsTable(font, boldFont),
+              pw.SizedBox(height: 20),
+
+              // Detailed breakdown section
+              _buildDetailedBreakdown(font, boldFont),
               pw.SizedBox(height: 20),
 
               // Summary section
@@ -272,6 +278,7 @@ class InvoiceExportButton extends StatelessWidget {
           pw.Divider(color: PdfColors.grey400, height: 20),
           _buildDetailRow('الاسم', clientName, font),
           _buildDetailRow('رقم العميل', invoice.clientId, font),
+          _buildDetailRow('السيارة', invoice.selectedCar, font),
         ],
       ),
     );
@@ -334,36 +341,294 @@ class InvoiceExportButton extends StatelessWidget {
         border: pw.Border.all(color: PdfColors.grey300, width: 1),
         borderRadius: pw.BorderRadius.circular(8),
       ),
-      child: pw.Table.fromTextArray(
-        headers: ['الاسم', 'الكمية', 'السعر', 'الإجمالي'],
-        data: invoice.items.map((item) {
-          return [
-            item.name,
-            item.quantity.toString(),
-            '${item.price!.toStringAsFixed(2)} ${AppStrings.currency}',
-            '${(item.price! * item.quantity).toStringAsFixed(2)} ${AppStrings.currency}',
-          ];
-        }).toList(),
-        headerStyle: pw.TextStyle(
-          font: boldFont,
-          color: PdfColors.white,
-          fontSize: 12,
-        ),
-        headerDecoration: const pw.BoxDecoration(color: PdfColors.blue700),
-        cellStyle: pw.TextStyle(font: font, fontSize: 11),
-        cellAlignments: {
-          0: pw.Alignment.centerRight,
-          1: pw.Alignment.center,
-          2: pw.Alignment.center,
-          3: pw.Alignment.center,
-        },
-        columnWidths: {
-          0: const pw.FlexColumnWidth(3),
-          1: const pw.FlexColumnWidth(1),
-          2: const pw.FlexColumnWidth(1.5),
-          3: const pw.FlexColumnWidth(1.5),
-        },
-        border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          // Table Header
+          pw.Container(
+            padding: const pw.EdgeInsets.all(12),
+            decoration: const pw.BoxDecoration(
+              color: PdfColors.blue700,
+              borderRadius: pw.BorderRadius.only(
+                topLeft: pw.Radius.circular(8),
+                topRight: pw.Radius.circular(8),
+              ),
+            ),
+            child: pw.Row(
+              children: [
+                pw.Expanded(
+                  flex: 3,
+                  child: pw.Text(
+                    'تفاصيل العناصر',
+                    style: pw.TextStyle(
+                      font: boldFont,
+                      color: PdfColors.white,
+                      fontSize: 14,
+                    ),
+                    textAlign: pw.TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Items Table
+          pw.Table.fromTextArray(
+            headers: ['اسم العنصر', 'الكمية', 'سعر الوحدة', 'الإجمالي'],
+            data: [
+              ...invoice.items.map((item) {
+                return [
+                  item.name,
+                  item.quantity.toString(),
+                  '${item.price!.toStringAsFixed(2)} ${AppStrings.currency}',
+                  '${(item.price! * item.quantity).toStringAsFixed(2)} ${AppStrings.currency}',
+                ];
+              }).toList(),
+              // Add service fees as a separate row if they exist
+              if (invoice.serviceFees > 0) ...[
+                [
+                  'مصنعية',
+                  '1',
+                  '${invoice.serviceFees.toStringAsFixed(2)} ${AppStrings.currency}',
+                  '${invoice.serviceFees.toStringAsFixed(2)} ${AppStrings.currency}',
+                ],
+              ],
+            ],
+            headerStyle: pw.TextStyle(
+              font: boldFont,
+              color: PdfColors.white,
+              fontSize: 11,
+            ),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.blue600),
+            cellStyle: pw.TextStyle(font: font, fontSize: 10),
+            cellAlignments: {
+              0: pw.Alignment.centerRight,
+              1: pw.Alignment.center,
+              2: pw.Alignment.center,
+              3: pw.Alignment.center,
+            },
+            columnWidths: {
+              0: const pw.FlexColumnWidth(3),
+              1: const pw.FlexColumnWidth(1),
+              2: const pw.FlexColumnWidth(1.5),
+              3: const pw.FlexColumnWidth(1.5),
+            },
+            border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+          ),
+
+          // Items Summary
+          pw.Container(
+            padding: const pw.EdgeInsets.all(8),
+            decoration: const pw.BoxDecoration(
+              color: PdfColors.grey50,
+              borderRadius: pw.BorderRadius.only(
+                bottomLeft: pw.Radius.circular(8),
+                bottomRight: pw.Radius.circular(8),
+              ),
+            ),
+            child: pw.Column(
+              children: [
+                // Items subtotal
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      'مجموع العناصر:',
+                      style: pw.TextStyle(
+                        font: boldFont,
+                        fontSize: 11,
+                        color: PdfColors.grey700,
+                      ),
+                    ),
+                    pw.Text(
+                      '${invoice.items.fold<double>(0, (sum, item) => sum + (item.price! * item.quantity)).toStringAsFixed(2)} ${AppStrings.currency}',
+                      style: pw.TextStyle(
+                        font: boldFont,
+                        fontSize: 11,
+                        color: PdfColors.grey700,
+                      ),
+                    ),
+                  ],
+                ),
+                // Service fees if applicable
+                if (invoice.serviceFees > 0) ...[
+                  pw.SizedBox(height: 4),
+                  pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text(
+                        'مصنعية:',
+                        style: pw.TextStyle(
+                          font: boldFont,
+                          fontSize: 11,
+                          color: PdfColors.grey700,
+                        ),
+                      ),
+                      pw.Text(
+                        '${invoice.serviceFees.toStringAsFixed(2)} ${AppStrings.currency}',
+                        style: pw.TextStyle(
+                          font: boldFont,
+                          fontSize: 11,
+                          color: PdfColors.grey700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                // Total including service fees
+                pw.SizedBox(height: 4),
+                pw.Divider(color: PdfColors.grey400, height: 1),
+                pw.SizedBox(height: 4),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      'إجمالي العناصر والرسوم:',
+                      style: pw.TextStyle(
+                        font: boldFont,
+                        fontSize: 12,
+                        color: PdfColors.grey800,
+                      ),
+                    ),
+                    pw.Text(
+                      '${(invoice.items.fold<double>(0, (sum, item) => sum + (item.price! * item.quantity)) + invoice.serviceFees).toStringAsFixed(2)} ${AppStrings.currency}',
+                      style: pw.TextStyle(
+                        font: boldFont,
+                        fontSize: 12,
+                        color: PdfColors.grey800,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildDetailedBreakdown(pw.Font font, pw.Font boldFont) {
+    final subtotal = invoice.items.fold<double>(
+      0,
+      (sum, item) => sum + (item.price! * item.quantity),
+    );
+    final discount = invoice.discount ?? 0.0;
+    final serviceFees = invoice.serviceFees;
+    final total = subtotal - discount + serviceFees;
+
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(15),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.yellow50,
+        borderRadius: pw.BorderRadius.circular(8),
+        border: pw.Border.all(color: PdfColors.yellow300, width: 1),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          // Section Title
+          pw.Text(
+            'تفصيل الحساب',
+            style: pw.TextStyle(
+              font: boldFont,
+              fontSize: 16,
+              color: PdfColors.orange800,
+            ),
+          ),
+          pw.SizedBox(height: 15),
+
+          // Step by step breakdown
+          _buildBreakdownRow('1. مجموع العناصر', subtotal, font),
+
+          if (discount > 0) ...[
+            _buildBreakdownRow('2. الخصم', -discount, font, isNegative: true),
+            _buildBreakdownRow(
+              '3. المجموع بعد الخصم',
+              subtotal - discount,
+              font,
+            ),
+          ],
+
+          if (serviceFees > 0) ...[
+            _buildBreakdownRow(
+              discount > 0 ? '4. رسوم الخدمة' : '2. رسوم الخدمة',
+              serviceFees,
+              font,
+            ),
+          ],
+
+          pw.Divider(color: PdfColors.orange300, height: 20),
+
+          // Final calculation
+          _buildBreakdownRow(
+            'المبلغ الإجمالي النهائي',
+            total,
+            font,
+            isTotal: true,
+            boldFont: boldFont,
+          ),
+
+          // Show payment breakdown if applicable
+          if (invoice.isPayLater &&
+              invoice.downPayment != null &&
+              invoice.downPayment! > 0) ...[
+            pw.SizedBox(height: 15),
+            pw.Text(
+              'تفاصيل الدفع',
+              style: pw.TextStyle(
+                font: boldFont,
+                fontSize: 14,
+                color: PdfColors.orange700,
+              ),
+            ),
+            pw.SizedBox(height: 10),
+            _buildBreakdownRow('الدفعة المقدمة', invoice.downPayment!, font),
+            _buildBreakdownRow(
+              'المبلغ المتبقي للدفع',
+              total - invoice.downPayment!,
+              font,
+              isTotal: true,
+              boldFont: boldFont,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildBreakdownRow(
+    String label,
+    double amount,
+    pw.Font font, {
+    bool isTotal = false,
+    bool isNegative = false,
+    pw.Font? boldFont,
+  }) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 3),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            label,
+            style: pw.TextStyle(
+              font: isTotal ? boldFont : font,
+              fontSize: isTotal ? 13 : 11,
+              color: isTotal ? PdfColors.orange800 : PdfColors.black,
+            ),
+          ),
+          pw.Text(
+            '${isNegative ? '-' : ''}${amount.abs().toStringAsFixed(2)} ${AppStrings.currency}',
+            style: pw.TextStyle(
+              font: isTotal ? boldFont : font,
+              fontSize: isTotal ? 13 : 11,
+              color: isNegative
+                  ? PdfColors.red700
+                  : (isTotal ? PdfColors.orange800 : PdfColors.black),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -374,36 +639,151 @@ class InvoiceExportButton extends StatelessWidget {
       (sum, item) => sum + (item.price! * item.quantity),
     );
     final discount = invoice.discount ?? 0.0;
-    final total = subtotal - discount;
+    final serviceFees = invoice.serviceFees;
+    final total = subtotal - discount + serviceFees;
 
     return pw.Container(
       padding: const pw.EdgeInsets.all(15),
       decoration: pw.BoxDecoration(
-        color: PdfColors.blue50,
+        color: PdfColors.green50,
         borderRadius: pw.BorderRadius.circular(8),
-        border: pw.Border.all(color: PdfColors.blue200, width: 1),
+        border: pw.Border.all(color: PdfColors.green300, width: 2),
       ),
       child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          _buildSummaryRow('المجموع الفرعي', subtotal, font),
-          _buildSummaryRow('الخصم', discount, font),
-          pw.Divider(color: PdfColors.blue300, height: 20),
-          _buildSummaryRow(
-            'الإجمالي',
-            total,
-            font,
-            isTotal: true,
-            boldFont: boldFont,
+          // Section Title
+          pw.Text(
+            'الملخص النهائي',
+            style: pw.TextStyle(
+              font: boldFont,
+              fontSize: 18,
+              color: PdfColors.green800,
+            ),
           ),
-          // Add total overall amount row
-          pw.Divider(color: PdfColors.blue300, height: 20),
-          _buildSummaryRow(
-            'المبلغ الإجمالي للفاتورة',
-            invoice.amount,
-            font,
-            isTotal: true,
-            boldFont: boldFont,
+          pw.SizedBox(height: 15),
+
+          // Payment breakdown
+          pw.Container(
+            padding: const pw.EdgeInsets.all(12),
+            decoration: pw.BoxDecoration(
+              color: PdfColors.green100,
+              borderRadius: pw.BorderRadius.circular(6),
+              border: pw.Border.all(color: PdfColors.green400, width: 1),
+            ),
+            child: pw.Column(
+              children: [
+                // Total amount
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      'المبلغ الإجمالي المطلوب:',
+                      style: pw.TextStyle(
+                        font: boldFont,
+                        fontSize: 16,
+                        color: PdfColors.green800,
+                      ),
+                    ),
+                    pw.Text(
+                      '${total.toStringAsFixed(2)} ${AppStrings.currency}',
+                      style: pw.TextStyle(
+                        font: boldFont,
+                        fontSize: 18,
+                        color: PdfColors.green800,
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Payment status and amount
+                pw.SizedBox(height: 8),
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: pw.BoxDecoration(
+                    color: invoice.isPayLater
+                        ? PdfColors.red50
+                        : PdfColors.green50,
+                    borderRadius: pw.BorderRadius.circular(4),
+                    border: pw.Border.all(
+                      color: invoice.isPayLater
+                          ? PdfColors.red300
+                          : PdfColors.green300,
+                      width: 1,
+                    ),
+                  ),
+                  child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text(
+                        invoice.isPayLater
+                            ? 'حالة الدفع: آجل'
+                            : 'حالة الدفع: مدفوع بالكامل',
+                        style: pw.TextStyle(
+                          font: boldFont,
+                          fontSize: 12,
+                          color: invoice.isPayLater
+                              ? PdfColors.red700
+                              : PdfColors.green700,
+                        ),
+                      ),
+                      if (!invoice.isPayLater)
+                        pw.Text(
+                          'تم الدفع: ${total.toStringAsFixed(2)} ${AppStrings.currency}',
+                          style: pw.TextStyle(
+                            font: boldFont,
+                            fontSize: 12,
+                            color: PdfColors.green700,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
+
+          // Show payment method if available
+          if (invoice.paymentMethod != null) ...[
+            pw.SizedBox(height: 10),
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 4,
+              ),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.blue50,
+                borderRadius: pw.BorderRadius.circular(4),
+                border: pw.Border.all(color: PdfColors.blue300, width: 1),
+              ),
+              child: pw.Text(
+                'طريقة الدفع: ${_getPaymentMethodText(invoice.paymentMethod!)}',
+                style: pw.TextStyle(
+                  font: boldFont,
+                  fontSize: 11,
+                  color: PdfColors.blue700,
+                ),
+              ),
+            ),
+          ],
+
+          // Show down payment if applicable
+          if (invoice.isPayLater &&
+              invoice.downPayment != null &&
+              invoice.downPayment! > 0) ...[
+            pw.SizedBox(height: 10),
+            _buildSummaryRow('الدفعة المقدمة', invoice.downPayment!, font),
+            _buildSummaryRow(
+              'المبلغ المتبقي للدفع',
+              total - invoice.downPayment!,
+              font,
+              isTotal: true,
+              boldFont: boldFont,
+            ),
+          ],
         ],
       ),
     );
@@ -414,6 +794,7 @@ class InvoiceExportButton extends StatelessWidget {
     double amount,
     pw.Font font, {
     bool isTotal = false,
+    bool isNegative = false,
     pw.Font? boldFont,
   }) {
     return pw.Padding(
@@ -430,11 +811,13 @@ class InvoiceExportButton extends StatelessWidget {
             ),
           ),
           pw.Text(
-            '${amount.toStringAsFixed(2)} ${AppStrings.currency}',
+            '${isNegative ? '-' : ''}${amount.abs().toStringAsFixed(2)} ${AppStrings.currency}',
             style: pw.TextStyle(
               font: isTotal ? boldFont : font,
               fontSize: isTotal ? 14 : 12,
-              color: isTotal ? PdfColors.blue800 : PdfColors.black,
+              color: isNegative
+                  ? PdfColors.red700
+                  : (isTotal ? PdfColors.blue800 : PdfColors.black),
             ),
           ),
         ],

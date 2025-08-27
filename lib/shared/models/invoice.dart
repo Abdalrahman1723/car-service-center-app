@@ -10,6 +10,7 @@ class Invoice {
   final double amount;
   final List<Item> items;
   final String? notes;
+  final double serviceFees;
   final bool isPayLater;
   final String? paymentMethod;
   final double? discount;
@@ -23,6 +24,7 @@ class Invoice {
     required this.issueDate,
     required this.createdAt,
     required this.amount,
+    required this.serviceFees,
     required this.items,
     required this.selectedCar,
     this.notes,
@@ -44,6 +46,7 @@ class Invoice {
           ? (data['issueDate'] as Timestamp).toDate()
           : DateTime.now(),
       amount: (data['amount'] as num?)?.toDouble() ?? 0.0,
+      serviceFees: (data['serviceFees'] as num?)?.toDouble() ?? 0.0,
       items:
           (data['items'] as List<dynamic>?)
               ?.map((item) => Item.fromMap("", item))
@@ -67,6 +70,7 @@ class Invoice {
       'amount': amount,
       'items': items.map((item) => item.toMap()).toList(),
       'notes': notes,
+      'serviceFees': serviceFees,
       'isPayLater': isPayLater,
       'paymentMethod': paymentMethod,
       'discount': discount,
@@ -79,6 +83,7 @@ class Invoice {
     id: id,
     clientId: map['clientId'],
     amount: map['amount'],
+    serviceFees: (map['serviceFees'] as num?)?.toDouble() ?? 0.0,
     maintenanceBy: map['maintenanceBy'] ?? '',
     createdAt: map['createdAt'] != null
         ? DateTime.parse(map['createdAt'])

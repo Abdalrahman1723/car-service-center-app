@@ -34,6 +34,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   String? _paymentMethod;
   final _discountController = TextEditingController();
   final _downPaymentController = TextEditingController();
+  final _serviceFeesController = TextEditingController();
   final List<Item> _items = [];
   InventoryEntity? _inventory;
   double totalAmount = 0;
@@ -45,6 +46,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   @override
   void initState() {
     super.initState();
+    _serviceFeesController.text = '0.0';
     context.read<InvoiceManagementCubit>().loadClients();
     context.read<InvoiceManagementCubit>().loadInventory();
     log("the draft data \n ${widget.draftData}");
@@ -68,6 +70,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
       _paymentMethod = draft['paymentMethod'] as String?;
       _discountController.text = draft['discount']?.toString() ?? '';
       _downPaymentController.text = draft['downPayment']?.toString() ?? '';
+      _serviceFeesController.text = draft['serviceFees']?.toString() ?? '0.0';
       _issueDate = draft['issueDate'] != null
           ? DateTime.parse(draft['issueDate'])
           : null;
@@ -107,9 +110,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   @override
   Widget build(BuildContext context) {
     bool isFormValid =
-        _items.isNotEmpty &&
-        _selectedClientId != null &&
-        _selectedCar != null;
+        _items.isNotEmpty && _selectedClientId != null && _selectedCar != null;
 
     return Scaffold(
       appBar: AppBar(
@@ -139,6 +140,8 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                 'downPayment': _isPayLater
                     ? double.tryParse(_downPaymentController.text)
                     : null,
+                'serviceFees':
+                    double.tryParse(_serviceFeesController.text) ?? 0.0,
                 'issueDate': _issueDate?.toIso8601String(),
                 'createdAt': widget.draftData != null
                     ? widget.draftData!['createdAt']
@@ -336,8 +339,11 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                     onChanged: (discount) {
                       setState(() {
                         final discountValue = double.tryParse(discount) ?? 0.0;
-                        final discountedAmount = totalAmount - discountValue;
-                        _amountController.text = discountedAmount.toString();
+                        final serviceFeesValue =
+                            double.tryParse(_serviceFeesController.text) ?? 0.0;
+                        final finalAmount =
+                            totalAmount - discountValue + serviceFeesValue;
+                        _amountController.text = finalAmount.toString();
                         _amountController
                             .selection = TextSelection.fromPosition(
                           TextPosition(offset: _amountController.text.length),
@@ -349,6 +355,34 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                       fillColor: _discountController.text.isEmpty
                           ? Colors.blueGrey.withOpacity(0.23)
                           : Colors.green.withOpacity(0.25),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  // Service Fees field
+                  TextFormField(
+                    controller: _serviceFeesController,
+                    onChanged: (serviceFees) {
+                      setState(() {
+                        final serviceFeesValue =
+                            double.tryParse(serviceFees) ?? 0.0;
+                        final discountValue =
+                            double.tryParse(_discountController.text) ?? 0.0;
+                        final finalAmount =
+                            totalAmount - discountValue + serviceFeesValue;
+                        _amountController.text = finalAmount.toString();
+                        _amountController
+                            .selection = TextSelection.fromPosition(
+                          TextPosition(offset: _amountController.text.length),
+                        );
+                      });
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'مصنعية',
+                      hintText: 'أدخل رسوم الخدمة',
+                      fillColor: _serviceFeesController.text.isEmpty
+                          ? Colors.blueGrey.withOpacity(0.23)
+                          : Colors.orange.withOpacity(0.25),
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -384,6 +418,11 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                                   final discount = double.tryParse(
                                     _discountController.text,
                                   );
+                                  final serviceFees =
+                                      double.tryParse(
+                                        _serviceFeesController.text,
+                                      ) ??
+                                      0.0;
                                   final downPayment = _isPayLater
                                       ? double.tryParse(
                                           _downPaymentController.text,
@@ -403,6 +442,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                                         isPayLater: _isPayLater,
                                         paymentMethod: _paymentMethod,
                                         discount: discount,
+                                        serviceFees: serviceFees,
                                         downPayment: downPayment,
                                         issueDate: _issueDate ?? DateTime.now(),
                                         selectedCar:
@@ -452,6 +492,9 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                           isPayLater: _isPayLater,
                           paymentMethod: _paymentMethod,
                           discount: double.tryParse(_discountController.text),
+                          serviceFees:
+                              double.tryParse(_serviceFeesController.text) ??
+                              0.0,
                           downPayment: _isPayLater
                               ? double.tryParse(_downPaymentController.text)
                               : null,

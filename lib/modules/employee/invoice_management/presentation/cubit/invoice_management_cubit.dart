@@ -43,6 +43,7 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
     bool isPayLater = false,
     String? paymentMethod,
     double? discount,
+    double? serviceFees,
     double? downPayment,
   }) async {
     emit(InvoiceManagementLoading());
@@ -59,6 +60,7 @@ class InvoiceManagementCubit extends Cubit<InvoiceManagementState> {
         isPayLater: isPayLater,
         paymentMethod: paymentMethod,
         discount: discount,
+        serviceFees: serviceFees ?? 0.0,
         selectedCar: selectedCar,
         downPayment: downPayment,
       );
