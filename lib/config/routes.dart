@@ -60,6 +60,16 @@ import '../modules/manager/features/manage_clients/domain/usecases/update_client
 import '../modules/manager/features/manage_clients/presentation/cubit/client_management_cubit.dart';
 import '../modules/manager/features/manage_clients/presentation/pages/client_management_screen.dart';
 import '../modules/manager/features/inventory/inventory_module.dart';
+import '../modules/manager/features/reports/presentation/cubit/reports_cubit.dart';
+import '../modules/manager/features/reports/presentation/cubit/sales_report_cubit.dart';
+import '../modules/manager/features/reports/presentation/cubit/transaction_summary_cubit.dart';
+import '../modules/manager/features/reports/presentation/cubit/revenue_expense_cubit.dart';
+import '../modules/manager/features/reports/presentation/cubit/item_profitability_cubit.dart';
+import '../modules/manager/features/reports/presentation/pages/reports_screen.dart';
+import '../modules/manager/features/reports/presentation/pages/sales_report_screen.dart';
+import '../modules/manager/features/reports/presentation/pages/transaction_summary_screen.dart';
+import '../modules/manager/features/reports/presentation/pages/revenue_expense_screen.dart';
+import '../modules/manager/features/reports/presentation/pages/item_profitability_screen.dart';
 
 class Routes {
   static const String splash = "/"; //?initial route
@@ -87,6 +97,11 @@ class Routes {
   static const String weeklyAttendanceTable = '/WeeklyAttendanceTableScreen';
   static const String employeeAttendance = '/EmployeeAttendanceScreen';
   static const String manageAttendance = '/ManageAttendanceScreen';
+  static const String reports = '/reports';
+  static const String salesReport = '/reports/sales';
+  static const String transactionsReport = '/reports/transactions';
+  static const String revenueExpenseReport = '/reports/revenue-expense';
+  static const String profitabilityReport = '/reports/profitability';
 }
 
 final routes = {
@@ -368,5 +383,30 @@ final routes = {
   Routes.manageAttendance: (context) => BlocProvider(
     create: (context) => AttendanceCubit(),
     child: const SupervisorAttendanceScreen(),
+  ),
+  //-------------
+  Routes.reports: (context) => BlocProvider(
+    create: (context) => ReportsCubit()..loadReports(),
+    child: const ReportsScreen(),
+  ),
+  //-------------
+  Routes.salesReport: (context) => BlocProvider(
+    create: (context) => SalesReportCubit(),
+    child: const SalesReportScreen(),
+  ),
+  //-------------
+  Routes.transactionsReport: (context) => BlocProvider(
+    create: (context) => TransactionSummaryCubit(),
+    child: const TransactionSummaryScreen(),
+  ),
+  //-------------
+  Routes.revenueExpenseReport: (context) => BlocProvider(
+    create: (context) => RevenueExpenseCubit(),
+    child: const RevenueExpenseScreen(),
+  ),
+  //-------------
+  Routes.profitabilityReport: (context) => BlocProvider(
+    create: (context) => ItemProfitabilityCubit(),
+    child: const ItemProfitabilityScreen(),
   ),
 };

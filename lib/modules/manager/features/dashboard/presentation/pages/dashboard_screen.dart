@@ -204,6 +204,17 @@ class DashboardScreen extends StatelessWidget {
                           ).pushNamed(Routes.weeklyAttendanceTable);
                         },
                       ),
+                      // reports
+                      buildDrawerItem(
+                        context,
+                        icon: Icons.assessment,
+                        title: 'التقارير',
+                        subtitle: 'تقارير الأعمال والمالية',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.of(context).pushNamed(Routes.reports);
+                        },
+                      ),
                     ],
                   ),
                 ),
