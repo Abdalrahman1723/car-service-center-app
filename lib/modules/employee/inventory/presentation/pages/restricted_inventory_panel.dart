@@ -194,6 +194,7 @@ class _RestrictedInventoryPanelState extends State<RestrictedInventoryPanel> {
 
   Widget _buildRestrictedItemTile(BuildContext context, Item item) {
     return Card(
+      color: Theme.of(context).cardColor,
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       elevation: 2,
       child: ListTile(
