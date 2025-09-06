@@ -452,6 +452,13 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                                 log(
                                   "the selected car is: ${_getSelectedCarDisplayText()}",
                                 );
+                                log("${widget.draftData?["id"]}");
+                                if (widget.draftData?["id"] != null) {
+                                  FirebaseFirestore.instance
+                                      .collection('invoice_drafts')
+                                      .doc(widget.draftData?["id"])
+                                      .delete();
+                                }
                               },
                         child: state is InvoiceManagementLoading
                             ? const SizedBox(
