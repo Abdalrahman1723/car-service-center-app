@@ -86,7 +86,7 @@ class AddEmployeeScreenState extends State<AddEmployeeScreen> {
                     border: OutlineInputBorder(),
                   ),
                   value: _selectedRole,
-                  items: ['مدير', 'مشرف', 'عامل مخزون', 'أخرى']
+                  items: ['مدير', 'مشرف', 'عامل مخزن', 'أخرى']
                       .map((r) => DropdownMenuItem(value: r, child: Text(r)))
                       .toList(),
                   onChanged: (value) => setState(() {

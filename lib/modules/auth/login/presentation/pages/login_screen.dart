@@ -70,6 +70,7 @@ class LoginScreenState extends State<LoginScreen> {
             }
           } else {
             setState(() {
+              log("the wrong role is $role");
               _errorMessage = 'لم يتم العثور على دور المستخدم';
             });
           }
