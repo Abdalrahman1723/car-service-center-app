@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:m_world/app.dart';
-import 'package:m_world/core/utils/notification_service.dart';
+// import 'package:m_world/core/utils/notification_service.dart';
 import 'package:m_world/firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 

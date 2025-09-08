@@ -110,7 +110,10 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   @override
   Widget build(BuildContext context) {
     bool isFormValid =
-        _items.isNotEmpty && _selectedClientId != null && _selectedCar != null;
+        _items.isNotEmpty &&
+        _selectedClientId != null &&
+        _selectedCar != null &&
+        (_paymentMethod != null || _isPayLater);
 
     return Scaffold(
       appBar: AppBar(
@@ -302,9 +305,13 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                     ],
                     onChanged: (value) =>
                         setState(() => _paymentMethod = value),
-                    validator: (value) => _isPayLater && value == null
-                        ? 'طريقة الدفع مطلوبة عند الدفع'
-                        : null,
+                    validator: (value) {
+                      if (!_isPayLater) return null;
+                      if (value == null || value.isEmpty) {
+                        return 'طريقة الدفع مطلوبة عند الدفع';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
                   // Down payment field (only show when payment is deferred)
