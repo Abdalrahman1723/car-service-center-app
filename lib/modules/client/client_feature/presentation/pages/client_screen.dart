@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:m_world/core/constants/app_strings.dart';
 import 'package:m_world/modules/client/client_feature/domain/entities/reservation.dart';
 import 'package:m_world/modules/client/client_feature/presentation/cubit/client_screen_cubit.dart';
 import 'package:m_world/modules/client/client_feature/presentation/cubit/client_screen_state.dart';
@@ -30,6 +31,15 @@ class ClientsScreenState extends State<ClientsScreen> {
     final isSmallScreen = size.width < 600;
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          "M World service center",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFF0f172a),
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: Stack(
           children: [
@@ -242,12 +252,15 @@ class _HeaderCard extends StatelessWidget {
               children: [
                 _InfoChip(
                   icon: Icons.location_on,
-                  label: 'العبور، قطعة 13021 شارع 50',
+                  label: AppStrings.serviceCenterAddress,
                 ),
-                _InfoChip(icon: Icons.phone, label: '01000094049'),
+                _InfoChip(
+                  icon: Icons.phone,
+                  label: AppStrings.serviceCenterPhoneNumber,
+                ),
                 GestureDetector(
                   onTap: () async {
-                    const url = 'https://maps.app.goo.gl/8aA77vDTQgLAjFnP7';
+                    const url = AppStrings.googleMapsLocation;
                     if (await canLaunchUrl(Uri.parse(url))) {
                       await launchUrl(Uri.parse(url));
                     }
@@ -295,9 +308,14 @@ class _InfoChip extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: Colors.lightBlueAccent),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+          Flexible(
+            child: SelectableText(
+              label,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              maxLines: null,
+              minLines: 1,
+              textAlign: TextAlign.start,
+            ),
           ),
         ],
       ),

@@ -3,6 +3,8 @@ class AppStrings {
   static const String serviceCenterPhoneNumber = "01000094049";
   static const String serviceCenterAddress =
       "العبور المنطقة الصناعية الدولى قطعه 13021 شارع 50 بجوار شركة امون للادوية";
+  static const String googleMapsLocation =
+      'https://maps.app.goo.gl/8aA77vDTQgLAjFnP7';
   static const String compensated = "متأخر - معوض";
   static const String notCompensated = "متأخر - غير معوض";
   static const String onTime = "في الموعد";
