@@ -2,6 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/modules/auth/login/presentation/pages/login_screen.dart';
+import 'package:m_world/modules/client/client_feature/data/datasources/reservation_datasource.dart';
+import 'package:m_world/modules/client/client_feature/data/repositories/reservation_repository_impl.dart';
+import 'package:m_world/modules/client/client_feature/domain/usecases/submit_reservation.dart';
+import 'package:m_world/modules/client/client_feature/presentation/cubit/client_screen_cubit.dart';
+import 'package:m_world/modules/client/client_feature/presentation/pages/client_screen.dart';
 import 'package:m_world/modules/employee/invoice_management/presentation/pages/invoice_add_screen.dart';
 import 'package:m_world/modules/employee/invoice_management/presentation/pages/invoice_list_screen.dart';
 import 'package:m_world/modules/employee/shipment_management/data/datasources/shipment_datasource.dart';
@@ -102,6 +107,7 @@ class Routes {
   static const String transactionsReport = '/reports/transactions';
   static const String revenueExpenseReport = '/reports/revenue-expense';
   static const String profitabilityReport = '/reports/profitability';
+  static const String visitor = '/clients';
 }
 
 final routes = {
@@ -408,5 +414,14 @@ final routes = {
   Routes.profitabilityReport: (context) => BlocProvider(
     create: (context) => ItemProfitabilityCubit(),
     child: const ItemProfitabilityScreen(),
+  ),
+  //-------------
+  Routes.visitor: (context) => BlocProvider(
+    create: (context) => ClientScreenCubit(
+      submitReservation: SubmitReservation(
+        ReservationRepositoryImpl(ReservationDataSource()),
+      ),
+    ),
+    child: const ClientsScreen(),
   ),
 };

@@ -390,7 +390,9 @@ class _InventoryPanelState extends State<InventoryPanel> {
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('خطأ'),
-              content: Text('اسم العنصر "${item.name}" مستخدم بالفعل في المخزون.'),
+              content: Text(
+                'اسم العنصر "${item.name}" مستخدم بالفعل في المخزون.',
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),

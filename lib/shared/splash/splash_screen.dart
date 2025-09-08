@@ -17,7 +17,7 @@ class SplashScreen extends StatelessWidget {
         body: BlocListener<SplashCubit, SplashState>(
           listener: (context, state) {
             if (state is SplashCompleted) {
-              Navigator.pushReplacementNamed(context, Routes.login);
+              Navigator.pushReplacementNamed(context, Routes.visitor);
             } else if (state is SplashCompletedWithRole) {
               _navigateToDashboard(context, state.role);
             }

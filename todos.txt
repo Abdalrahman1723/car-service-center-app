@@ -1,11 +1,1 @@
-# fix the draft and make a collection for it //
-
-# the compensation for employees //
-
-# handle the charts //
- 
-# handle search bars in the dashboard //
-
-# add masna3ya to the job order 
-
-# notifications //
+# can edit the cost of item while making a new shipment 
