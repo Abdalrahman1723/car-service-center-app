@@ -1175,6 +1175,7 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
   void _showItemDialog(BuildContext context) {
     final nameController = TextEditingController();
     final priceController = TextEditingController();
+    final costController = TextEditingController();
     bool isInventoryItem = true;
 
     showDialog(
@@ -1182,55 +1183,71 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           title: const Text('إضافة عنصر'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<bool>(
-                value: isInventoryItem,
-                items: const [
-                  DropdownMenuItem(value: true, child: Text('من المخزون')),
-                  DropdownMenuItem(value: false, child: Text('عنصر خارجي')),
-                ],
-                onChanged: (value) =>
-                    setDialogState(() => isInventoryItem = value!),
-              ),
-              const SizedBox(height: 10),
-              if (isInventoryItem)
-                DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'اختر العنصر'),
-                  items:
-                      _inventory?.items
-                          .map(
-                            (item) => DropdownMenuItem<String>(
-                              value: item.id,
-                              child: Text(
-                                '${item.name} (المخزون: ${item.quantity})',
-                              ),
-                            ),
-                          )
-                          .toList() ??
-                      [],
-                  onChanged: (value) {
-                    if (value != null && _inventory != null) {
-                      final item = _inventory!.items.firstWhere(
-                        (i) => i.id == value,
-                      );
-                      nameController.text = item.name;
-                    }
-                  },
-                )
-              else
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'اسم العنصر'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<bool>(
+                  value: isInventoryItem,
+                  items: const [
+                    DropdownMenuItem(value: true, child: Text('من المخزون')),
+                    DropdownMenuItem(value: false, child: Text('عنصر خارجي')),
+                  ],
+                  onChanged: (value) =>
+                      setDialogState(() => isInventoryItem = value!),
                 ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: priceController,
-                decoration: const InputDecoration(labelText: 'سعر البيع *'),
-                keyboardType: TextInputType.number,
-              ),
-            ],
+                const SizedBox(height: 10),
+                if (isInventoryItem)
+                  DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(labelText: 'اختر العنصر'),
+                    items:
+                        _inventory?.items
+                            .map(
+                              (item) => DropdownMenuItem<String>(
+                                value: item.id,
+                                child: Text(
+                                  '${item.name} (المخزون: ${item.quantity})',
+                                ),
+                              ),
+                            )
+                            .toList() ??
+                        [],
+                    onChanged: (value) {
+                      if (value != null && _inventory != null) {
+                        final item = _inventory!.items.firstWhere(
+                          (i) => i.id == value,
+                        );
+                        nameController.text = item.name;
+                      }
+                    },
+                  )
+                else
+                  Column(
+                    children: [
+                      TextField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'اسم العنصر',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: costController,
+                        decoration: const InputDecoration(
+                          labelText: 'سعر التكلفة *',
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: priceController,
+                  decoration: const InputDecoration(labelText: 'سعر البيع *'),
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -1240,7 +1257,8 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
             TextButton(
               onPressed: () {
                 if (nameController.text.isNotEmpty &&
-                    priceController.text.isNotEmpty) {
+                    priceController.text.isNotEmpty &&
+                    (costController.text.isNotEmpty || isInventoryItem)) {
                   final price = double.tryParse(priceController.text) ?? 0.0;
                   final inventoryItem = isInventoryItem && _inventory != null
                       ? _inventory!.items.firstWhere(
@@ -1264,7 +1282,10 @@ class InvoiceAddScreenState extends State<InvoiceAddScreen> {
                       quantity: 1,
                       code: inventoryItem?.code,
                       price: price,
-                      cost: inventoryItem?.cost ?? 0.0,
+                      cost:
+                          inventoryItem?.cost ??
+                          double.tryParse(costController.text) ??
+                          0.0,
                       timeAdded: DateTime.now(),
                       description: inventoryItem?.description,
                     );
