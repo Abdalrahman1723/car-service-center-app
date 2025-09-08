@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:m_world/config/routes.dart';
 import 'package:m_world/core/constants/app_strings.dart';
 import 'package:m_world/modules/client/client_feature/domain/entities/reservation.dart';
 import 'package:m_world/modules/client/client_feature/presentation/cubit/client_screen_cubit.dart';
@@ -32,56 +33,63 @@ class ClientsScreenState extends State<ClientsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "M World service center",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        title: TextButton(
+          onPressed: () => Navigator.of(context).pushNamed(Routes.login),
+          child: Text(
+            "M World service center",
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         backgroundColor: const Color(0xFF0f172a),
         elevation: 0,
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Gradient background with decorative circles
-            Positioned.fill(
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                    colors: [Color(0xFF0f172a), Color(0xFF1e293b)],
-                  ),
+      body: Stack(
+        children: [
+          // Gradient background with decorative circles
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: [Color(0xFF0f172a), Color(0xFF1e293b)],
                 ),
               ),
             ),
-            Positioned(
-              top: -60,
-              right: -40,
-              child: Container(
-                width: 180,
-                height: 180,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.blue.withOpacity(0.15),
-                ),
+          ),
+          Positioned(
+            top: -60,
+            right: -40,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.blue.withOpacity(0.15),
               ),
             ),
-            Positioned(
-              bottom: -40,
-              left: -30,
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.lightBlueAccent.withOpacity(0.1),
-                ),
+          ),
+          Positioned(
+            bottom: -40,
+            left: -30,
+            child: Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.lightBlueAccent.withOpacity(0.1),
               ),
             ),
+          ),
 
-            // Main content
-            SingleChildScrollView(
+          // Main content
+          SafeArea(
+            child: SingleChildScrollView(
               controller: _scrollController,
               padding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0),
               child: Column(
@@ -181,8 +189,8 @@ class ClientsScreenState extends State<ClientsScreen> {
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
