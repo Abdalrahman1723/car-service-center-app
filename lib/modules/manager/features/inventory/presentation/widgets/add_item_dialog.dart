@@ -17,14 +17,14 @@ class _AddItemDialogState extends State<AddItemDialog> {
   final _nameController = TextEditingController();
   final _codeController = TextEditingController();
   final _quantityController = TextEditingController();
-  final _priceController = TextEditingController();
+  final _costController = TextEditingController();
   final _descriptionController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
     _quantityController.dispose();
-    _priceController.dispose();
+    _costController.dispose();
     _codeController.dispose();
     _descriptionController.dispose();
     super.dispose();
@@ -86,9 +86,9 @@ class _AddItemDialogState extends State<AddItemDialog> {
                   //--price
                   Expanded(
                     child: TextFormField(
-                      controller: _priceController,
+                      controller: _costController,
                       decoration: const InputDecoration(
-                        labelText: 'السعر',
+                        labelText: 'التكلفة',
                         hintText: '0.00',
                         prefixIcon: Icon(Icons.attach_money),
                       ),
@@ -153,13 +153,12 @@ class _AddItemDialogState extends State<AddItemDialog> {
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       final item = Item(
-        
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         timeAdded: DateTime.now(),
         name: _nameController.text.trim(),
         code: _codeController.text.trim(),
         quantity: int.parse(_quantityController.text),
-        cost: double.parse(_priceController.text),
+        cost: double.parse(_costController.text),
         description: _descriptionController.text.trim().isEmpty
             ? null
             : _descriptionController.text.trim(),

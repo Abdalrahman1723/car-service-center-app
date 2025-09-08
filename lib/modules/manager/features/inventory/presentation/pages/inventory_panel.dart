@@ -378,6 +378,30 @@ class _InventoryPanelState extends State<InventoryPanel> {
     );
 
     if (item != null && mounted) {
+      // Check if the item name already exists in the current inventory
+      final currentState = _inventoryCubit.state;
+      if (currentState is InventoryLoaded) {
+        final exists = currentState.inventory.items.any(
+          (existingItem) => existingItem.name.trim() == item.name.trim(),
+        );
+        if (exists) {
+          // Show error dialog if item name exists
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('خطأ'),
+              content: Text('اسم العنصر "${item.name}" مستخدم بالفعل في المخزون.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('حسناً'),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+      }
       await _inventoryCubit.addItemToInventory(item);
     }
   }
