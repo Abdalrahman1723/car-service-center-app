@@ -32,6 +32,7 @@ import 'package:m_world/modules/manager/features/dashboard/presentation/pages/da
 import 'package:m_world/modules/manager/features/employee_management/presentation/pages/employee_profile_screen.dart';
 import 'package:m_world/modules/manager/features/inventory/presentation/pages/inventory_panel.dart';
 import 'package:m_world/modules/manager/features/manage_clients/presentation/pages/client_list_screen.dart';
+import 'package:m_world/modules/manager/features/reservation_management/presentation/pages/manager_reservation_list_screen.dart';
 import 'package:m_world/modules/manager/features/vault/data/repositories/vault_repository_impl.dart';
 import 'package:m_world/modules/manager/features/vault/domain/usecases/add_vault_transaction.dart';
 import 'package:m_world/modules/manager/features/vault/presentation/cubit/vault_cubit.dart';
@@ -108,6 +109,7 @@ class Routes {
   static const String revenueExpenseReport = '/reports/revenue-expense';
   static const String profitabilityReport = '/reports/profitability';
   static const String visitor = '/clients';
+  static const String reservationList = '/reservation_list';
 }
 
 final routes = {
@@ -424,4 +426,6 @@ final routes = {
     ),
     child: const ClientsScreen(),
   ),
+  //-------------
+  Routes.reservationList: (context) => const ManagerReservationListScreen(),
 };

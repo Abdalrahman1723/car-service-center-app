@@ -108,6 +108,17 @@ class DashboardScreen extends StatelessWidget {
                   child: ListView(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     children: [
+                      //reservations
+                      buildDrawerItem(
+                        context,
+                        icon: Icons.schedule,
+                        title: 'الحجوزات',
+                        subtitle: 'عرض وإدارة الحجوزات',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.of(context).pushNamed(Routes.reservationList);
+                        },
+                      ),
                       //all invoices
                       buildDrawerItem(
                         context,

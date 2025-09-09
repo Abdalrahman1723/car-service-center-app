@@ -9,6 +9,7 @@ class Reservation extends Equatable {
   final DateTime visitDate;
   final String? inquiries;
   final DateTime createdAt;
+  final bool contacted; // Added
 
   const Reservation({
     required this.id,
@@ -19,6 +20,7 @@ class Reservation extends Equatable {
     required this.visitDate,
     this.inquiries,
     required this.createdAt,
+    this.contacted = false, // Default to false
   });
 
   Map<String, dynamic> toMap() {
@@ -31,6 +33,7 @@ class Reservation extends Equatable {
       'visitDate': visitDate.toIso8601String(),
       'inquiries': inquiries,
       'createdAt': createdAt.toIso8601String(),
+      'contacted': contacted,
     };
   }
 
@@ -44,6 +47,7 @@ class Reservation extends Equatable {
       visitDate: DateTime.parse(map['visitDate'] as String),
       inquiries: map['inquiries'] as String?,
       createdAt: DateTime.parse(map['createdAt'] as String),
+      contacted: map['contacted'] as bool? ?? false,
     );
   }
 
@@ -57,5 +61,6 @@ class Reservation extends Equatable {
     visitDate,
     inquiries,
     createdAt,
+    contacted,
   ];
 }
