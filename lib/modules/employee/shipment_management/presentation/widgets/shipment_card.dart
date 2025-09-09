@@ -4,6 +4,7 @@ import 'package:m_world/core/constants/app_strings.dart';
 
 import '../../../supplier_management/domain/entities/supplier.dart';
 import '../../domain/entities/shipment.dart';
+import 'export_shipment_invoice.dart';
 
 // Widget قابل لإعادة الاستخدام لعرض تفاصيل الشحنة
 class ShipmentCard extends StatelessWidget {
@@ -65,6 +66,39 @@ class ShipmentCard extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf, color: Colors.green),
+              onPressed: () {
+                if (supplier != null) {
+                  // Show the export button widget
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('تصدير PDF'),
+                      content: ShipmentExportButton(
+                        shipment: shipment,
+                        supplier: supplier!,
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('إغلاق'),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'لا يمكن تصدير الفاتورة - معلومات المورد غير متوفرة',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.edit, color: Colors.blue),
               onPressed: onEdit,
