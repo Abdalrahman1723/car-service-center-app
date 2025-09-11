@@ -240,15 +240,6 @@ class _ManagerReservationListScreenState
             return const Center(child: Text('اضغط لتحميل الحجوزات'));
           },
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            setState(() {
-              context.read<ManagerReservationCubit>().loadReservations();
-            });
-          },
-          backgroundColor: Colors.blueAccent,
-          child: const Icon(Icons.refresh, color: Colors.white),
-        ),
       ),
     );
   }
