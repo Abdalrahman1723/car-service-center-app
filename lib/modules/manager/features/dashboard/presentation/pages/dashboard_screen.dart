@@ -111,7 +111,7 @@ class DashboardScreen extends StatelessWidget {
                       //reservations
                       buildDrawerItem(
                         context,
-                        icon: Icons.schedule,
+                        icon: Icons.table_rows,
                         title: 'الحجوزات',
                         subtitle: 'عرض وإدارة الحجوزات',
                         onTap: () {

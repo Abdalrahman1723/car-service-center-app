@@ -11,9 +11,16 @@ import 'package:m_world/modules/manager/features/reservation_management/presenta
 import 'package:m_world/modules/manager/features/reservation_management/presentation/cubit/manager_reservation_state.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ManagerReservationListScreen extends StatelessWidget {
+class ManagerReservationListScreen extends StatefulWidget {
   const ManagerReservationListScreen({super.key});
 
+  @override
+  State<ManagerReservationListScreen> createState() =>
+      _ManagerReservationListScreenState();
+}
+
+class _ManagerReservationListScreenState
+    extends State<ManagerReservationListScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -215,7 +222,7 @@ class ManagerReservationListScreen extends StatelessWidget {
                                   if (confirm == true) {
                                     context
                                         .read<ManagerReservationCubit>()
-                                        .deleteReservation(reservation.id);
+                                        .removeReservation(reservation.id);
                                   }
                                 },
                               ),
@@ -234,8 +241,11 @@ class ManagerReservationListScreen extends StatelessWidget {
           },
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () =>
-              context.read<ManagerReservationCubit>().loadReservations(),
+          onPressed: () {
+            setState(() {
+              context.read<ManagerReservationCubit>().loadReservations();
+            });
+          },
           backgroundColor: Colors.blueAccent,
           child: const Icon(Icons.refresh, color: Colors.white),
         ),

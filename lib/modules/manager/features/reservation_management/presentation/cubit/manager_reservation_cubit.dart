@@ -22,7 +22,9 @@ class ManagerReservationCubit extends Cubit<ManagerReservationState> {
   Future<void> loadReservations() async {
     try {
       final userId = authHelper.currentUser?.uid;
-      final userRole = userId != null ? await authHelper.getUserRole(userId) : null;
+      final userRole = userId != null
+          ? await authHelper.getUserRole(userId)
+          : null;
       if (userRole != UserRole.admin) {
         emit(ManagerReservationError('للمديرين فقط'));
         return;
@@ -38,7 +40,9 @@ class ManagerReservationCubit extends Cubit<ManagerReservationState> {
   Future<void> markAsContacted(String reservationId) async {
     try {
       final userId = authHelper.currentUser?.uid;
-      final userRole = userId != null ? await authHelper.getUserRole(userId) : null;
+      final userRole = userId != null
+          ? await authHelper.getUserRole(userId)
+          : null;
       if (userRole != UserRole.admin) {
         emit(ManagerReservationError('للمديرين فقط'));
         return;
@@ -55,7 +59,9 @@ class ManagerReservationCubit extends Cubit<ManagerReservationState> {
   Future<void> removeReservation(String reservationId) async {
     try {
       final userId = authHelper.currentUser?.uid;
-      final userRole = userId != null ? await authHelper.getUserRole(userId) : null;
+      final userRole = userId != null
+          ? await authHelper.getUserRole(userId)
+          : null;
       if (userRole != UserRole.admin) {
         emit(ManagerReservationError('للمديرين فقط'));
         return;
@@ -63,7 +69,6 @@ class ManagerReservationCubit extends Cubit<ManagerReservationState> {
       emit(ManagerReservationLoading());
       await deleteReservation(reservationId);
       final reservations = await getReservations();
-      
       emit(ManagerReservationLoaded(reservations));
     } catch (e) {
       emit(ManagerReservationError('فشل في حذف الحجز: $e'));
