@@ -7,6 +7,8 @@ class SupplierFormField extends StatelessWidget {
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
   final int? maxLines;
+  final bool? readOnly;
+  final bool? enabled;
 
   const SupplierFormField({
     super.key,
@@ -15,6 +17,8 @@ class SupplierFormField extends StatelessWidget {
     this.validator,
     this.keyboardType,
     this.maxLines,
+    this.readOnly,
+    this.enabled,
   });
 
   @override
@@ -28,6 +32,8 @@ class SupplierFormField extends StatelessWidget {
       validator: validator,
       keyboardType: keyboardType,
       maxLines: maxLines ?? 1,
+      readOnly: readOnly ?? false,
+      enabled: enabled,
     );
   }
 }

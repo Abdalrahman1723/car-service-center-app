@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/supplier.dart';
 import '../cubit/suppliers_cubit.dart';
 import '../widgets/supplier_form_field.dart';
+import 'package:m_world/core/services/auth_service.dart';
 
 // Screen to add or edit a supplier
 class AddSupplierScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
   final _phoneController = TextEditingController();
   final _balanceController = TextEditingController();
   final _notesController = TextEditingController();
+  bool _isAdmin = false;
 
   @override
   void initState() {
@@ -30,6 +32,20 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
       _phoneController.text = widget.supplier!.phoneNumber;
       _balanceController.text = widget.supplier!.balance.toString();
       _notesController.text = widget.supplier!.notes ?? '';
+    }
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    final auth = AuthService();
+    final user = auth.currentUser;
+    if (user != null) {
+      final role = await auth.getUserRole(user.uid);
+      if (mounted) {
+        setState(() {
+          _isAdmin = role == UserRole.admin;
+        });
+      }
     }
   }
 
@@ -85,15 +101,17 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
                     //the balance
                     SupplierFormField(
                       controller: _balanceController,
-                      label: 'Balance',
+                      label: _isAdmin ? 'Balance' : 'Balance (admins only)',
                       keyboardType: TextInputType.number,
                       validator: (value) {
+                        if (!_isAdmin) return null; // non-admin can't edit
                         if (value!.isNotEmpty &&
                             double.tryParse(value) == null) {
                           return 'Invalid balance';
                         }
                         return null;
                       },
+                      readOnly: !_isAdmin,
                     ),
                     const SizedBox(height: 16),
                     //add notes
@@ -110,15 +128,22 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
                           ? null
                           : () {
                               if (_formKey.currentState!.validate()) {
+                                // If non-admin on edit, preserve original balance
+                                final parsedBalance =
+                                    double.tryParse(_balanceController.text) ??
+                                    0.0;
+                                final effectiveBalance =
+                                    !_isAdmin &&
+                                        widget.isEdit &&
+                                        widget.supplier != null
+                                    ? widget.supplier!.balance
+                                    : parsedBalance;
+
                                 final supplier = SupplierEntity(
                                   id: widget.supplier?.id ?? '',
                                   name: _nameController.text,
                                   phoneNumber: _phoneController.text,
-                                  balance:
-                                      double.tryParse(
-                                        _balanceController.text,
-                                      ) ??
-                                      0.0,
+                                  balance: effectiveBalance,
                                   notes: _notesController.text.isEmpty
                                       ? null
                                       : _notesController.text,

@@ -5,6 +5,7 @@ import '../../../../../core/constants/app_strings.dart';
 import '../cubit/suppliers_cubit.dart';
 import '../widgets/supplier_card.dart';
 import '../widgets/supplier_debt_settlement_dialog.dart';
+import 'package:m_world/core/services/auth_service.dart';
 
 // Screen to display all suppliers
 class SuppliersScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   final _searchController = TextEditingController();
   List<dynamic> _filteredSuppliers = [];
   bool _showOnlyDebtors = false;
+  bool _isAdmin = false;
 
   @override
   void initState() {
@@ -25,6 +27,20 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     super.initState();
     // Automatically load suppliers when the screen initializes
     _searchController.addListener(_filterSuppliers);
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final auth = AuthService();
+    final user = auth.currentUser;
+    if (user != null) {
+      final role = await auth.getUserRole(user.uid);
+      if (mounted) {
+        setState(() {
+          _isAdmin = role == UserRole.admin;
+        });
+      }
+    }
   }
 
   void _filterSuppliers() {
@@ -220,14 +236,17 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                             arguments: {'supplier': supplier, 'isEdit': true},
                           );
                         },
-                        onSettleDebt: () {
-                          SupplierDebtSettlementDialog.show(
-                            context,
-                            supplier,
-                            () =>
-                                context.read<SuppliersCubit>().loadSuppliers(),
-                          );
-                        },
+                        onSettleDebt: _isAdmin
+                            ? () {
+                                SupplierDebtSettlementDialog.show(
+                                  context,
+                                  supplier,
+                                  () => context
+                                      .read<SuppliersCubit>()
+                                      .loadSuppliers(),
+                                );
+                              }
+                            : null,
                         onDelete: () => showDialog(
                           context: context,
                           builder: (dialogContext) => AlertDialog(
