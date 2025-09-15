@@ -4,6 +4,7 @@ import '../../domain/entities/sales_report_item.dart';
 import '../../domain/entities/transaction_summary.dart';
 import '../../domain/entities/revenue_expense.dart';
 import '../../domain/entities/item_profitability.dart';
+import '../../domain/entities/net_profit.dart';
 import '../datasources/reports_datasource.dart';
 import '../../../../../../shared/models/invoice.dart';
 
@@ -41,6 +42,13 @@ class FirebaseReportsDataSource implements ReportsDataSource {
         description: 'ربحية كل منتج في المخزون',
         icon: 'inventory',
         route: '/reports/profitability',
+      ),
+      const Report(
+        id: 'net_profit',
+        title: 'صافي الربح',
+        description: 'حساب صافي الربح حسب المعادلة المحددة',
+        icon: 'calculate',
+        route: '/reports/net-profit',
       ),
     ];
   }
@@ -316,6 +324,93 @@ class FirebaseReportsDataSource implements ReportsDataSource {
     } catch (e) {
       throw Exception('Failed to fetch item profitability report: $e');
     }
+  }
+
+  @override
+  Future<NetProfit> getNetProfitReport({
+    DateTime? fromDate,
+    DateTime? toDate,
+    String? category,
+  }) async {
+    // total sales: sum of invoice items price*qty + serviceFees within range
+    final salesItems = await getSalesReport(
+      fromDate: fromDate,
+      toDate: toDate,
+      category: category,
+    );
+    final double totalSales = salesItems.fold(
+      0.0,
+      (sum, s) => sum + (s.price * s.quantity),
+    );
+
+    // total payments: sum of vault expenses within range
+    final transactions = await getTransactionSummary(
+      fromDate: fromDate,
+      toDate: toDate,
+      category: category,
+    );
+    final double totalPayments = transactions
+        .where((t) => t.type == 'expense')
+        .fold(0.0, (sum, t) => sum + t.totalAmount);
+
+    // total goods price (cost of goods sold): sum of cost*qty for sold items
+    final double totalGoodsCost = salesItems.fold(
+      0.0,
+      (sum, s) => sum + (s.cost * s.quantity),
+    );
+
+    // ending inventory cost: best-effort snapshot by summing inventory items cost*qty
+    double endingInventoryCost = 0.0;
+    try {
+      final invSnapshot = await _firestore.collection('inventory').get();
+      for (final doc in invSnapshot.docs) {
+        final data = doc.data();
+        final List<dynamic> items = (data['items'] as List<dynamic>?) ?? [];
+        for (final dynamic raw in items) {
+          if (raw is Map<String, dynamic>) {
+            final qty = (raw['quantity'] as num?)?.toInt() ?? 0;
+            final cost = (raw['cost'] as num?)?.toDouble() ?? 0.0;
+            endingInventoryCost += qty * cost;
+          }
+        }
+      }
+    } catch (_) {}
+
+    // suppliers debt and clients debt: read aggregate balances if present
+    double suppliersDebt = 0.0;
+    double clientsDebt = 0.0;
+    try {
+      final suppliersSnap = await _firestore.collection('suppliers').get();
+      for (final d in suppliersSnap.docs) {
+        suppliersDebt += (d.data()['balance'] as num?)?.toDouble() ?? 0.0;
+      }
+    } catch (_) {}
+    try {
+      final clientsSnap = await _firestore.collection('clients').get();
+      for (final d in clientsSnap.docs) {
+        clientsDebt += (d.data()['balance'] as num?)?.toDouble() ?? 0.0;
+      }
+    } catch (_) {}
+
+    final net =
+        (totalSales -
+        totalPayments -
+        totalGoodsCost +
+        endingInventoryCost -
+        suppliersDebt +
+        clientsDebt);
+
+    return NetProfit(
+      totalSales: totalSales,
+      totalPayments: totalPayments,
+      totalGoodsCost: totalGoodsCost,
+      endingInventoryCost: endingInventoryCost,
+      suppliersDebt: suppliersDebt,
+      clientsDebt: clientsDebt,
+      netProfit: net,
+      periodStart: fromDate ?? DateTime.now(),
+      periodEnd: toDate ?? DateTime.now(),
+    );
   }
 }
 

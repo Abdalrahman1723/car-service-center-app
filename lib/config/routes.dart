@@ -71,11 +71,13 @@ import '../modules/manager/features/reports/presentation/cubit/sales_report_cubi
 import '../modules/manager/features/reports/presentation/cubit/transaction_summary_cubit.dart';
 import '../modules/manager/features/reports/presentation/cubit/revenue_expense_cubit.dart';
 import '../modules/manager/features/reports/presentation/cubit/item_profitability_cubit.dart';
+import '../modules/manager/features/reports/presentation/cubit/net_profit_cubit.dart';
 import '../modules/manager/features/reports/presentation/pages/reports_screen.dart';
 import '../modules/manager/features/reports/presentation/pages/sales_report_screen.dart';
 import '../modules/manager/features/reports/presentation/pages/transaction_summary_screen.dart';
 import '../modules/manager/features/reports/presentation/pages/revenue_expense_screen.dart';
 import '../modules/manager/features/reports/presentation/pages/item_profitability_screen.dart';
+import '../modules/manager/features/reports/presentation/pages/net_profit_screen.dart';
 
 class Routes {
   static const String splash = "/"; //?initial route
@@ -108,6 +110,7 @@ class Routes {
   static const String transactionsReport = '/reports/transactions';
   static const String revenueExpenseReport = '/reports/revenue-expense';
   static const String profitabilityReport = '/reports/profitability';
+  static const String netProfitReport = '/reports/net-profit';
   static const String visitor = '/clients';
   static const String reservationList = '/reservation_list';
 }
@@ -416,6 +419,11 @@ final routes = {
   Routes.profitabilityReport: (context) => BlocProvider(
     create: (context) => ItemProfitabilityCubit(),
     child: const ItemProfitabilityScreen(),
+  ),
+  //-------------
+  Routes.netProfitReport: (context) => BlocProvider(
+    create: (context) => NetProfitCubit(),
+    child: const NetProfitScreen(),
   ),
   //-------------
   Routes.visitor: (context) => BlocProvider(

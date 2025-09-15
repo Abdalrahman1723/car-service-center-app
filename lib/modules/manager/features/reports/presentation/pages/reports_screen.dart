@@ -230,6 +230,8 @@ class ReportsScreen extends StatelessWidget {
         return Icons.trending_up;
       case 'inventory':
         return Icons.inventory;
+      case 'net_profit':
+        return Icons.calculate;
       default:
         return Icons.assessment;
     }
@@ -248,6 +250,9 @@ class ReportsScreen extends StatelessWidget {
         break;
       case 'profitability':
         Navigator.of(context).pushNamed('/reports/profitability');
+        break;
+      case 'net_profit':
+        Navigator.of(context).pushNamed('/reports/net-profit');
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(

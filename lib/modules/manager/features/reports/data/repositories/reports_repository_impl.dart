@@ -3,6 +3,7 @@ import '../../domain/entities/sales_report_item.dart';
 import '../../domain/entities/transaction_summary.dart';
 import '../../domain/entities/revenue_expense.dart';
 import '../../domain/entities/item_profitability.dart';
+import '../../domain/entities/net_profit.dart';
 import '../../domain/repositories/reports_repository.dart';
 import '../datasources/reports_datasource.dart';
 import '../datasources/firebase_reports_datasource.dart';
@@ -68,6 +69,19 @@ class ReportsRepositoryImpl implements ReportsRepository {
     String? category,
   }) async {
     return await dataSource.getItemProfitabilityReport(
+      fromDate: fromDate,
+      toDate: toDate,
+      category: category,
+    );
+  }
+
+  @override
+  Future<NetProfit> getNetProfitReport({
+    DateTime? fromDate,
+    DateTime? toDate,
+    String? category,
+  }) async {
+    return await dataSource.getNetProfitReport(
       fromDate: fromDate,
       toDate: toDate,
       category: category,

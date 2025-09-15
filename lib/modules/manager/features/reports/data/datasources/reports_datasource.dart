@@ -3,6 +3,7 @@ import '../../domain/entities/sales_report_item.dart';
 import '../../domain/entities/transaction_summary.dart';
 import '../../domain/entities/revenue_expense.dart';
 import '../../domain/entities/item_profitability.dart';
+import '../../domain/entities/net_profit.dart';
 
 abstract class ReportsDataSource {
   Future<List<Report>> getAvailableReports();
@@ -22,6 +23,11 @@ abstract class ReportsDataSource {
     String? category,
   });
   Future<List<ItemProfitability>> getItemProfitabilityReport({
+    DateTime? fromDate,
+    DateTime? toDate,
+    String? category,
+  });
+  Future<NetProfit> getNetProfitReport({
     DateTime? fromDate,
     DateTime? toDate,
     String? category,
@@ -62,6 +68,13 @@ class MockReportsDataSource implements ReportsDataSource {
         description: 'ربحية كل منتج في المخزون',
         icon: 'inventory',
         route: '/reports/profitability',
+      ),
+      const Report(
+        id: 'net_profit',
+        title: 'صافي الربح',
+        description: 'حساب صافي الربح حسب المعادلة المحددة',
+        icon: 'calculate',
+        route: '/reports/net-profit',
       ),
     ];
   }
@@ -243,5 +256,61 @@ class MockReportsDataSource implements ReportsDataSource {
         profitMargin: 33.33,
       ),
     ];
+  }
+
+  @override
+  Future<NetProfit> getNetProfitReport({
+    DateTime? fromDate,
+    DateTime? toDate,
+    String? category,
+  }) async {
+    // Use existing mock outputs to compute values
+    final sales = await getSalesReport(
+      fromDate: fromDate,
+      toDate: toDate,
+      category: category,
+    );
+    final transactions = await getTransactionSummary(
+      fromDate: fromDate,
+      toDate: toDate,
+      category: category,
+    );
+
+    final double totalSales = sales.fold(
+      0.0,
+      (sum, s) => sum + (s.price * s.quantity),
+    );
+    final double totalPayments = transactions
+        .where((t) => t.type == 'expense')
+        .fold(0.0, (sum, t) => sum + t.totalAmount);
+    final double totalGoodsCost = sales.fold(
+      0.0,
+      (sum, s) => sum + (s.cost * s.quantity),
+    );
+
+    // Mock ending inventory and debts
+    const double endingInventoryCost = 10000.0;
+    const double suppliersDebt = 2000.0;
+    const double clientsDebt = 1500.0;
+
+    final double net =
+        (totalSales -
+        totalPayments -
+        totalGoodsCost +
+        endingInventoryCost -
+        suppliersDebt +
+        clientsDebt);
+
+    return NetProfit(
+      totalSales: totalSales,
+      totalPayments: totalPayments,
+      totalGoodsCost: totalGoodsCost,
+      endingInventoryCost: endingInventoryCost,
+      suppliersDebt: suppliersDebt,
+      clientsDebt: clientsDebt,
+      netProfit: net,
+      periodStart: fromDate ?? DateTime.now(),
+      periodEnd: toDate ?? DateTime.now(),
+    );
   }
 }
