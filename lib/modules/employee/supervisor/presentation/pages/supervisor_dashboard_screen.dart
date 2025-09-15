@@ -63,7 +63,10 @@ class SupervisorDashboardScreen extends StatelessWidget {
                 'إدارة المخزون',
                 Icons.inventory,
                 Colors.teal,
-                () => Navigator.pushNamed(context, Routes.inventoryPanel),
+                () => Navigator.pushNamed(
+                  context,
+                  Routes.restrictedInventoryPanel,
+                ),
               ),
             ],
           ),
