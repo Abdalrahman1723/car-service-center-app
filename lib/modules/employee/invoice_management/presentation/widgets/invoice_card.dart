@@ -66,16 +66,20 @@ class InvoiceCard extends StatelessWidget {
             children: [
               // Header Row for Invoice Number and Amount
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SelectableText(
-                    'Invoice #${invoice.clientId}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.black87,
+                  Expanded(
+                    child: SelectableText(
+                      'Invoice #${invoice.clientId}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                      maxLines: 2,
                     ),
                   ),
+                  const SizedBox(width: 12),
                   Text(
                     '\$${invoice.amount.toStringAsFixed(2)}',
                     style: TextStyle(
