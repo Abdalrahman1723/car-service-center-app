@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/core/constants/app_strings.dart';
 import 'package:m_world/shared/models/item.dart';
 import '../../../../manager/features/inventory/data/datasources/inventory_remote_datasource.dart';
+import '../../../../manager/features/inventory/domain/usecases/update_item_in_inventory_usecase.dart';
+import '../../../../manager/features/inventory/data/repositories/inventory_repository_impl.dart';
 import '../../../supplier_management/data/datasources/supplier_datasource.dart';
 import '../../../supplier_management/domain/entities/supplier.dart';
 import '../../domain/entities/shipment.dart';
@@ -30,10 +32,12 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
   List<SupplierEntity> _suppliers = [];
   List<Item> _inventoryItems = [];
   double _totalAmount = 0.0;
+  late UpdateItemInInventoryUseCase _updateItemInInventoryUseCase;
 
   @override
   void initState() {
     super.initState();
+    _initializeInventoryUseCase();
     _loadSuppliersAndInventory();
     if (widget.isEdit && widget.shipment != null) {
       _selectedSupplierId = widget.shipment!.supplierId;
@@ -46,6 +50,16 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
         (summ, item) => summ + item.cost * item.quantity,
       );
     }
+  }
+
+  void _initializeInventoryUseCase() {
+    final inventoryDataSource = InventoryRemoteDataSourceImpl(
+      FirebaseFirestore.instance,
+    );
+    final inventoryRepository = InventoryRepositoryImpl(inventoryDataSource);
+    _updateItemInInventoryUseCase = UpdateItemInInventoryUseCase(
+      inventoryRepository,
+    );
   }
 
   String _translatePaymentMethod(String englishMethod) {
@@ -99,6 +113,30 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
     }
   }
 
+  Future<void> _updateInventoryItem(Item updatedItem) async {
+    try {
+      await _updateItemInInventoryUseCase(
+        UpdateItemInInventoryParams(item: updatedItem),
+      );
+      // Update the local inventory items list
+      setState(() {
+        final index = _inventoryItems.indexWhere(
+          (item) => item.id == updatedItem.id,
+        );
+        if (index != -1) {
+          _inventoryItems[index] = updatedItem;
+        }
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('فشل في تحديث المخزون: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   void _showItemDialog(BuildContext context) {
     bool isInventoryItem = true;
     String? selectedItemId;
@@ -107,6 +145,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
     final quantityController = TextEditingController(text: '1');
     final codeController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    bool isEditingPrice = false;
 
     showDialog(
       context: context,
@@ -131,6 +170,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                       nameController.clear();
                       costController.clear();
                       codeController.clear();
+                      isEditingPrice = false;
                     }),
                     decoration: const InputDecoration(
                       labelText: 'مصدر المنتج',
@@ -162,6 +202,7 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                         nameController.text = item.name;
                         costController.text = item.cost.toString();
                         codeController.text = item.code ?? '';
+                        isEditingPrice = false;
                       }),
                       validator: (value) => value == null && isInventoryItem
                           ? 'يجب اختيار منتج'
@@ -197,6 +238,80 @@ class AddShipmentScreenState extends State<AddShipmentScreen> {
                     ),
                   ],
                   const SizedBox(height: 12),
+                  // Show editable price field for inventory items
+                  if (isInventoryItem && selectedItemId != null) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: costController,
+                            decoration: const InputDecoration(
+                              labelText: 'سعر المنتج *',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.number,
+                            enabled: isEditingPrice,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty)
+                                return 'السعر مطلوب';
+                              final cost = double.tryParse(value.trim());
+                              if (cost == null || cost <= 0) {
+                                return 'سعر غير صحيح';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: Icon(
+                            isEditingPrice ? Icons.save : Icons.edit,
+                            color: isEditingPrice ? Colors.green : Colors.blue,
+                          ),
+                          onPressed: () async {
+                            if (isEditingPrice) {
+                              // Save the updated price
+                              final costText = costController.text.trim();
+                              if (costText.isNotEmpty) {
+                                final cost = double.tryParse(costText);
+                                if (cost != null && cost > 0) {
+                                  final selectedItem = _inventoryItems
+                                      .firstWhere(
+                                        (i) => i.id == selectedItemId,
+                                      );
+                                  final updatedItem = Item(
+                                    id: selectedItem.id,
+                                    name: selectedItem.name,
+                                    cost: cost,
+                                    quantity: selectedItem.quantity,
+                                    timeAdded: selectedItem.timeAdded,
+                                    code: selectedItem.code,
+                                  );
+                                  await _updateInventoryItem(updatedItem);
+                                  setDialogState(() {
+                                    isEditingPrice = false;
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'تم تحديث سعر المنتج في المخزون',
+                                      ),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                }
+                              }
+                            } else {
+                              setDialogState(() {
+                                isEditingPrice = true;
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   TextFormField(
                     controller: quantityController,
                     decoration: const InputDecoration(
