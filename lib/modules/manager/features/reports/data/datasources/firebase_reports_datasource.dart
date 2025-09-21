@@ -30,13 +30,6 @@ class FirebaseReportsDataSource implements ReportsDataSource {
         route: '/reports/transactions',
       ),
       const Report(
-        id: 'revenue_expense',
-        title: 'الإيرادات مقابل المصروفات',
-        description: 'مقارنة الإيرادات والمصروفات',
-        icon: 'trending_up',
-        route: '/reports/revenue-expense',
-      ),
-      const Report(
         id: 'profitability',
         title: 'تقرير ربحية المنتجات',
         description: 'ربحية كل منتج في المخزون',

@@ -55,13 +55,7 @@ class MockReportsDataSource implements ReportsDataSource {
         icon: 'account_balance_wallet',
         route: '/reports/transactions',
       ),
-      const Report(
-        id: 'revenue_expense',
-        title: 'الإيرادات مقابل المصروفات',
-        description: 'مقارنة الإيرادات والمصروفات',
-        icon: 'trending_up',
-        route: '/reports/revenue-expense',
-      ),
+
       const Report(
         id: 'profitability',
         title: 'تقرير ربحية المنتجات',

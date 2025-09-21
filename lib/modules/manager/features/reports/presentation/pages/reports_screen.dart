@@ -245,9 +245,9 @@ class ReportsScreen extends StatelessWidget {
       case 'transactions':
         Navigator.of(context).pushNamed('/reports/transactions');
         break;
-      case 'revenue_expense':
-        Navigator.of(context).pushNamed('/reports/revenue-expense');
-        break;
+      // case 'revenue_expense':
+      //   Navigator.of(context).pushNamed('/reports/revenue-expense');
+      //   break;
       case 'profitability':
         Navigator.of(context).pushNamed('/reports/profitability');
         break;
