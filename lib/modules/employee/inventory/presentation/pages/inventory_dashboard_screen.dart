@@ -11,24 +11,35 @@ class InventoryDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+    final isLargeScreen = screenSize.width > 900;
+
     return BlocProvider(
       create: (context) => DashboardCubit(FirebaseDashboardRepository()),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('لوحة تحكم المخزون'),
+          title: Text(
+            'لوحة تحكم المخزون',
+            style: TextStyle(
+              fontSize: isTablet ? 20 : 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.logout),
+              icon: Icon(Icons.logout, size: isTablet ? 28 : 24),
               onPressed: () => _showLogoutDialog(context),
             ),
           ],
         ),
         body: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(isTablet ? 20.0 : 16.0),
           child: GridView.count(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
+            crossAxisCount: isLargeScreen ? 3 : (isTablet ? 2 : 2),
+            crossAxisSpacing: isTablet ? 20 : 16,
+            mainAxisSpacing: isTablet ? 20 : 16,
+            childAspectRatio: isTablet ? 1.1 : 1.0,
             children: [
               _buildDashboardCard(
                 context,
@@ -36,6 +47,7 @@ class InventoryDashboardScreen extends StatelessWidget {
                 Icons.local_shipping,
                 Colors.blue,
                 () => Navigator.pushNamed(context, Routes.shipments),
+                isTablet,
               ),
               _buildDashboardCard(
                 context,
@@ -43,13 +55,18 @@ class InventoryDashboardScreen extends StatelessWidget {
                 Icons.business,
                 Colors.green,
                 () => Navigator.pushNamed(context, Routes.suppliers),
+                isTablet,
               ),
               _buildDashboardCard(
                 context,
                 'إدارة المخزون',
                 Icons.inventory,
                 Colors.teal,
-                () => Navigator.pushNamed(context, Routes.restrictedInventoryPanel),
+                () => Navigator.pushNamed(
+                  context,
+                  Routes.restrictedInventoryPanel,
+                ),
+                isTablet,
               ),
             ],
           ),
@@ -64,16 +81,17 @@ class InventoryDashboardScreen extends StatelessWidget {
     IconData icon,
     Color color,
     VoidCallback onTap,
+    bool isTablet,
   ) {
     return Card(
       elevation: 4,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(isTablet ? 20 : 16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -83,15 +101,20 @@ class InventoryDashboardScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 48, color: Colors.white),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              Icon(icon, size: isTablet ? 56 : 48, color: Colors.white),
+              SizedBox(height: isTablet ? 16 : 12),
+              Flexible(
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: isTablet ? 18 : 16,
+                    fontWeight: FontWeight.bold,
+                    height: 1.2,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -102,15 +125,30 @@ class InventoryDashboardScreen extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تأكيد تسجيل الخروج'),
-        content: const Text('هل أنت متأكد من تسجيل الخروج؟'),
+        title: Text(
+          'تأكيد تسجيل الخروج',
+          style: TextStyle(
+            fontSize: isTablet ? 20 : 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          'هل أنت متأكد من تسجيل الخروج؟',
+          style: TextStyle(fontSize: isTablet ? 16 : 14),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(AppStrings.cancel),
+            child: Text(
+              AppStrings.cancel,
+              style: TextStyle(fontSize: isTablet ? 16 : 14),
+            ),
           ),
           TextButton(
             onPressed: () async {
@@ -120,7 +158,13 @@ class InventoryDashboardScreen extends StatelessWidget {
                 Navigator.of(context).pushReplacementNamed(Routes.login);
               }
             },
-            child: const Text('تسجيل الخروج'),
+            child: Text(
+              'تسجيل الخروج',
+              style: TextStyle(
+                fontSize: isTablet ? 16 : 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
