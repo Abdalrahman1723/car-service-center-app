@@ -163,10 +163,6 @@ class _NetProfitScreenState extends State<NetProfitScreen> {
                 '${net.totalGoodsCost.toStringAsFixed(2)} ${AppStrings.currency}',
               ),
               _row(
-                'تكلفة المخزون في نهاية الفترة',
-                '${net.endingInventoryCost.toStringAsFixed(2)} ${AppStrings.currency}',
-              ),
-              _row(
                 'ديون الموردين',
                 '${net.suppliersDebt.toStringAsFixed(2)} ${AppStrings.currency}',
               ),
@@ -176,6 +172,17 @@ class _NetProfitScreenState extends State<NetProfitScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          // _SummaryCard(
+          //   title: 'قيمة المخزون',
+          //   children: [
+          //     _row(
+          //       'إجمالي قيمة المخزون',
+          //       '${net.endingInventoryCost.toStringAsFixed(2)} ${AppStrings.currency}',
+          //       highlight: true,
+          //     ),
+          //   ],
+          // ),
           const SizedBox(height: 12),
           _SummaryCard(
             title: 'صافي الربح',
@@ -200,11 +207,18 @@ class _NetProfitScreenState extends State<NetProfitScreen> {
     return '$day/$month/$year';
   }
 
-  Widget _row(String label, String value, {bool large = false}) {
+  Widget _row(
+    String label,
+    String value, {
+    bool large = false,
+    bool highlight = false,
+  }) {
     final bool isNetProfitRow = large && label == 'الصافي';
     final bool isNegative = isNetProfitRow && value.startsWith('-');
     final Color valueColor = isNetProfitRow
         ? (isNegative ? const Color(0xFFC62828) : const Color(0xFF2E7D32))
+        : highlight
+        ? const Color(0xFF1976D2)
         : Colors.black;
 
     return Padding(
@@ -214,13 +228,19 @@ class _NetProfitScreenState extends State<NetProfitScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 16, color: Colors.black87),
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.black87,
+              fontWeight: highlight ? FontWeight.bold : FontWeight.normal,
+            ),
           ),
           Text(
             value,
             style: TextStyle(
               fontSize: large ? 20 : 16,
-              fontWeight: large ? FontWeight.bold : FontWeight.w600,
+              fontWeight: large || highlight
+                  ? FontWeight.bold
+                  : FontWeight.w600,
               color: valueColor,
             ),
           ),
