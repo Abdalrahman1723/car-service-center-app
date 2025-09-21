@@ -467,7 +467,33 @@ class DashboardScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _buildSalesChart(salesData),
+                      // Add loading state for chart
+                      BlocBuilder<DashboardCubit, DashboardState>(
+                        builder: (context, state) {
+                          if (state is DashboardLoading) {
+                            return Container(
+                              height: 250,
+                              child: const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    CircularProgressIndicator(),
+                                    SizedBox(height: 16),
+                                    Text(
+                                      'جاري تحميل البيانات...',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                          return _buildSalesChart(salesData);
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -546,33 +572,243 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildSalesChart(Map<String, double> salesData) {
+    // Handle null or empty data
     if (salesData.isEmpty) {
-      return const Center(
-        child: Text(
-          'لا توجد بيانات مبيعات',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
-        ),
+      return _buildErrorWidget(
+        'لا توجد بيانات مبيعات',
+        Icons.bar_chart,
+        'لا توجد بيانات للعرض',
       );
     }
 
-    final entries = salesData.entries.toList();
-    final spots = entries.asMap().entries.map((entry) {
-      return FlSpot(entry.key.toDouble(), entry.value.value);
-    }).toList();
+    try {
+      // Clean and normalize data
+      final cleanedData = <MapEntry<String, double>>[];
 
-    // Calculate max value for better Y-axis scaling
-    final maxValue = spots.isNotEmpty
-        ? spots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b) * 1.2
-        : 100.0;
+      for (final entry in salesData.entries) {
+        if (entry.key.isNotEmpty) {
+          double value = entry.value;
+
+          // Handle problematic values
+          if (value.isNaN || value.isInfinite) {
+            value = 0.0;
+          } else if (value < 0) {
+            value = 0.0; // Convert negative values to zero
+          } else if (value > 1000000) {
+            value = 1000000; // Cap extremely large values
+          }
+
+          cleanedData.add(MapEntry(entry.key, value));
+        }
+      }
+
+      // If no valid data after cleaning, show error
+      if (cleanedData.isEmpty) {
+        return _buildErrorWidget(
+          'بيانات غير صالحة',
+          Icons.warning,
+          'جميع البيانات غير صالحة للعرض',
+        );
+      }
+
+      // Sort data by value to ensure proper ordering
+      cleanedData.sort((a, b) => a.value.compareTo(b.value));
+
+      // Create chart spots with proper spacing
+      final spots = <FlSpot>[];
+      for (int i = 0; i < cleanedData.length; i++) {
+        spots.add(FlSpot(i.toDouble(), cleanedData[i].value));
+      }
+
+      // Calculate proper scaling
+      double minValue = 0;
+      double maxValue = 100;
+
+      if (spots.isNotEmpty) {
+        final values = spots.map((spot) => spot.y).toList();
+        minValue = values.reduce((a, b) => a < b ? a : b);
+        maxValue = values.reduce((a, b) => a > b ? a : b);
+
+        // Add padding to the range
+        final range = maxValue - minValue;
+        if (range == 0) {
+          // If all values are the same, create a small range
+          minValue = (minValue * 0.9).clamp(0, double.infinity);
+          maxValue = (maxValue * 1.1).clamp(0, double.infinity);
+        } else {
+          final padding = range * 0.1; // 10% padding
+          minValue = (minValue - padding).clamp(0, double.infinity);
+          maxValue = maxValue + padding;
+        }
+      }
+
+      // Ensure minimum range for visibility
+      if (maxValue - minValue < 1) {
+        maxValue = minValue + 1;
+      }
+
+      return SizedBox(
+        height: 250,
+        child: LineChart(
+          LineChartData(
+            gridData: FlGridData(
+              show: true,
+              drawVerticalLine: false,
+              horizontalInterval: (maxValue - minValue) / 5,
+              getDrawingHorizontalLine: (value) {
+                return FlLine(
+                  color: Colors.grey.withOpacity(0.3),
+                  strokeWidth: 1,
+                );
+              },
+            ),
+            titlesData: FlTitlesData(
+              show: true,
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 35,
+                  getTitlesWidget: (value, meta) {
+                    try {
+                      final index = value.toInt();
+                      if (index >= 0 && index < cleanedData.length) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            cleanedData[index].key,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      // Handle any errors in title generation
+                    }
+                    return const Text('');
+                  },
+                ),
+              ),
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 50,
+                  interval: (maxValue - minValue) / 5,
+                  getTitlesWidget: (value, meta) {
+                    try {
+                      return Text(
+                        value.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      );
+                    } catch (e) {
+                      return const Text('');
+                    }
+                  },
+                ),
+              ),
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+            ),
+            borderData: FlBorderData(
+              show: true,
+              border: Border.all(color: Colors.grey.withOpacity(0.5)),
+            ),
+            minX: 0,
+            maxX: (cleanedData.length - 1).toDouble(),
+            minY: minValue,
+            maxY: maxValue,
+            lineBarsData: [
+              LineChartBarData(
+                spots: spots,
+                isCurved: true, // Always show curves
+                curveSmoothness: 0.35, // Smooth curves
+                color: Colors.blue,
+                barWidth: 3,
+                dotData: FlDotData(
+                  show: true,
+                  getDotPainter: (spot, percent, barData, index) {
+                    return FlDotCirclePainter(
+                      radius: 5,
+                      color: Colors.white,
+                      strokeWidth: 2,
+                      strokeColor: Colors.blue,
+                    );
+                  },
+                ),
+                belowBarData: BarAreaData(
+                  show: true,
+                  color: Colors.blue.withOpacity(0.1),
+                ),
+                // Add gradient for better visual appeal
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.blue.withOpacity(0.8),
+                    Colors.blue.withOpacity(0.3),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ],
+            // Add touch interaction
+            lineTouchData: LineTouchData(
+              enabled: true,
+              touchTooltipData: LineTouchTooltipData(
+                getTooltipColor: (touchedSpot) => Colors.blue.withOpacity(0.8),
+                getTooltipItems: (touchedSpots) {
+                  return touchedSpots.map((touchedSpot) {
+                    final index = touchedSpot.x.toInt();
+                    if (index >= 0 && index < cleanedData.length) {
+                      return LineTooltipItem(
+                        '${cleanedData[index].key}\n${touchedSpot.y.toStringAsFixed(2)}',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    }
+                    return null;
+                  }).toList();
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      // Catch any unexpected errors and show a fallback chart
+      return _buildFallbackChart();
+    }
+  }
+
+  Widget _buildFallbackChart() {
+    // Create a simple fallback chart with sample data
+    final fallbackSpots = [
+      const FlSpot(0, 10),
+      const FlSpot(1, 20),
+      const FlSpot(2, 15),
+      const FlSpot(3, 25),
+      const FlSpot(4, 30),
+    ];
 
     return SizedBox(
-      height: 250, // Increased height for better readability
+      height: 250,
       child: LineChart(
         LineChartData(
           gridData: FlGridData(
             show: true,
-            drawVerticalLine: false, // Only horizontal grid lines
-            horizontalInterval: maxValue / 5, // 5 horizontal lines
+            drawVerticalLine: false,
+            horizontalInterval: 5,
             getDrawingHorizontalLine: (value) {
               return FlLine(
                 color: Colors.grey.withOpacity(0.3),
@@ -587,11 +823,13 @@ class DashboardScreen extends StatelessWidget {
                 showTitles: true,
                 reservedSize: 35,
                 getTitlesWidget: (value, meta) {
-                  if (value.toInt() < entries.length) {
+                  final months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو'];
+                  final index = value.toInt();
+                  if (index >= 0 && index < months.length) {
                     return Padding(
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
-                        entries[value.toInt()].key,
+                        months[index],
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -607,7 +845,7 @@ class DashboardScreen extends StatelessWidget {
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 50,
-                interval: maxValue / 5,
+                interval: 5,
                 getTitlesWidget: (value, meta) {
                   return Text(
                     value.toInt().toString(),
@@ -619,28 +857,33 @@ class DashboardScreen extends StatelessWidget {
                 },
               ),
             ),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           borderData: FlBorderData(
             show: true,
             border: Border.all(color: Colors.grey.withOpacity(0.5)),
           ),
           minX: 0,
-          maxX: (entries.length - 1).toDouble(),
+          maxX: 4,
           minY: 0,
-          maxY: maxValue,
+          maxY: 35,
           lineBarsData: [
             LineChartBarData(
-              spots: spots,
+              spots: fallbackSpots,
               isCurved: true,
+              curveSmoothness: 0.35,
               color: Colors.blue,
               barWidth: 3,
               dotData: FlDotData(
                 show: true,
                 getDotPainter: (spot, percent, barData, index) {
                   return FlDotCirclePainter(
-                    radius: 4,
+                    radius: 5,
                     color: Colors.white,
                     strokeWidth: 2,
                     strokeColor: Colors.blue,
@@ -657,4 +900,34 @@ class DashboardScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildErrorWidget(String title, IconData icon, String message) {
+    return Container(
+      height: 250,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 48, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
 }

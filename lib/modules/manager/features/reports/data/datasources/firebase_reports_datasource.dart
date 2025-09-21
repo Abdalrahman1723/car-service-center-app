@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/report.dart';
 import '../../domain/entities/sales_report_item.dart';
@@ -333,7 +335,7 @@ class FirebaseReportsDataSource implements ReportsDataSource {
     );
     final double totalSales = salesItems.fold(
       0.0,
-      (sum, s) => sum + (s.price * s.quantity),
+      (summ, s) => summ + (s.price * s.quantity),
     );
 
     // total payments: sum of vault expenses within range
@@ -344,21 +346,24 @@ class FirebaseReportsDataSource implements ReportsDataSource {
     );
     final double totalPayments = transactions
         .where((t) => t.type == 'expense')
-        .fold(0.0, (sum, t) => sum + t.totalAmount);
+        .fold(0.0, (summ, t) => summ + t.totalAmount);
 
     // total goods price (cost of goods sold): sum of cost*qty for sold items
     final double totalGoodsCost = salesItems.fold(
       0.0,
-      (sum, s) => sum + (s.cost * s.quantity),
+      (summ, s) => summ + (s.cost * s.quantity),
     );
 
     // ending inventory cost: best-effort snapshot by summing inventory items cost*qty
     double endingInventoryCost = 0.0;
     try {
-      final invSnapshot = await _firestore.collection('inventory').get();
-      for (final doc in invSnapshot.docs) {
-        final data = doc.data();
-        final List<dynamic> items = (data['items'] as List<dynamic>?) ?? [];
+      final mainDoc = await _firestore
+          .collection('inventories')
+          .doc('main')
+          .get();
+      if (mainDoc.exists) {
+        final data = mainDoc.data();
+        final List<dynamic> items = (data?['items'] as List<dynamic>?) ?? [];
         for (final dynamic raw in items) {
           if (raw is Map<String, dynamic>) {
             final qty = (raw['quantity'] as num?)?.toInt() ?? 0;
@@ -367,7 +372,9 @@ class FirebaseReportsDataSource implements ReportsDataSource {
           }
         }
       }
-    } catch (_) {}
+    } catch (_) {
+      log('error getting ending inventory cost');
+    }
 
     // suppliers debt and clients debt: read aggregate balances if present
     double suppliersDebt = 0.0;

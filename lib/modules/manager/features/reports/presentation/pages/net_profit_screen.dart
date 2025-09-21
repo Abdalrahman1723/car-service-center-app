@@ -173,16 +173,17 @@ class _NetProfitScreenState extends State<NetProfitScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          // _SummaryCard(
-          //   title: 'قيمة المخزون',
-          //   children: [
-          //     _row(
-          //       'إجمالي قيمة المخزون',
-          //       '${net.endingInventoryCost.toStringAsFixed(2)} ${AppStrings.currency}',
-          //       highlight: true,
-          //     ),
-          //   ],
-          // ),
+
+          _SummaryCard(
+            title: 'قيمة المخزون',
+            children: [
+              _row(
+                'إجمالي قيمة المخزون',
+                '${net.endingInventoryCost.toStringAsFixed(2)} ${AppStrings.currency}',
+                highlight: true,
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           _SummaryCard(
             title: 'صافي الربح',
