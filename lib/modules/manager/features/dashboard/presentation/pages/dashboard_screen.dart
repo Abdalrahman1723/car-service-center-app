@@ -43,12 +43,12 @@ class DashboardScreen extends StatelessWidget {
             },
           ),
           //notification screen
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              // Navigate to notifications page
-            },
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.notifications),
+          //   onPressed: () {
+          //     // Navigate to notifications page
+          //   },
+          // ),
         ],
       ),
       drawer: Drawer(
@@ -929,5 +929,4 @@ class DashboardScreen extends StatelessWidget {
       ),
     );
   }
-
 }
