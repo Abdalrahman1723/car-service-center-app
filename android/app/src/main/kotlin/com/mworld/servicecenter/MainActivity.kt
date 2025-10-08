@@ -1,4 +1,4 @@
-package com.example.m_world
+package com.mworld.servicecenter
 
 import io.flutter.embedding.android.FlutterActivity
 

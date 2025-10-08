@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.service.m_world"
+    namespace = "com.mworld.servicecenter"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -22,7 +22,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.service.m_world"
+        applicationId = "com.mworld.servicecenter"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
