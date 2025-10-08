@@ -357,26 +357,32 @@ class _SliderCard extends StatelessWidget {
               aspectRatio: 16 / 9,
               viewportFraction: isSmallScreen ? 0.9 : 0.7,
             ),
-            items: ['assets/icon.png'].map((url) {
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(url, fit: BoxFit.cover),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.35),
-                          Colors.transparent,
-                        ],
+            items:
+                [
+                  'assets/icon.png',
+                  'assets/m1.jpg',
+                  'assets/m2.jpg',
+                  'assets/m3.jpg',
+                ].map((url) {
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(url, fit: BoxFit.cover),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.35),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ],
-              );
-            }).toList(),
+                    ],
+                  );
+                }).toList(),
           ),
         ),
       ),
