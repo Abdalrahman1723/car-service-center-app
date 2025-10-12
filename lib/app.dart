@@ -1,4 +1,3 @@
-import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:m_world/config/routes.dart';
@@ -30,10 +29,9 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: routes,
         builder: (context, child) {
-          final previewChild = DevicePreview.appBuilder(context, child);
           return Directionality(
             textDirection: TextDirection.rtl,
-            child: previewChild,
+            child: child!,
           );
         },
       ),
