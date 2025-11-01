@@ -70,58 +70,60 @@ class InvoiceExportButton extends StatelessWidget {
     final pdf = pw.Document();
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         textDirection: pw.TextDirection.rtl,
         margin: const pw.EdgeInsets.all(20),
-        build: (pw.Context ctx) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-            children: [
-              // Header with logo and service center info
-              _buildHeader(logoImage, boldFont, font),
-              pw.SizedBox(height: 30),
-
-              // Invoice title and number
-              _buildInvoiceTitle(boldFont),
-              pw.SizedBox(height: 25),
-
-              // Two column layout for client and invoice details
-              pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  // Client information
-                  pw.Expanded(child: _buildClientSection(font, boldFont)),
-                  pw.SizedBox(width: 20),
-                  // Invoice details
-                  pw.Expanded(
-                    child: _buildInvoiceDetailsSection(font, boldFont),
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 25),
-
-              // Items table
-              _buildItemsTable(font, boldFont),
-              pw.SizedBox(height: 20),
-
-              // Detailed breakdown section
-              _buildDetailedBreakdown(font, boldFont),
-              pw.SizedBox(height: 20),
-
-              // Summary section
-              _buildSummarySection(font, boldFont),
-              pw.SizedBox(height: 20),
-
-              // Notes section
-              if (invoice.notes != null && invoice.notes!.isNotEmpty)
-                _buildNotesSection(invoice.notes!, font, boldFont),
-              pw.SizedBox(height: 30),
-
-              // Footer
-              _buildFooter(font),
-            ],
+        theme: pw.ThemeData.withFont(base: font, bold: boldFont),
+        header: (pw.Context context) {
+          if (context.pageNumber == 1) {
+            return pw.SizedBox.shrink();
+          }
+          return _buildPageHeader(
+            logoImage,
+            boldFont,
+            font,
+            context.pageNumber,
           );
+        },
+        footer: (pw.Context context) {
+          return _buildPageFooter(font, context.pageNumber, context.pagesCount);
+        },
+        build: (pw.Context ctx) {
+          // Return all widgets - MultiPage will handle pagination
+          // First-page-only content is added first, so it will naturally appear on page 1
+          // Last-page-only content will be placed by the system on the last page
+          return [
+            // Header with logo and service center info (first page only - added first)
+            _buildHeader(logoImage, boldFont, font),
+            pw.SizedBox(height: 20),
+
+            // Invoice title and number (first page only)
+            _buildInvoiceTitle(boldFont, ctx),
+            pw.SizedBox(height: 20),
+
+            // Two column layout for client and invoice details (first page only)
+            _buildClientAndInvoiceDetailsRow(font, boldFont, ctx),
+            pw.SizedBox(height: 20),
+
+            // Items table (can span multiple pages - auto-paginated)
+            _buildItemsTable(font, boldFont, ctx),
+
+            // Detailed breakdown section (will appear after table)
+            // Note: These sections will naturally appear on the last page after the table
+            pw.SizedBox(height: 20),
+            _buildDetailedBreakdown(font, boldFont, ctx),
+
+            // Summary section
+            pw.SizedBox(height: 20),
+            _buildSummarySection(font, boldFont, ctx),
+
+            // Notes section
+            if (invoice.notes != null && invoice.notes!.isNotEmpty) ...[
+              pw.SizedBox(height: 20),
+              _buildNotesSection(invoice.notes!, font, boldFont, ctx),
+            ],
+          ];
         },
       ),
     );
@@ -136,7 +138,7 @@ class InvoiceExportButton extends StatelessWidget {
     pw.Font font,
   ) {
     return pw.Container(
-      padding: const pw.EdgeInsets.all(15),
+      padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
         color: PdfColors.grey50,
         borderRadius: pw.BorderRadius.circular(8),
@@ -150,12 +152,12 @@ class InvoiceExportButton extends StatelessWidget {
             'مركز خدمة M World',
             style: pw.TextStyle(
               font: boldFont,
-              fontSize: 20,
+              fontSize: 18,
               color: PdfColors.blue800,
             ),
             textAlign: pw.TextAlign.center,
           ),
-          pw.SizedBox(height: 15),
+          pw.SizedBox(height: 12),
 
           // Logo and contact info in a row
           pw.Row(
@@ -164,11 +166,16 @@ class InvoiceExportButton extends StatelessWidget {
             children: [
               // Logo (with fallback if image fails to load)
               if (logoImage != null)
-                pw.Image(logoImage, width: 80, height: 80)
+                pw.Image(
+                  logoImage,
+                  width: 70,
+                  height: 70,
+                  fit: pw.BoxFit.contain,
+                )
               else
                 pw.Container(
-                  width: 80,
-                  height: 80,
+                  width: 70,
+                  height: 70,
                   decoration: pw.BoxDecoration(
                     color: PdfColors.blue100,
                     borderRadius: pw.BorderRadius.circular(8),
@@ -179,7 +186,7 @@ class InvoiceExportButton extends StatelessWidget {
                       'M\nWorld',
                       style: pw.TextStyle(
                         font: boldFont,
-                        fontSize: 14,
+                        fontSize: 12,
                         color: PdfColors.blue800,
                       ),
                       textAlign: pw.TextAlign.center,
@@ -194,24 +201,24 @@ class InvoiceExportButton extends StatelessWidget {
                   children: [
                     pw.Text(
                       'الهاتف: 01000094049',
-                      style: pw.TextStyle(font: font, fontSize: 14),
+                      style: pw.TextStyle(font: font, fontSize: 12),
                       textAlign: pw.TextAlign.right,
                     ),
-                    pw.SizedBox(height: 8),
+                    pw.SizedBox(height: 6),
                     pw.Text(
                       'العنوان:',
-                      style: pw.TextStyle(font: boldFont, fontSize: 12),
+                      style: pw.TextStyle(font: boldFont, fontSize: 11),
                       textAlign: pw.TextAlign.right,
                     ),
-                    pw.SizedBox(height: 4),
+                    pw.SizedBox(height: 3),
                     pw.Text(
                       'العبور المنطقة الصناعية الدولى',
-                      style: pw.TextStyle(font: font, fontSize: 11),
+                      style: pw.TextStyle(font: font, fontSize: 10),
                       textAlign: pw.TextAlign.right,
                     ),
                     pw.Text(
                       'قطعه 13021 شارع 50 بجوار شركة امون للادوية',
-                      style: pw.TextStyle(font: font, fontSize: 11),
+                      style: pw.TextStyle(font: font, fontSize: 10),
                       textAlign: pw.TextAlign.right,
                     ),
                   ],
@@ -224,9 +231,60 @@ class InvoiceExportButton extends StatelessWidget {
     );
   }
 
-  pw.Widget _buildInvoiceTitle(pw.Font boldFont) {
+  pw.Widget _buildPageHeader(
+    pw.MemoryImage? logoImage,
+    pw.Font boldFont,
+    pw.Font font,
+    int pageNumber,
+  ) {
     return pw.Container(
-      padding: const pw.EdgeInsets.all(15),
+      padding: const pw.EdgeInsets.only(bottom: 10),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            'صفحة $pageNumber',
+            style: pw.TextStyle(
+              font: font,
+              fontSize: 10,
+              color: PdfColors.grey600,
+            ),
+          ),
+          pw.Text(
+            'مركز خدمة M World - Job order رقم: ${invoice.id}',
+            style: pw.TextStyle(
+              font: boldFont,
+              fontSize: 11,
+              color: PdfColors.blue800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildPageFooter(pw.Font font, int pageNumber, int totalPages) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.only(top: 10),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.center,
+        children: [
+          pw.Text(
+            'صفحة $pageNumber من $totalPages',
+            style: pw.TextStyle(
+              font: font,
+              fontSize: 10,
+              color: PdfColors.grey600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildInvoiceTitle(pw.Font boldFont, pw.Context ctx) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
         color: PdfColors.blue50,
         borderRadius: pw.BorderRadius.circular(8),
@@ -235,20 +293,25 @@ class InvoiceExportButton extends StatelessWidget {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text(
-            'Job order',
-            style: pw.TextStyle(
-              font: boldFont,
-              fontSize: 20,
-              color: PdfColors.blue800,
+          pw.Flexible(
+            child: pw.Text(
+              'Job order',
+              style: pw.TextStyle(
+                font: boldFont,
+                fontSize: 16,
+                color: PdfColors.blue800,
+              ),
             ),
           ),
-          pw.Text(
-            'رقم: ${invoice.id}',
-            style: pw.TextStyle(
-              font: boldFont,
-              fontSize: 16,
-              color: PdfColors.blue700,
+          pw.Flexible(
+            child: pw.Text(
+              'رقم: ${invoice.id}',
+              style: pw.TextStyle(
+                font: boldFont,
+                fontSize: 14,
+                color: PdfColors.blue700,
+              ),
+              textAlign: pw.TextAlign.right,
             ),
           ),
         ],
@@ -256,9 +319,40 @@ class InvoiceExportButton extends StatelessWidget {
     );
   }
 
+  pw.Widget _buildClientAndInvoiceDetailsRow(
+    pw.Font font,
+    pw.Font boldFont,
+    pw.Context ctx,
+  ) {
+    // On smaller pages, stack vertically, otherwise use row
+    // A4 width (595) minus margins (40) = ~555 points
+    final availableWidth = PdfPageFormat.a4.width - 40;
+    final useRow = availableWidth > 400;
+
+    if (useRow) {
+      return pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Expanded(child: _buildClientSection(font, boldFont)),
+          pw.SizedBox(width: 15),
+          pw.Expanded(child: _buildInvoiceDetailsSection(font, boldFont)),
+        ],
+      );
+    } else {
+      return pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+        children: [
+          _buildClientSection(font, boldFont),
+          pw.SizedBox(height: 15),
+          _buildInvoiceDetailsSection(font, boldFont),
+        ],
+      );
+    }
+  }
+
   pw.Widget _buildClientSection(pw.Font font, pw.Font boldFont) {
     return pw.Container(
-      padding: const pw.EdgeInsets.all(12),
+      padding: const pw.EdgeInsets.all(10),
       decoration: pw.BoxDecoration(
         color: PdfColors.grey50,
         borderRadius: pw.BorderRadius.circular(8),
@@ -271,11 +365,11 @@ class InvoiceExportButton extends StatelessWidget {
             'معلومات العميل',
             style: pw.TextStyle(
               font: boldFont,
-              fontSize: 14,
+              fontSize: 12,
               color: PdfColors.grey800,
             ),
           ),
-          pw.Divider(color: PdfColors.grey400, height: 20),
+          pw.Divider(color: PdfColors.grey400, height: 15),
           _buildDetailRow('الاسم', clientName, font),
           _buildDetailRow('رقم العميل', invoice.clientId, font),
           _buildDetailRow('السيارة', invoice.selectedCar, font),
@@ -286,7 +380,7 @@ class InvoiceExportButton extends StatelessWidget {
 
   pw.Widget _buildInvoiceDetailsSection(pw.Font font, pw.Font boldFont) {
     return pw.Container(
-      padding: const pw.EdgeInsets.all(12),
+      padding: const pw.EdgeInsets.all(10),
       decoration: pw.BoxDecoration(
         color: PdfColors.grey50,
         borderRadius: pw.BorderRadius.circular(8),
@@ -296,14 +390,14 @@ class InvoiceExportButton extends StatelessWidget {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(
-            'تفاصيل الفاتورة',
+            'تفاصيل العملية',
             style: pw.TextStyle(
               font: boldFont,
-              fontSize: 14,
+              fontSize: 12,
               color: PdfColors.grey800,
             ),
           ),
-          pw.Divider(color: PdfColors.grey400, height: 20),
+          pw.Divider(color: PdfColors.grey400, height: 15),
           _buildDetailRow(
             'تاريخ الإصدار',
             DateFormat.yMMMd('ar').format(invoice.issueDate),
@@ -335,72 +429,75 @@ class InvoiceExportButton extends StatelessWidget {
     );
   }
 
-  pw.Widget _buildItemsTable(pw.Font font, pw.Font boldFont) {
+  pw.Widget _buildItemsTable(pw.Font font, pw.Font boldFont, pw.Context ctx) {
+    // A4 width (595) minus margins (40) = ~555 points
+    final availableWidth = PdfPageFormat.a4.width - 40;
+
+    // Note: We can't safely check pageNumber during build
+    // The table header will default to the first page style
+    final currentPage = 1; // Default, will be correct when rendered
+
+    // Prepare table data - service fees should be in the table data but will only show on the page where it fits
+    final tableData = [
+      ...invoice.items.map((item) {
+        return [
+          item.name,
+          item.quantity.toString(),
+          '${item.price!.toStringAsFixed(2)} ${AppStrings.currency}',
+          '${(item.price! * item.quantity).toStringAsFixed(2)} ${AppStrings.currency}',
+        ];
+      }).toList(),
+      // Add service fees as a separate row if they exist
+      if (invoice.serviceFees > 0) ...[
+        [
+          'مصنعية',
+          '1',
+          '${invoice.serviceFees.toStringAsFixed(2)} ${AppStrings.currency}',
+          '${invoice.serviceFees.toStringAsFixed(2)} ${AppStrings.currency}',
+        ],
+      ],
+    ];
+
     return pw.Container(
       decoration: pw.BoxDecoration(
         border: pw.Border.all(color: PdfColors.grey300, width: 1),
         borderRadius: pw.BorderRadius.circular(8),
       ),
       child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
         children: [
           // Table Header
           pw.Container(
-            padding: const pw.EdgeInsets.all(12),
-            decoration: const pw.BoxDecoration(
-              color: PdfColors.blue700,
+            padding: const pw.EdgeInsets.all(10),
+            decoration: pw.BoxDecoration(
+              color: currentPage == 1 ? PdfColors.blue700 : PdfColors.blue600,
               borderRadius: pw.BorderRadius.only(
                 topLeft: pw.Radius.circular(8),
                 topRight: pw.Radius.circular(8),
               ),
             ),
-            child: pw.Row(
-              children: [
-                pw.Expanded(
-                  flex: 3,
-                  child: pw.Text(
-                    'تفاصيل العناصر',
-                    style: pw.TextStyle(
-                      font: boldFont,
-                      color: PdfColors.white,
-                      fontSize: 14,
-                    ),
-                    textAlign: pw.TextAlign.center,
-                  ),
-                ),
-              ],
+            child: pw.Text(
+              currentPage == 1 ? 'تفاصيل العناصر' : 'تفاصيل العناصر (متابعة)',
+              style: pw.TextStyle(
+                font: boldFont,
+                color: PdfColors.white,
+                fontSize: currentPage == 1 ? 12 : 11,
+              ),
+              textAlign: pw.TextAlign.center,
             ),
           ),
 
           // Items Table
           pw.Table.fromTextArray(
             headers: ['اسم العنصر', 'الكمية', 'سعر الوحدة', 'الإجمالي'],
-            data: [
-              ...invoice.items.map((item) {
-                return [
-                  item.name,
-                  item.quantity.toString(),
-                  '${item.price!.toStringAsFixed(2)} ${AppStrings.currency}',
-                  '${(item.price! * item.quantity).toStringAsFixed(2)} ${AppStrings.currency}',
-                ];
-              }).toList(),
-              // Add service fees as a separate row if they exist
-              if (invoice.serviceFees > 0) ...[
-                [
-                  'مصنعية',
-                  '1',
-                  '${invoice.serviceFees.toStringAsFixed(2)} ${AppStrings.currency}',
-                  '${invoice.serviceFees.toStringAsFixed(2)} ${AppStrings.currency}',
-                ],
-              ],
-            ],
+            data: tableData,
             headerStyle: pw.TextStyle(
               font: boldFont,
               color: PdfColors.white,
-              fontSize: 11,
+              fontSize: 10,
             ),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.blue600),
-            cellStyle: pw.TextStyle(font: font, fontSize: 10),
+            cellStyle: pw.TextStyle(font: font, fontSize: 9),
             cellAlignments: {
               0: pw.Alignment.centerRight,
               1: pw.Alignment.center,
@@ -408,15 +505,15 @@ class InvoiceExportButton extends StatelessWidget {
               3: pw.Alignment.center,
             },
             columnWidths: {
-              0: const pw.FlexColumnWidth(3),
-              1: const pw.FlexColumnWidth(1),
-              2: const pw.FlexColumnWidth(1.5),
-              3: const pw.FlexColumnWidth(1.5),
+              0: pw.FlexColumnWidth(availableWidth > 400 ? 3 : 2.5),
+              1: pw.FlexColumnWidth(1),
+              2: pw.FlexColumnWidth(availableWidth > 400 ? 1.5 : 1.3),
+              3: pw.FlexColumnWidth(availableWidth > 400 ? 1.5 : 1.3),
             },
             border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
           ),
 
-          // Items Summary
+          // Items Summary (appears after table)
           pw.Container(
             padding: const pw.EdgeInsets.all(8),
             decoration: const pw.BoxDecoration(
@@ -432,19 +529,21 @@ class InvoiceExportButton extends StatelessWidget {
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text(
-                      'مجموع العناصر:',
-                      style: pw.TextStyle(
-                        font: boldFont,
-                        fontSize: 11,
-                        color: PdfColors.grey700,
+                    pw.Flexible(
+                      child: pw.Text(
+                        'مجموع العناصر:',
+                        style: pw.TextStyle(
+                          font: boldFont,
+                          fontSize: 10,
+                          color: PdfColors.grey700,
+                        ),
                       ),
                     ),
                     pw.Text(
                       '${invoice.items.fold<double>(0, (sum, item) => sum + (item.price! * item.quantity)).toStringAsFixed(2)} ${AppStrings.currency}',
                       style: pw.TextStyle(
                         font: boldFont,
-                        fontSize: 11,
+                        fontSize: 10,
                         color: PdfColors.grey700,
                       ),
                     ),
@@ -456,19 +555,21 @@ class InvoiceExportButton extends StatelessWidget {
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
-                      pw.Text(
-                        'مصنعية:',
-                        style: pw.TextStyle(
-                          font: boldFont,
-                          fontSize: 11,
-                          color: PdfColors.grey700,
+                      pw.Flexible(
+                        child: pw.Text(
+                          'مصنعية:',
+                          style: pw.TextStyle(
+                            font: boldFont,
+                            fontSize: 10,
+                            color: PdfColors.grey700,
+                          ),
                         ),
                       ),
                       pw.Text(
                         '${invoice.serviceFees.toStringAsFixed(2)} ${AppStrings.currency}',
                         style: pw.TextStyle(
                           font: boldFont,
-                          fontSize: 11,
+                          fontSize: 10,
                           color: PdfColors.grey700,
                         ),
                       ),
@@ -482,19 +583,21 @@ class InvoiceExportButton extends StatelessWidget {
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text(
-                      'إجمالي العناصر والرسوم:',
-                      style: pw.TextStyle(
-                        font: boldFont,
-                        fontSize: 12,
-                        color: PdfColors.grey800,
+                    pw.Flexible(
+                      child: pw.Text(
+                        'إجمالي العناصر والرسوم:',
+                        style: pw.TextStyle(
+                          font: boldFont,
+                          fontSize: 11,
+                          color: PdfColors.grey800,
+                        ),
                       ),
                     ),
                     pw.Text(
                       '${(invoice.items.fold<double>(0, (sum, item) => sum + (item.price! * item.quantity)) + invoice.serviceFees).toStringAsFixed(2)} ${AppStrings.currency}',
                       style: pw.TextStyle(
                         font: boldFont,
-                        fontSize: 12,
+                        fontSize: 11,
                         color: PdfColors.grey800,
                       ),
                     ),
@@ -508,7 +611,11 @@ class InvoiceExportButton extends StatelessWidget {
     );
   }
 
-  pw.Widget _buildDetailedBreakdown(pw.Font font, pw.Font boldFont) {
+  pw.Widget _buildDetailedBreakdown(
+    pw.Font font,
+    pw.Font boldFont,
+    pw.Context ctx,
+  ) {
     final subtotal = invoice.items.fold<double>(
       0,
       (sum, item) => sum + (item.price! * item.quantity),
@@ -517,8 +624,12 @@ class InvoiceExportButton extends StatelessWidget {
     final serviceFees = invoice.serviceFees;
     final total = subtotal - discount + serviceFees;
 
+    // A4 width (595) minus margins (40) = ~555 points
+    final availableWidth = PdfPageFormat.a4.width - 40;
+    final baseFontSize = availableWidth > 400 ? 14.0 : 12.0;
+
     return pw.Container(
-      padding: const pw.EdgeInsets.all(15),
+      padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
         color: PdfColors.yellow50,
         borderRadius: pw.BorderRadius.circular(8),
@@ -532,11 +643,11 @@ class InvoiceExportButton extends StatelessWidget {
             'تفصيل الحساب',
             style: pw.TextStyle(
               font: boldFont,
-              fontSize: 16,
+              fontSize: baseFontSize + 2,
               color: PdfColors.orange800,
             ),
           ),
-          pw.SizedBox(height: 15),
+          pw.SizedBox(height: 12),
 
           // Step by step breakdown
           _buildBreakdownRow('1. مجموع العناصر', subtotal, font),
@@ -633,7 +744,11 @@ class InvoiceExportButton extends StatelessWidget {
     );
   }
 
-  pw.Widget _buildSummarySection(pw.Font font, pw.Font boldFont) {
+  pw.Widget _buildSummarySection(
+    pw.Font font,
+    pw.Font boldFont,
+    pw.Context ctx,
+  ) {
     final subtotal = invoice.items.fold<double>(
       0,
       (sum, item) => sum + (item.price! * item.quantity),
@@ -642,8 +757,12 @@ class InvoiceExportButton extends StatelessWidget {
     final serviceFees = invoice.serviceFees;
     final total = subtotal - discount + serviceFees;
 
+    // A4 width (595) minus margins (40) = ~555 points
+    final availableWidth = PdfPageFormat.a4.width - 40;
+    final baseFontSize = availableWidth > 400 ? 14.0 : 12.0;
+
     return pw.Container(
-      padding: const pw.EdgeInsets.all(15),
+      padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
         color: PdfColors.green50,
         borderRadius: pw.BorderRadius.circular(8),
@@ -657,11 +776,11 @@ class InvoiceExportButton extends StatelessWidget {
             'الملخص النهائي',
             style: pw.TextStyle(
               font: boldFont,
-              fontSize: 18,
+              fontSize: baseFontSize + 4,
               color: PdfColors.green800,
             ),
           ),
-          pw.SizedBox(height: 15),
+          pw.SizedBox(height: 12),
 
           // Payment breakdown
           pw.Container(
@@ -825,7 +944,16 @@ class InvoiceExportButton extends StatelessWidget {
     );
   }
 
-  pw.Widget _buildNotesSection(String notes, pw.Font font, pw.Font boldFont) {
+  pw.Widget _buildNotesSection(
+    String notes,
+    pw.Font font,
+    pw.Font boldFont,
+    pw.Context ctx,
+  ) {
+    // A4 width (595) minus margins (40) = ~555 points
+    final availableWidth = PdfPageFormat.a4.width - 40;
+    final baseFontSize = availableWidth > 400 ? 12.0 : 10.0;
+
     return pw.Container(
       padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
@@ -840,44 +968,15 @@ class InvoiceExportButton extends StatelessWidget {
             AppStrings.notes,
             style: pw.TextStyle(
               font: boldFont,
-              fontSize: 14,
+              fontSize: baseFontSize + 2,
               color: PdfColors.orange800,
             ),
           ),
           pw.SizedBox(height: 8),
-          pw.Text(notes, style: pw.TextStyle(font: font, fontSize: 12)),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildFooter(pw.Font font) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.all(15),
-      decoration: pw.BoxDecoration(
-        color: PdfColors.grey100,
-        borderRadius: pw.BorderRadius.circular(8),
-      ),
-      child: pw.Column(
-        children: [
           pw.Text(
-            'شكراً لثقتكم في خدماتنا',
-            style: pw.TextStyle(
-              font: font,
-              fontSize: 14,
-              color: PdfColors.grey700,
-            ),
-            textAlign: pw.TextAlign.center,
-          ),
-          pw.SizedBox(height: 8),
-          pw.Text(
-            'للاستفسارات: ${AppStrings.serviceCenterPhoneNumber}',
-            style: pw.TextStyle(
-              font: font,
-              fontSize: 12,
-              color: PdfColors.grey600,
-            ),
-            textAlign: pw.TextAlign.center,
+            notes,
+            style: pw.TextStyle(font: font, fontSize: baseFontSize),
+            textAlign: pw.TextAlign.right,
           ),
         ],
       ),
